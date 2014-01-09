@@ -8,8 +8,6 @@ from . import  estimation, model
 
 
 def make_correlation_plot(direction_index, discard_year=False, show_model=True, min_measurements=1):
-    from .constants import DIRECTION_FILENAME, CORRELOGRAM_FILENAME
-    
     ## get model
     if show_model:
         correlation_model = model.Correlation_Model()

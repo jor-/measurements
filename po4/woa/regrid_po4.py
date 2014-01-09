@@ -9,7 +9,7 @@ import scipy.interpolate
 
 
 def load_from_netcdf(netcdf_file, netcdf_dataname, debug_level = 0, required_debug_level = 1):
-    base_string = 'util.measurements.regrid_po4.load_from_netcdf: '
+    base_string = 'measurements.po4.woa.regrid_po4.load_from_netcdf: '
     print_debug(('Loading data from ', netcdf_file), debug_level, required_debug_level, base_string)
     
     data = util.io.load_netcdf(netcdf_file, netcdf_dataname, debug_level, required_debug_level + 1)
@@ -18,16 +18,16 @@ def load_from_netcdf(netcdf_file, netcdf_dataname, debug_level = 0, required_deb
     return data
 
 def save_regrided(debug_level = 0, required_debug_level = 1):
-    from measurements.constants import WOA_PO4_NOBS_NETCDF_ANNUAL_FILE, WOA_PO4_NOBS_NETCDF_MONTHLY_FILE, WOA_PO4_NOBS_NETCDF_DATANAME, PO4_NOBS
-    from measurements.constants import WOA_PO4_VARIS_NETCDF_ANNUAL_FILE, WOA_PO4_VARIS_NETCDF_MONTHLY_FILE, WOA_PO4_VARIS_NETCDF_DATANAME, PO4_VARIS
-    from measurements.constants import WOA_PO4_MEANS_NETCDF_ANNUAL_FILE, WOA_PO4_MEANS_NETCDF_MONTHLY_FILE, WOA_PO4_MEANS_NETCDF_DATANAME, PO4_MEANS
-#     from measurements.constants import WOA_PO4_MOS_NETCDF_ANNUAL_FILE, WOA_PO4_MOS_NETCDF_MONTHLY_FILE, WOA_PO4_MOS_NETCDF_DATANAME, PO4_MOS
+    from measurements.po4.woa.constants import WOA_PO4_NOBS_NETCDF_ANNUAL_FILE, WOA_PO4_NOBS_NETCDF_MONTHLY_FILE, WOA_PO4_NOBS_NETCDF_DATANAME, PO4_NOBS
+    from measurements.po4.woa.constants import WOA_PO4_VARIS_NETCDF_ANNUAL_FILE, WOA_PO4_VARIS_NETCDF_MONTHLY_FILE, WOA_PO4_VARIS_NETCDF_DATANAME, PO4_VARIS
+    from measurements.po4.woa.constants import WOA_PO4_MEANS_NETCDF_ANNUAL_FILE, WOA_PO4_MEANS_NETCDF_MONTHLY_FILE, WOA_PO4_MEANS_NETCDF_DATANAME, PO4_MEANS
+#     from measurements.po4.woa.constants import WOA_PO4_MOS_NETCDF_ANNUAL_FILE, WOA_PO4_MOS_NETCDF_MONTHLY_FILE, WOA_PO4_MOS_NETCDF_DATANAME, PO4_MOS
     
-    from measurements.constants import PO4_ANNUAL_THRESHOLD
+    from measurements.po4.woa.constants import PO4_ANNUAL_THRESHOLD
     from ndop.metos3d.constants import METOS_Z
     
     
-    base_string = 'util.measurements.regrid_po4.save_regrided: '
+    base_string = 'util.measurements.po4.woa.regrid_po4.save_regrided: '
     
     ## concatenate annual and montly WOA data
     z_index_annual_threshold = bisect.bisect(METOS_Z, PO4_ANNUAL_THRESHOLD)

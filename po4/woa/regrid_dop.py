@@ -5,15 +5,15 @@ import ndop.metos3d.data
 from util.debug import print_debug
 
 def load_measurements(debug_level = 0, required_debug_level = 1):
-    from measurements.constants import YOSHIMURA_DOP_MEASUREMENT_FILE, LADOLFI_2002_DOP_MEASUREMENT_FILE, LADOLFI_2004_DOP_MEASUREMENT_FILE
+    from measurements.po4.woa.constants import YOSHIMURA_DOP_MEASUREMENT_FILE, LADOLFI_2002_DOP_MEASUREMENT_FILE, LADOLFI_2004_DOP_MEASUREMENT_FILE
     
     ## Yoshimirua data
-    print_debug(('Loading dop measurements from ', YOSHIMURA_DOP_MEASUREMENT_FILE), debug_level, required_debug_level,  'measurements.regrid_dop.measurements_array: ')
+    print_debug(('Loading dop measurements from ', YOSHIMURA_DOP_MEASUREMENT_FILE), debug_level, required_debug_level,  'measurements.po4.woa.regrid_dop.measurements_array: ')
     
     measurements_yoshimura = np.loadtxt(YOSHIMURA_DOP_MEASUREMENT_FILE)
     
     ## Ladolfi 2002 CD139 data
-    print_debug(('Loading dop measurements from ', LADOLFI_2002_DOP_MEASUREMENT_FILE), debug_level, required_debug_level,  'measurements.regrid_dop.measurements_array: ')
+    print_debug(('Loading dop measurements from ', LADOLFI_2002_DOP_MEASUREMENT_FILE), debug_level, required_debug_level,  'measurements.po4.woa.regrid_dop.measurements_array: ')
     
     measurements_ladolfi_1 = np.loadtxt(LADOLFI_2002_DOP_MEASUREMENT_FILE)
     # skip flagged values
@@ -21,7 +21,7 @@ def load_measurements(debug_level = 0, required_debug_level = 1):
     measurements_ladolfi_1 = measurements_ladolfi_1[:, 0:5]
     
     ## Ladolfi 2004 CD139 data
-    print_debug(('Loading dop measurements from ', LADOLFI_2004_DOP_MEASUREMENT_FILE), debug_level, required_debug_level,  'measurements.regrid_dop.measurements_array: ')
+    print_debug(('Loading dop measurements from ', LADOLFI_2004_DOP_MEASUREMENT_FILE), debug_level, required_debug_level,  'measurements.po4.woa.regrid_dop.measurements_array: ')
     
     # convert missing values to - Inf
     def convert_ladolfi_2_DOP_values(value_string):
@@ -62,9 +62,9 @@ def init_masked_array(land_sea_mask, t_dim, dtype=np.float64):
 
 
 def save_regrided(land_sea_mask, t_dim=12, debug_level = 0, required_debug_level = 1):
-    from measurements.constants import DOP_NOBS, DOP_VARIS, DOP_MEANS, DOP_MOS
+    from measurements.po4.woa.constants import DOP_NOBS, DOP_VARIS, DOP_MEANS, DOP_MOS
     
-    print_debug('Calculating and saving dop measurement data.', debug_level, required_debug_level,  'measurements.regrid_dop.save_regrided: ')
+    print_debug('Calculating and saving dop measurement data.', debug_level, required_debug_level,  'measurements.po4.woa.regrid_dop.save_regrided: ')
     
     ## load measurements
     measurements = load_measurements(debug_level, required_debug_level + 1)
@@ -76,7 +76,7 @@ def save_regrided(land_sea_mask, t_dim=12, debug_level = 0, required_debug_level
     sum_of_values = np.empty(nobs.shape, dtype=np.float64) * np.nan
     sum_of_squares = np.array(sum_of_values, copy=True)
     
-    number_of_measurements = measurements.shape[0]
+    number_of_measurements = measurements.po4.woa.shape[0]
     
     ## insert measurements
     for i in range(number_of_measurements):

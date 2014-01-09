@@ -4,24 +4,23 @@ import numpy as np
 import datetime
 import warnings
 
-import logging
-
 import ndop.metos3d.data
 
 import util.io
 import util.datetime
 
-from ..constants import CRUISES_PICKLED_FILE, DATA_DIR
+from .constants import CRUISES_FILE, DATA_DIR
+
+import logging
+logger = logging.getLogger(__name__)
 
 
-class Cruise(Debug):
+class Cruise():
     
     def __init__(self, file):
         from . import constants
         
-        self.logger = logging.getLogger(__name__)
-        
-        self.logger.debug('Loading cruise from %s.' % file)
+        logger.debug('Loading cruise from %s.' % file)
         
         ## open netcdf file
         f = scipy.io.netcdf.netcdf_file(file, 'r')
@@ -76,7 +75,7 @@ class Cruise(Debug):
             warnings.warn('Depth in %s is lower then 0.' % file)
             z[z < 0] = 0
         
-        self.logger.debug('Cruise from %s loaded.' % file)
+        logger.debug('Cruise from %s loaded.' % file)
     
     @property
     def number_of_measurements(self):
@@ -102,7 +101,7 @@ class Cruise(Debug):
             indices = None
         
         if indices == None:
-            self.logger.debug('Calculating spatil indices')
+            logger.debug('Calculating spatil indices')
             
             land_sea_mask = self.land_sea_mask
             x = self.x
@@ -146,8 +145,6 @@ class Cruise(Debug):
 class Cruise_Collection():
     
     def __init__(self, cruises=None):
-        self.logger = logging.getLogger(__name__)
-        
         self.__cruises = cruises
     
     
@@ -177,7 +174,7 @@ class Cruise_Collection():
     def calculate_spatial_indices(self):
         cruises = self.cruises
         
-        self.logger.debug('Calculating spatial indices for %d cruises.' % len(cruises))
+        logger.debug('Calculating spatial indices for %d cruises.' % len(cruises))
         
         land_sea_mask = ndop.metos3d.data.load_land_sea_mask()
         
@@ -185,50 +182,50 @@ class Cruise_Collection():
             cruise.land_sea_mask = land_sea_mask
             cruise.spatial_indices
         
-        
-        self.logger.debug('For %d cruises spatial indices calculted.' % len(cruises))
+        logger.debug('For %d cruises spatial indices calculted.' % len(cruises))
     
     
     def load_cruises_from_netcdf(self, data_dir=DATA_DIR):
-        self.logger.debug('Loading all cruises from netcdf files.')
+        logger.debug('Loading all cruises from netcdf files.')
         
         ## lookup files
-        self.logger.debug('Looking up files in %s.' % data_dir)
+        logger.debug('Looking up files in %s.' % data_dir)
         files = util.io.get_files(data_dir)
-        self.logger.debug('%d files found.' % len(files))
+        logger.debug('%d files found.' % len(files))
         
         ## load land sea mask
         land_sea_mask = ndop.metos3d.data.load_land_sea_mask()
         
         ## load cruises
-        self.logger.debug('Loading cruises from found files.')
-        def load_cruise(file):
-            cruise = Cruise(file)
-            cruise.land_sea_mask = land_sea_mask
-            cruise.spatial_indices
-            return cruise
+        logger.debug('Loading cruises from found files.')
+#         def load_cruise(file):
+#             cruise = Cruise(file)
+#             cruise.land_sea_mask = land_sea_mask
+#             cruise.spatial_indices
+#             return cruise
+#         
+#         cruises = [load_cruise(file) for file in files]
         
-        cruises = [load_cruise(file) for file in files]
-        self.logger.debug('%d cruises loaded.' % len(cruises))
+        cruises = [Cruise(file) for file in files]
+        logger.debug('%d cruises loaded.' % len(cruises))
         
         ## remove empty cruises
-        self.logger.debug('Removing empty cruises.')
+        logger.debug('Removing empty cruises.')
         cruises = [cruise for cruise in cruises if cruise.number_of_measurements > 0]
-        self.logger.debug('%d not empty cruises found.' % len(cruises))
+        logger.debug('%d not empty cruises found.' % len(cruises))
         
         ## return cruises
         self.cruises = cruises
     
     
     
-    
-    def save_cruises_to_pickle_file(self, file=CRUISES_PICKLED_FILE):
-        self.logger.debug('Saving cruises at %s.' % file)
+    def save_cruises_to_pickle_file(self, file=CRUISES_FILE):
+        logger.debug('Saving cruises at %s.' % file)
         util.io.save_object(self.cruises, file)
-        self.logger.debug('Cruises saved at %s.' % file)
+        logger.debug('Cruises saved at %s.' % file)
     
     
-    def load_cruises_from_pickle_file(self, file=CRUISES_PICKLED_FILE):
-        self.logger.debug('Loading cruises at %s.' % file)
+    def load_cruises_from_pickle_file(self, file=CRUISES_FILE):
+        logger.debug('Loading cruises at %s.' % file)
         self.cruises = util.io.load_object(file)
-        self.logger.debug('Cruises loaded at %s.' % file)
+        logger.debug('Cruises loaded at %s.' % file)

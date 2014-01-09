@@ -5,53 +5,55 @@ import util.io
 
 
 def get_base_dir(discard_year=False):
-    from ..constants import ANALYSIS_BY_COORDINATES_DIR, ANALYSIS_BY_COORDINATES_YEAR_DISCARDED_DIR
+    from ..constants import ANALYSIS_DIR
     
     if discard_year:
-        base_dir = ANALYSIS_BY_COORDINATES_YEAR_DISCARDED_DIR
+        base_dir = os.path.join(ANALYSIS_DIR, 'discard_year')
     else:
-        base_dir = ANALYSIS_BY_COORDINATES_DIR
+        base_dir = ANALYSIS_DIR
     
     return base_dir
 
 
 def get_direction_indices(discard_year=False):
-    base_dir = get_base_dir(discard_year)
+    from .constants import CORRELOGRAM_DIRNAME
+    
+    base_dir = os.path.join(get_base_dir(discard_year), CORRELOGRAM_DIRNAME)
     number_of_directions = len(util.io.get_dirs(base_dir, with_links=False))
     direction_indices = np.arange(number_of_directions)
     
     return direction_indices
 
 
-def get_output_dir(index, dicard_year=True):
-    from .constants import OUTPUT_DIRNAME_PREFIX
+def get_output_dir(index, discard_year=False):
+    from .constants import CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX
     
-    base_dir = get_base_dir(dicard_year)
-    output_dir = os.path.join(base_dir, OUTPUT_DIRNAME_PREFIX + str(index).zfill(2))
+    base_dir = get_base_dir(discard_year)
+    output_dir = os.path.join(base_dir, CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX + str(index).zfill(2))
     
     return output_dir
 
 
 
 def get_direction(index, discard_year=False):
-    from .constants import DIRECTION_FILENAME
+    from .constants import CORRELOGRAM_JOB_DIRECTION_FILENAME
     
     output_dir = get_output_dir(index, discard_year)
-    direction_file = os.path.join(output_dir, DIRECTION_FILENAME)
+    direction_file = os.path.join(output_dir, CORRELOGRAM_JOB_DIRECTION_FILENAME)
     direction = np.load(direction_file)
     
     return direction
 
 
 def get_correlogram(index, discard_year=False, axis=None, min_measurements=0):
-    from .constants import CORRELOGRAM_FILENAME
+    from .constants import CORRELOGRAM_JOB_CORRELOGRAM_FILENAME
     
     output_dir = get_output_dir(index, discard_year)
-    correlogram_file = os.path.join(output_dir, CORRELOGRAM_FILENAME)
+    correlogram_file = os.path.join(output_dir, CORRELOGRAM_JOB_CORRELOGRAM_FILENAME)
     correlogram = np.load(correlogram_file)
     
     if min_measurements > 0 :
-        numbers = correlogram[:, 4]
+        numbers = correlogram[:, 1]
         mask = numbers >= min_measurements
         correlogram = correlogram[mask]
     
@@ -96,7 +98,7 @@ def get_correlation(index=None, discard_year=False, min_measurements=0):
 
 
 def get_number(index=None, discard_year=False, min_measurements=0):
-    function = lambda index: get_correlogram(index, discard_year, 4, min_measurements)
+    function = lambda index: get_correlogram(index, discard_year, 1, min_measurements)
     number = get_function_values(function, index, discard_year)
     return number
 

@@ -5,12 +5,11 @@ import math
 import logging
 
 from . import estimation
-from .. import values
-import measurements.util
+import measurements.util.calculate
 
 class Correlation_Model_Base():
     
-    def __init__(self, p_bounds, f_function, df_function, min_measurements=100, split_time=False):
+    def __init__(self, p_bounds, f_function, df_function, min_measurements=10, split_time=False):
         self.min_measurements = min_measurements
         self.d_dim = 4
         self.split_time = split_time
@@ -599,22 +598,26 @@ class Correlation_Model_Combined(Correlation_Model_Base):
 #     def correlation(self, point_1, point_2):
 #         from .constants import T_RANGE, X_RANGE
 #         
-#         d = measurements.util.get_min_distance(point_1, point_2, t_range=T_RANGE, x_range=X_RANGE)
+#         d = measurements.util.calculate.get_min_distance(point_1, point_2, t_range=T_RANGE, x_range=X_RANGE)
 #         correlation = self.correlation_model.f(self.p_opt, d)
 #         return correlation
 
 
   
-class Correlation_Model():  
+class Correlation_Model():
     def __init__(self):
+        from ..data.io import load_measurement_points
+        
         self.logger = logging.getLogger(__name__)
         
-        self.points = values.load_measurement_points()
+        self.points = load_measurement_points()
 #         self.correlation_model = Correlation_Model_Combined(extend_correlation_model_by_C(Correlation_Model_2()), Correlation_Model_6())
 #         self.p_opt = np.array([  1.42467926e-02,   1.09009491e-01,   1.14544485e-01, 1.27031987e-02,   2.82689543e-01,   3.15936466e-01, 9.27357261e+01,   7.78565009e+04,   2.93241272e-01, 7.81488396e+04,   0.00000000e+00,   9.16141645e-01, 6.82714979e-01,   1.00000000e+00,   9.13380330e-02, 0.00000000e+00])
-        self.correlation_model = Correlation_Model_Combined(extend_correlation_model_by_C(Correlation_Model_8()), Correlation_Model_9())
-        self.p_opt = np.array([  1.16862407e-03,   2.02379355e-02,   1.29611737e-01, 8.47065220e-05,   4.61352239e-01,   4.69122777e-01, 5.08310357e+03,   2.24048931e+01,   1.36383989e-02, 7.30895852e-03,   0.00000000e+00])
+#         self.correlation_model = Correlation_Model_Combined(extend_correlation_model_by_C(Correlation_Model_8()), Correlation_Model_9())
+#         self.p_opt = np.array([  1.16862407e-03,   2.02379355e-02,   1.29611737e-01, 8.47065220e-05,   4.61352239e-01,   4.69122777e-01, 5.08310357e+03,   2.24048931e+01,   1.36383989e-02, 7.30895852e-03,   0.00000000e+00])
         
+        self.correlation_model = extend_correlation_model_by_C(Correlation_Model_1(split_time=False))
+        self.p_opt = np.array([  1.00000000e-08,   5.37662216e-06,   1.00000000e-08, 8.70444360e-01,   1.07619669e-01])
     
     @property
     def n(self):
@@ -624,7 +627,7 @@ class Correlation_Model():
     def correlation(self, i, j):
         from .constants import T_RANGE, X_RANGE
         
-        d = measurements.util.get_min_distance(self.points[i], self.points[j], t_range=T_RANGE, x_range=X_RANGE)
+        d = measurements.util.calculate.get_min_distance(self.points[i], self.points[j], t_range=T_RANGE, x_range=X_RANGE)
         correlation = self.correlation_by_distance(d)
         
         return correlation
