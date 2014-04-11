@@ -4,7 +4,7 @@ import numpy as np
 import datetime
 import warnings
 
-import ndop.metos3d.data
+import ndop.model.data
 
 import util.io
 import util.datetime
@@ -113,7 +113,7 @@ class Cruise():
             indices = np.empty((m, 3), dtype=np.uint16)
             
             for i in range(m):
-                indices[i] = ndop.metos3d.data.get_spatial_index(x, y, z[i], land_sea_mask)
+                indices[i] = ndop.model.data.get_spatial_index(x, y, z[i], land_sea_mask)
             
             self.__spatial_indices = indices
         
@@ -176,7 +176,7 @@ class Cruise_Collection():
         
         logger.debug('Calculating spatial indices for %d cruises.' % len(cruises))
         
-        land_sea_mask = ndop.metos3d.data.load_land_sea_mask()
+        land_sea_mask = ndop.model.data.load_land_sea_mask()
         
         for cruise in cruises:
             cruise.land_sea_mask = land_sea_mask
@@ -194,7 +194,7 @@ class Cruise_Collection():
         logger.debug('%d files found.' % len(files))
         
         ## load land sea mask
-        land_sea_mask = ndop.metos3d.data.load_land_sea_mask()
+        land_sea_mask = ndop.model.data.load_land_sea_mask()
         
         ## load cruises
         logger.debug('Loading cruises from found files.')

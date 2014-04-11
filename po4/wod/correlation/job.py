@@ -11,6 +11,7 @@ class Correlogram_Job(Job):
     
     def __init__(self, direction_index, discard_year=False, cpu_kind='f_ocean2', force_load=False, debug=False):
         from .constants import MEASUREMENTS_NORMALIZED_DICT_FILE, CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX, CORRELOGRAM_JOB_DIRECTION_FILENAME, CORRELOGRAM_JOB_CORRELOGRAM_FILENAME
+        from constants import PYTHON_DIR
         
         ## chose values
         base_dir = measurements.po4.wod.correlation.estimation.get_base_dir(discard_year)
@@ -92,7 +93,7 @@ class Correlogram_Job(Job):
         
         f.write('import numpy as np \n')
         f.write('import sys \n')
-        f.write('sys.path.append("/work_j2/sunip229/NDOP/python") \n\n')
+        f.write('sys.path.append("' + PYTHON_DIR + '") \n\n')
         
         if opt['/correlogram/debug']:
             f.write('import logging \n')
@@ -121,6 +122,7 @@ class Correlation_Job(Job):
     
     def __init__(self, t_factor, cpu_kind='f_ocean2', force_load=False, debug=False):
         from .constants import MEASUREMENTS_NORMALIZED_DICT_FILE, SAME_BOUNDS, DIM_RANGES, CORRELATION_JOB_DIRECTION, CORRELATION_JOB_OUTPUT_DIRNAME_PREFIX, CORRELATION_JOB_MIN_MEASUREMENTS, CORRELATION_JOB_CORRELATION_FILENAME
+        from constants import PYTHON_DIR
 #         from ..constants import MEASUREMENTS_FILE_COORDINATES
         
         ## chose values
@@ -169,7 +171,7 @@ class Correlation_Job(Job):
         
         f.write('import numpy as np \n')
         f.write('import sys \n')
-        f.write('sys.path.append("/work_j2/sunip229/NDOP/python") \n\n')
+        f.write('sys.path.append("' + PYTHON_DIR + '") \n\n')
         
         if opt['/correlation/debug']:
             f.write('import logging \n')

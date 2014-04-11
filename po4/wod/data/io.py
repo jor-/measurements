@@ -3,7 +3,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from .cruise import Cruise_Collection
-from .results import Measurements, Measurements_Unsorted
+from measurements.util.data import Measurements_Sorted, Measurements_Unsorted
 
 from .constants import DATA_DIR, CRUISES_FILE, MEASUREMENTS_DICT_FILE, MEASUREMENTS_DICT_UNSORTED_FILE, MEASUREMENTS_POINTS_FILE, MEASUREMENTS_RESULTS_FILE
 
@@ -16,7 +16,7 @@ def save_cruises(data_dir=DATA_DIR, cruise_file=CRUISES_FILE):
 def save_measurement_dict(cruise_file=CRUISES_FILE, dict_file=MEASUREMENTS_DICT_FILE):
     cc = Cruise_Collection()
     cc.load_cruises_from_pickle_file(cruise_file)
-    measurements = Measurements()
+    measurements = Measurements_Sorted()
     measurements.add_cruises(cc.cruises)
     measurements.save(dict_file)
 
@@ -61,7 +61,6 @@ def load_measurement_points(file=MEASUREMENTS_POINTS_FILE):
     values = np.load(file)
     return values
 
-MEASUREMENTS_RESULTS_FILE
 def load_measurement_results(file=MEASUREMENTS_RESULTS_FILE):
     logger.debug('Loading measurement results from %s.' % file)
     values = np.load(file)

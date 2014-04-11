@@ -1,35 +1,57 @@
 import numpy as np
 
 
-def init_masked_map(land_sea_mask=None, no_data_value=0, dtype=np.float64):
+def init_masked_map(land_sea_mask=None, default_value=0, dtype=np.float64, t_dim=None):
     if land_sea_mask is None:
-        from ndop.metos3d.data import load_land_sea_mask
+        from ndop.model.data import load_land_sea_mask
         land_sea_mask = load_land_sea_mask()
     
     z_dim = np.nanmax(land_sea_mask)
     (x_dim, y_dim) = land_sea_mask.shape
-    shape = (x_dim, y_dim, z_dim,)
-    array = np.ones(shape, dtype=dtype) * no_data_value
-    apply_mask(array, land_sea_mask)
+    shape = (x_dim, y_dim, z_dim)
+    masked_map = np.ones(shape, dtype=dtype) * default_value
+    apply_mask(masked_map, land_sea_mask)
+    
+    if t_dim is not None:
+        masked_map_with_t = np.empty((t_dim,) +  masked_map.shape)
+        for i in range(t_dim):
+            masked_map_with_t[i] = masked_map
+        return masked_map_with_t
+    else:
+        return masked_map
 
-    return array
+# def init_masked_array(land_sea_mask, t_dim, dtype=np.float64):
+#     z_dim = np.nanmax(land_sea_mask)
+#     (x_dim, y_dim) = land_sea_mask.shape
+#     shape = (t_dim, x_dim, y_dim, z_dim,)
+#     array = np.zeros(shape, dtype=dtype)
+#     
+#     for x, y in np.ndindex(x_dim, y_dim):
+#         z_max = land_sea_mask[x, y]
+#         array[:, x, y, z_max:] = np.nan
+# 
+#     return array
 
 
 
-def apply_mask(array, land_sea_mask=None):
+def apply_mask(array, land_sea_mask=None, land_value=np.nan):
     if land_sea_mask is None:
-        from ndop.metos3d.data import load_land_sea_mask
+        from ndop.model.data import load_land_sea_mask
         land_sea_mask = load_land_sea_mask()
     
     (x_dim, y_dim) = land_sea_mask.shape
     for x, y in np.ndindex(x_dim, y_dim):
         z_max = land_sea_mask[x, y]
-        array[x, y, z_max:] = np.nan
+        array[x, y, z_max:] = land_value
+    
+    return array
 
 
 
 def insert_values_in_map(values, no_data_value=0, apply_mask_last=True):
-    from ndop.metos3d.constants import METOS_DIM
+    from ndop.model.constants import METOS_DIM
+    from ndop.model.data import load_land_sea_mask
+    land_sea_mask = load_land_sea_mask()
     
     def insert_space_values_im_map(map, values):
         for row in values:
@@ -40,9 +62,9 @@ def insert_values_in_map(values, no_data_value=0, apply_mask_last=True):
                 raise ValueError('Space index ' + str((x, y, z)) + ' exceeds dimension ' + str(METOS_DIM) + '.')
         
         if apply_mask_last:
-            apply_mask(map)
+            apply_mask(map, land_sea_mask=land_sea_mask)
     
-    init_map = init_masked_map(no_data_value=no_data_value)
+    init_map = init_masked_map(land_sea_mask=land_sea_mask, default_value=no_data_value)
     
     ## if with time axis
     if values.shape[1] == 5:

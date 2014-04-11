@@ -2,7 +2,7 @@ import numpy as np
 
 import measurements.po4.woa.data
 import ndop.metos3d.data
-from ndop.metos3d.model import Model
+from ndop.model.eval import Model
 
 import test.parameter_sets
 

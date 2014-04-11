@@ -1,12 +1,13 @@
-import logging
+import os.path
+import util.logging
 
-from measurements.po4.wod.deviation.io import save_deviation
+from measurements.po4.wod.deviation.io import save_deviations
+from measurements.po4.wod.deviation.constants import MEASUREMENT_DEVIATIONS_INTERPOLATION_FILE
 
-print_ouput =  __name__ == "__main__"
-if print_ouput:
-    logging.basicConfig(level=logging.DEBUG)
 
-save_deviation(deviation_file='/work_j2/sunip229/tmp/measurement_deviations_interpolated_365.npy')
+file_prefix = os.path.splitext(MEASUREMENT_DEVIATIONS_INTERPOLATION_FILE)[0]
+logging_file = file_prefix + '.log'
+deviations_file = file_prefix + '.npy'
 
-if print_ouput:
-    print('Standard deviation interpolation for measurements saved.')
+with util.logging.Logger(logging_file=logging_file):
+    save_deviations(deviations_file=deviations_file)

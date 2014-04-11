@@ -3,7 +3,7 @@ from .model import Correlation_Model
 import numpy as np
 from petsc4py import PETSc as petsc
 
-from util.petsc import Matrix_Shell_Petsc
+from util.petsc.with_petsc4py import Matrix_Shell_Petsc
 
 import logging
 logger = logging.getLogger(__name__)
