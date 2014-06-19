@@ -25,7 +25,7 @@ def npy_or_save_dop_and_po4(npy_file, dop_function, po4_function):
         po4 = po4.reshape((1,) + po4.shape)
         
         data = np.append(dop, po4, axis=0)
-        util.io.save_npy(npy_file, data, make_read_only=True, create_path_if_not_exists=True)
+        util.io.save_npy(data, npy_file, make_read_only=True, create_path_if_not_exists=True)
     
     return data
 

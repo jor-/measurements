@@ -3,14 +3,14 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.pyplot as pp
 
-import util.spherical
+import util.math.spherical
 
 
 def plot_variance():
     from ..constants import MEASUREMENT_POINTS_FILE, MEASUREMENT_VARIANCE_FILE
     
     points_sperical = np.load(MEASUREMENT_POINTS_FILE)[:,1:4]
-    points = util.spherical.to_cartesian(points_sperical)
+    points = util.math.spherical.to_cartesian(points_sperical)
     values = np.load(MEASUREMENT_VARIANCE_FILE)
     
     fig = pp.figure()

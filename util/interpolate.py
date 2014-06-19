@@ -1,15 +1,15 @@
 import numpy as np
 import logging
 
-import util.spherical
-import util.interpolate
+import util.math.spherical
+import util.math.interpolate
 
 
 
 
 
 
-class Time_Periodic_Interpolator(util.interpolate.Interpolater):
+class Time_Periodic_Interpolator(util.math.interpolate.Interpolater):
     
     def __init__(self, data_points, data_values, t_len, wrap_around_amount=0, number_of_linear_interpolators=1, total_overlapping_linear_interpolators=0, t_scaling=1, copy_arrays=True, parallel=False):
         
@@ -23,7 +23,7 @@ class Time_Periodic_Interpolator(util.interpolate.Interpolater):
 #         self._t_len = t_len
 #         
 #         ## wrap around t
-#         data_points, data_indices = util.interpolate.wrap_around(data_points, 0, t_len, amount=wrap_around_amount, return_also_indices=True)
+#         data_points, data_indices = util.math.interpolate.wrap_around(data_points, 0, t_len, amount=wrap_around_amount, return_also_indices=True)
 #         self._data_indices = data_indices
         self._t_len = t_len
         self._wrap_around_amount = wrap_around_amount
@@ -50,7 +50,7 @@ class Time_Periodic_Interpolator(util.interpolate.Interpolater):
         
         ## if data points, wrap around t
         if is_data_points:
-            points, indices = util.interpolate.wrap_around(points, 0, t_len, amount=self._wrap_around_amount, return_also_indices=True)
+            points, indices = util.math.interpolate.wrap_around(points, 0, t_len, amount=self._wrap_around_amount, return_also_indices=True)
             self._data_indices = indices
         
         return points
@@ -84,7 +84,7 @@ class Time_Periodic_Non_Cartesian_Interpolator(Time_Periodic_Interpolator):
         assert np.max(data_points[:,1]) - np.min(data_points[:,1]) <= x_len
         
 #         ## wrap around x
-#         data_points, data_indices = util.interpolate.wrap_around(data_points, 1, x_len, amount=wrap_around_amount, return_also_indices=True)
+#         data_points, data_indices = util.math.interpolate.wrap_around(data_points, 1, x_len, amount=wrap_around_amount, return_also_indices=True)
 #         data_values = data_values[data_indices]
 #         
 #         ## call super constructor
@@ -110,7 +110,7 @@ class Time_Periodic_Non_Cartesian_Interpolator(Time_Periodic_Interpolator):
         ## if data points, wrap around x
         x_len = self._x_len
         if is_data_points:
-            points, indices = util.interpolate.wrap_around(points, 1, x_len, amount=self._wrap_around_amount, return_also_indices=True)
+            points, indices = util.math.interpolate.wrap_around(points, 1, x_len, amount=self._wrap_around_amount, return_also_indices=True)
             self._data_indices = self._data_indices[indices]
         
         return points
@@ -204,7 +204,7 @@ class Time_Periodic_Earth_Interpolater(Time_Periodic_Interpolator):
             self._data_indices = self._data_indices[indices]
         
         ## convert to cartesian
-        points[:,1:] =  util.spherical.to_cartesian(points[:,1:], surface_radius=EARTH_RADIUS)
+        points[:,1:] =  util.math.spherical.to_cartesian(points[:,1:], surface_radius=EARTH_RADIUS)
         
         return points
  

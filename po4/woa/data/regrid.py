@@ -44,7 +44,7 @@ def save():
         for t in range(t_dim):
             data_monthly[t,:,:,z_index_annual_threshold:] = data_annual[0,:,:,z_index_annual_threshold:] * factor
         
-        util.io.save_npy(npy_file, data_monthly, make_read_only=True, create_path_if_not_exists=True)
+        util.io.save_npy(data_monthly, npy_file, make_read_only=True, create_path_if_not_exists=True)
     
     
     ## revise variance
@@ -80,5 +80,5 @@ def save():
     ## saving interpolated variance
     logging.debug('Saving interpolated variance.')
     util.io.make_writable(VARIS_FILE)
-    util.io.save_npy(VARIS_FILE, vari, make_read_only=True, create_path_if_not_exists=True)
+    util.io.save_npy(vari, VARIS_FILE, make_read_only=True, create_path_if_not_exists=True)
     

@@ -59,6 +59,6 @@ def save(land_sea_mask, t_dim=12):
     varis[varis == np.inf] = vari_averaged
     
     ## save values
-    util.io.save_npy(NOBS_FILE, nobs, make_read_only=True, create_path_if_not_exists=True)
-    util.io.save_npy(VARIS_FILE, varis, make_read_only=True, create_path_if_not_exists=True)
-    util.io.save_npy(MEANS_FILE, mean, make_read_only=True, create_path_if_not_exists=True)
+    util.io.save_npy(nobs, NOBS_FILE, make_read_only=True, create_path_if_not_exists=True)
+    util.io.save_npy(varis, VARIS_FILE, make_read_only=True, create_path_if_not_exists=True)
+    util.io.save_npy(mean, MEANS_FILE, make_read_only=True, create_path_if_not_exists=True)

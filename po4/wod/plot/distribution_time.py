@@ -1,10 +1,8 @@
-import logging
-logging.basicConfig(level=logging.DEBUG)
+from util.logging import Logger
 
 from measurements.po4.wod.data.io import load_measurement_dict_unsorted as load_measurement_dict
-from measurements.util.plot
-from util.plot import set_font_size
+import measurements.util.plot
 
 
-set_font_size(size=20)
-measurements.util.plot.distribution_space(load_measurement_dict(), file='/tmp/wod_po4_distribution_time.png', linewidth=4, spine_linewidth=2)
+with Logger():
+    measurements.util.plot.distribution_time(load_measurement_dict(), file='/tmp/wod_po4_distribution_time.png', line_width=4, spine_line_width=2)

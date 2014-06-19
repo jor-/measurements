@@ -62,7 +62,7 @@ class Correlogram_Job(Job):
         ## init Job
         output_dir = os.path.join(base_dir, CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX + str(direction_index).zfill(2))
         Job.__init__(self, output_dir, force_load=force_load)
-        Job.init(self, 1, 1, 7, job_name, cpu_kind=cpu_kind)
+        Job.init(self, job_name, 7, [cpu_kind, 1, 1])
         
         
         ## save options
@@ -106,7 +106,7 @@ class Correlogram_Job(Job):
         if discard_year:
             f.write('m.discard_year() \n')
         
-        f.write('m.correlogram(%s, %s, %s, wrap_around_t=%s, is_normalized=%d, file="%s") \n' % (direction, same_bounds, dim_ranges, discard_year, True, opt['/correlogram/correlogram_file']))
+        f.write('m.total_correlogram(%s, %s, %s, wrap_around_t=%s, is_normalized=%d, file="%s") \n' % (direction, same_bounds, dim_ranges, discard_year, True, opt['/correlogram/correlogram_file']))
         
         f.close()
         
@@ -181,7 +181,7 @@ class Correlation_Job(Job):
         f.write('m = M() \n')
         f.write('m.load("%s") \n' % opt['/correlation/measurement_file'])
         
-        f.write('m.correlation(%s, %s, %s, %s, minimum_measurements=%d, is_normalized=%d, file="%s") \n' % (CORRELATION_JOB_DIRECTION, factor_list, SAME_BOUNDS, wrap_around_ranges, CORRELATION_JOB_MIN_MEASUREMENTS, True, correlation_file))
+        f.write('m.total_correlation(%s, %s, %s, %s, minimum_measurements=%d, is_normalized=%d, file="%s") \n' % (CORRELATION_JOB_DIRECTION, factor_list, SAME_BOUNDS, wrap_around_ranges, CORRELATION_JOB_MIN_MEASUREMENTS, True, correlation_file))
         
         f.close()
         

@@ -15,17 +15,17 @@ def distribution_space(measurement_dict, file='/tmp/distribution_space.png', use
     util.plot.data(data, file, no_data_value=np.inf, use_log_norm=use_log_norm)
 
 
-def distribution_time(measurement_dict, file='/tmp/distribution_time.png', time_step=1/1., linewidth=2, spine_linewidth=2):
+def distribution_time(measurement_dict, file='/tmp/distribution_time.png', time_step=1/1., line_width=2, spine_line_width=2):
     m = measurement_dict
     m.discard_space()
     m.categorize_indices((time_step,))
     n = m.numbers()
     t = n[:,0]
     y = n[:,4]
-    util.plot.line(t, y, file, linewidth=linewidth, ymin=0, xticks=range(1930, 2030, 20), spine_linewidth=spine_linewidth)
+    util.plot.line(t, y, file, line_width=line_width, y_min=0, xticks=range(1930, 2030, 20), spine_line_width=spine_line_width)
 
 
-def distribution_year(measurement_dict, file='/tmp/distribution_year.png', time_step=1/365., linewidth=2, spine_linewidth=2):
+def distribution_year(measurement_dict, file='/tmp/distribution_year.png', time_step=1/365., line_width=2, spine_line_width=2):
     m = measurement_dict
     m.discard_space()
     m.discard_year()
@@ -33,7 +33,7 @@ def distribution_year(measurement_dict, file='/tmp/distribution_year.png', time_
     n = m.numbers()
     t = n[:,0] / time_step
     y = n[:,4]
-    util.plot.line(t, y, file, linewidth=linewidth, ymin=0, spine_linewidth=spine_linewidth)
+    util.plot.line(t, y, file, line_width=line_width, y_min=0, spine_line_width=spine_line_width)
 
 
 def distribution(measurement_dict, file='/tmp/distribution.png', year_len=12, use_log_norm=True):

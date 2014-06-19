@@ -37,22 +37,6 @@ class Measurements_Unsorted():
         for i in range(results_len):
             self.add_result(indices[i], results[i])
     
-#     def add_cruises(self, cruises):
-#         measurements_dict = self.measurements_dict
-#         
-#         ## insert results in dict
-#         for cruise in cruises:
-#             x = cruise.x
-#             y = cruise.y
-#             z = cruise.z
-#             t = cruise.dt_float
-#             results = cruise.po4.astype(float)
-#             
-#             for i in range(results.size):
-#                 index = (t, x, y, z[i])
-#                 self.add_result(index, results[i])
-    
-    
     
     def save(self, file):
         logger.debug('Saving measurements at %s.', file)
@@ -94,8 +78,6 @@ class Measurements_Unsorted():
     
     
     
-#     def categorize_indices(self, separation_values, wrap_around_ranges=None, discard_year=False):
-#         def categorize_index(index, separation_values, wrap_around_ranges=None, discard_year=False):
     def categorize_indices(self, separation_values, discard_year=False):
         def categorize_index(index, separation_values, discard_year=False):
             index = list(index)
@@ -285,6 +267,31 @@ class Measurements_Unsorted():
     
     
     
+    ## filter
+    def filter(self, filter_function):
+        measurements_dict = self.measurements_dict
+        measurements_dict_type = type(measurements_dict)
+        measurements_dict_transformed = measurements_dict_type()
+        self.measurements_dict = measurements_dict_transformed
+        
+        for (t, t_dict) in  measurements_dict.items():
+            for (x, x_dict) in t_dict.items():
+                for (y, y_dict) in x_dict.items():
+                    for (z, results) in y_dict.items():
+                        index = (t, x, y, z)
+                        if filter_function(index, results):
+                            self.add_result(index, results)
+    
+    
+    def filter_min_measurements(self, min_measurements=1):
+        def filter_function(index, results):
+            return len(results) >= min_measurements
+        
+        self.filter(filter_function)
+    
+    
+    
+    
     ## compute values
     
     def iterate(self, fun, minimum_measurements=1, return_type='array'):
@@ -338,33 +345,36 @@ class Measurements_Unsorted():
         return self.iterate(np.average, minimum_measurements, return_type=return_type)
     
     
-    def variances(self, minimum_measurements=3, return_type='array'):
+    def variances(self, minimum_measurements=3, min_variance=0, return_type='array'):
         logger.debug('Calculate variances of measurements with %d minimal measurements.', minimum_measurements)
         
         def calculate_variance(results):
             mean = np.average(results)
             number_of_results = results.size
             variance = np.sum((results - mean)**2) / (number_of_results - 1)
+            variance = max([variance, min_variance])
             return variance
         
         return self.iterate(calculate_variance, minimum_measurements, return_type=return_type)
     
     
-    def deviations(self, minimum_measurements=3, return_type='array'):
+    def deviations(self, minimum_measurements=3, min_deviation=0, return_type='array'):
         logger.debug('Calculate standard deviations of measurements with %d minimal measurements.', minimum_measurements)
         
         def calculate_deviation(results):
             mean = np.average(results)
             number_of_results = results.size
             deviation = (np.sum((results - mean)**2) / (number_of_results - 1))**(1/2)
+            deviation = max([deviation, min_deviation])
             return deviation
         
         return self.iterate(calculate_deviation, minimum_measurements, return_type=return_type)
     
     
     
+    ## total correlogram and correlation
     
-    def get_first_dim_shifted(self, measurements_dict_list, shift, same_bound, wrap_around_range=None):
+    def _get_first_dim_shifted(self, measurements_dict_list, shift, same_bound, wrap_around_range=None):
         logger.debug('Getting first dim shifted with shift %f and same bound %f.' % (shift, same_bound))
         
         if wrap_around_range is not None:
@@ -395,7 +405,24 @@ class Measurements_Unsorted():
     
     
     
-    def get_array_from_shift_list(self, shift_list):
+    def _get_results_together_with_shifted(self, factor, direction, same_bounds, x_range, t_range=None):
+        logger.debug('Gathering results with direction %s shifted by factor %f with same bound %s.' % (direction, factor, same_bounds))
+        
+        measurements_dict_list = [(self.measurements_dict, self.measurements_dict)]
+        dim = len(direction)
+        wrap_around_range = (t_range, x_range, None, None)
+        
+        ## iterate over dim and search matching shifts
+        for i in range(dim):
+            measurements_dict_list = self._get_first_dim_shifted(measurements_dict_list, factor * direction[i], same_bounds[i], wrap_around_range=wrap_around_range[i])
+        
+        logger.debug('Results gathered.')
+        
+        return measurements_dict_list
+    
+    
+    
+    def _get_array_from_shift_list(self, shift_list):
         ## calculate length
 #         logger.debug('Getting array from shift list.')
         n = 0
@@ -422,9 +449,10 @@ class Measurements_Unsorted():
     
     
     
-    def calculate_correlation_from_shift_list(self, shift_list, is_normalized=False):
+    def _calculate_total_correlation_from_shift_list(self, shift_list, is_normalized=False):
         if not is_normalized:
-            shift_array = self.get_array_from_shift_list(shift_list)
+            #TODO mean and sd for each result list
+            shift_array = self._get_array_from_shift_list(shift_list)
     #         shift_array = np.array(shift_list)
             number = shift_array.shape[0]
             
@@ -435,11 +463,11 @@ class Measurements_Unsorted():
             
             mean_x = np.average(x)
             mean_y = np.average(y)
-            sd_x = (np.sum((x - mean_x)**2) / number)**(1/2)
-            sd_y = (np.sum((y - mean_y)**2) / number)**(1/2)
+            sd_x = np.sum((x - mean_x)**2)**(1/2)
+            sd_y = np.sum((y - mean_y)**2)**(1/2)
             prod_array = ((x - mean_x) * (y - mean_y)) / (sd_x * sd_y)
             
-            correlation = np.sum(prod_array) / number
+            correlation = np.sum(prod_array)
         else:
             number = 0
             correlation = 0
@@ -462,24 +490,60 @@ class Measurements_Unsorted():
     
     
     
-    def get_results_together_with_shifted(self, factor, direction, same_bounds, x_range, t_range=None):
-        logger.debug('Gathering results with direction %s shifted by factor %f with same bound %s.' % (direction, factor, same_bounds))
-        
-        measurements_dict_list = [(self.measurements_dict, self.measurements_dict)]
-        dim = len(direction)
-        wrap_around_range = (t_range, x_range, None, None)
-        
-        ## iterate over dim and search matching shifts
-        for i in range(dim):
-            measurements_dict_list = self.get_first_dim_shifted(measurements_dict_list, factor * direction[i], same_bounds[i], wrap_around_range=wrap_around_range[i])
-        
-        logger.debug('Results gathered.')
-        
-        return measurements_dict_list
+    
+    
+#     def _calculate_correlations_from_shift_list(self, shift_list):
+# #         if not is_normalized:
+# #             #TODO mean and sd for each result list
+# #             shift_array = self._get_array_from_shift_list(shift_list)
+# #     #         shift_array = np.array(shift_list)
+# #             number = shift_array.shape[0]
+# #             
+# # #             logger.debug('Calulating correlation from %d pairs.' % number)
+# #             
+# #             x = shift_array[:,0]
+# #             y = shift_array[:,1]
+# #             
+# #             mean_x = np.average(x)
+# #             mean_y = np.average(y)
+# #             sd_x = np.sum((x - mean_x)**2)**(1/2)
+# #             sd_y = np.sum((y - mean_y)**2)**(1/2)
+# #             prod_array = ((x - mean_x) * (y - mean_y)) / (sd_x * sd_y)
+# #             
+# #             correlation = np.sum(prod_array)
+# #         else:
+#         number = 0
+#         correlation = 0
+#         
+#         for (result_list, result_shifted_list) in shift_list:
+#             xs = np.array(result_list)
+#             ys = np.array(result_shifted_list)
+#             
+#             mean_x = np.average(xs)
+#             mean_y = np.average(ys)
+#             sd_x = np.sum((xs - mean_x)**2)**(1/2)
+#             sd_y = np.sum((ys - mean_y)**2)**(1/2)
+#             
+#             for x in xs:
+#                 for y in ys:
+#                     correlation += (x - mean_x) * (y - mean_y)
+#                     number += 1
+#             prod_array = ((x - mean_x) * (y - mean_y))
+#             correlation = np.sum(prod_array) / (sd_x * sd_y)
+#         
+#         if number >= 1:
+#             correlation /= number
+#         else:
+#             correlation = np.nan
+#             
+#         
+#         logger.debug('Correlation %f calculated from %d measurements.' % (correlation, number))
+#         
+#         return (correlation, number)
     
     
     
-    def iterate_over_shift_in_direction(self, calculate_function, direction, same_bounds, dim_ranges, wrap_around_t=False, file=None):
+    def _iterate_over_shift_in_direction(self, calculate_function, direction, same_bounds, dim_ranges, wrap_around_t=False, file=None):
         logger.debug('Applying function to shifts by direction %s with same_bounds %s and dim_ranges %s.' % (direction, same_bounds, dim_ranges))
         
         ## init
@@ -507,7 +571,7 @@ class Measurements_Unsorted():
         
         ## iterate over all factors
         for factor in range(max_factor + 1):
-            shift_list = self.get_results_together_with_shifted(factor, direction, same_bounds, x_range, t_range)
+            shift_list = self._get_results_together_with_shifted(factor, direction, same_bounds, x_range, t_range)
             
             ## apply calculate_function to shift list
             logger.debug('Applying calculate function to shifts.')
@@ -531,12 +595,12 @@ class Measurements_Unsorted():
     
     
     
-    def correlogram(self, direction, same_bounds, dim_ranges, wrap_around_t=False, minimum_measurements=1, is_normalized=False, file=None):
+    def total_correlogram(self, direction, same_bounds, dim_ranges, wrap_around_t=False, minimum_measurements=1, is_normalized=False, file=None):
         
         logger.debug('Calculating correlogram.')
         
-        calculate_correlation = lambda shift_list : self.calculate_correlation_from_shift_list(shift_list, is_normalized=is_normalized)
-        correlogram = self.iterate_over_shift_in_direction(calculate_correlation, direction, same_bounds, dim_ranges, wrap_around_t=wrap_around_t, file=file)
+        calculate_correlation = lambda shift_list : self._calculate_total_correlation_from_shift_list(shift_list, is_normalized=is_normalized)
+        correlogram = self._iterate_over_shift_in_direction(calculate_correlation, direction, same_bounds, dim_ranges, wrap_around_t=wrap_around_t, file=file)
         
         logger.debug('Correlogram calculated.')
         
@@ -546,7 +610,7 @@ class Measurements_Unsorted():
     
     
     
-    def iterate_over_shift_all_factor_combinations(self, calculation_function, direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements=1, file=None):
+    def _iterate_over_shift_all_factor_combinations(self, calculation_function, direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements=1, file=None):
         
         logger.debug('Iterate over all shifts with all factor combinations with the following configurations: direction=%s, factor_lists=%s, same_bounds=%s, wrap_around_ranges=%s, minimum_measurements=%d.' % (direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements))
         
@@ -571,7 +635,7 @@ class Measurements_Unsorted():
                 ## search matching shifts
                 current_factor = current_factor_list[current_index]
                 current_shift[current_dim] = direction[current_dim] * current_factor
-                measurements_dict_list[current_dim + 1] = self.get_first_dim_shifted(measurements_dict_list[current_dim], current_shift[current_dim], same_bounds[current_dim], wrap_around_ranges[current_dim])
+                measurements_dict_list[current_dim + 1] = self._get_first_dim_shifted(measurements_dict_list[current_dim], current_shift[current_dim], same_bounds[current_dim], wrap_around_ranges[current_dim])
                 
                 ## increase current dim
                 current_dim += 1
@@ -620,11 +684,11 @@ class Measurements_Unsorted():
         return function_results_array
     
     
-    def correlation(self, direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements=1, is_normalized=False, file=None):
+    def total_correlation(self, direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements=1, is_normalized=False, file=None):
         logger.debug('Calculating correlation with the following configurations: direction=%s, factor_lists=%s, same_bounds=%s, wrap_around_ranges=%s, minimum_measurements=%d.' % (direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements))
         
-        calculate_correlation = lambda shift_list : self.calculate_correlation_from_shift_list(shift_list, is_normalized=is_normalized)
-        correlation = self.iterate_over_shift_all_factor_combinations(calculate_correlation, direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements=minimum_measurements, file=file)
+        calculate_correlation = lambda shift_list : self._calculate_total_correlation_from_shift_list(shift_list, is_normalized=is_normalized)
+        correlation = self._iterate_over_shift_all_factor_combinations(calculate_correlation, direction, factor_lists, same_bounds, wrap_around_ranges, minimum_measurements=minimum_measurements, file=file)
         
         logger.debug('Correlation calculated.')
         
@@ -641,7 +705,7 @@ class Measurements_Sorted(Measurements_Unsorted):
         self.measurements_dict = sorteddict()
     
     
-    def get_first_dim_shifted(self, measurements_dict_list, shift, same_bound, wrap_around_range=None):
+    def _get_first_dim_shifted(self, measurements_dict_list, shift, same_bound, wrap_around_range=None):
         logger.debug('Getting first dim shifted with shift %f and same bound %f.' % (shift, same_bound))
         
         if wrap_around_range is not None:

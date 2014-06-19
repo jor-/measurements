@@ -35,9 +35,9 @@ def init_masked_map(land_sea_mask=None, default_value=0, dtype=np.float64, t_dim
 
 
 def apply_mask(array, land_sea_mask=None, land_value=np.nan):
+    import ndop.model.data
     if land_sea_mask is None:
-        from ndop.model.data import load_land_sea_mask
-        land_sea_mask = load_land_sea_mask()
+        land_sea_mask = ndop.model.data.load_land_sea_mask()
     
     (x_dim, y_dim) = land_sea_mask.shape
     for x, y in np.ndindex(x_dim, y_dim):
@@ -50,8 +50,8 @@ def apply_mask(array, land_sea_mask=None, land_value=np.nan):
 
 def insert_values_in_map(values, no_data_value=0, apply_mask_last=True):
     from ndop.model.constants import METOS_DIM
-    from ndop.model.data import load_land_sea_mask
-    land_sea_mask = load_land_sea_mask()
+    import ndop.model.data
+    land_sea_mask = ndop.model.data.load_land_sea_mask()
     
     def insert_space_values_im_map(map, values):
         for row in values:

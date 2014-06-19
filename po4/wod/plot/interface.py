@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from measurements.po4.wod.data.results import Measurements_Unsorted as Measurements
 from measurements.po4.wod.data.io import load_measurement_dict_unsorted as load_measurement_dict
 from measurements.po4.wod.correlation import estimation, model
+import measurements.po4.wod.deviation.io
 import measurements.util.map
 import ndop.oed.io
 import util.plot
@@ -14,68 +15,6 @@ import util.plot
 from ndop.model.constants import (METOS_X_DIM as X_DIM, METOS_Y_DIM as Y_DIM, METOS_Z as Z_VALUES)
 
 
-# def plot_distribution_space(file='/tmp/wod_po4_distribution_space.png'):
-#     m = load_measurement_dict()
-#     m.discard_time()
-#     m.transform_indices_to_boxes(X_DIM, Y_DIM, Z_VALUES)
-#     data = measurements.util.map.insert_values_in_map(m.numbers(), no_data_value=np.inf)
-#     util.plot.data(data, file, no_data_value=np.inf, use_log_norm=True)
-# 
-# 
-# def plot_distribution_time(file='/tmp/wod_po4_distribution_time.png', time_step=1/1., linewidth=2, spine_linewidth=2):
-#     m = load_measurement_dict()
-#     m.discard_space()
-#     m.categorize_indices((time_step,))
-#     n = m.numbers()
-#     t = n[:,0]
-#     y = n[:,4]
-#     util.plot.line(t, y, file, linewidth=linewidth, ymin=0, xticks=range(1930, 2030, 20), spine_linewidth=spine_linewidth)
-# 
-# 
-# def plot_distribution_year(file='/tmp/wod_po4_distribution_year.png', time_step=1/365., linewidth=2, spine_linewidth=2):
-#     m = load_measurement_dict()
-#     m.discard_space()
-#     m.discard_year()
-#     m.categorize_indices((time_step,))
-#     n = m.numbers()
-#     t = n[:,0] / time_step
-#     y = n[:,4]
-#     util.plot.line(t, y, file, linewidth=linewidth, ymin=0, spine_linewidth=spine_linewidth)
-# 
-# 
-# def plot_distribution(file='/tmp/wod_po4_distribution.png', time_len=12):
-#     m = load_measurement_dict()
-#     m.discard_year()
-#     m.categorize_indices((1./time_len,))
-#     m.transform_indices_to_boxes(X_DIM, Y_DIM, Z_VALUES)
-#     data = measurements.util.map.insert_values_in_map(m.numbers(), no_data_value=np.inf)
-#     util.plot.data(data, file, no_data_value=np.inf, use_log_norm=True)
-# 
-# 
-# def plot_sample_mean(file='/tmp/wod_po4_sample_mean.png', year_len=12, vmax=None, layer=None, discard_year=True):
-#     m = load_measurement_dict()
-#     if discard_year:
-#         m.discard_year()
-#     m.categorize_indices((1./year_len,))
-#     m.transform_indices_to_boxes(X_DIM, Y_DIM, Z_VALUES)
-#     data = measurements.util.map.insert_values_in_map(m.means(), no_data_value=np.inf)
-#     if layer is not None:
-#         data = data[:, :, :, layer]
-#         data = data.reshape(data.shape + (1,))
-#     util.plot.data(data, file, no_data_value=np.inf, vmin=0, vmax=vmax)
-# 
-# 
-# def plot_sample_deviation(file='/tmp/wod_po4_sample_deviation.png', year_len=12, vmax=None, layer=None, discard_year=True):
-#     m = load_measurement_dict()
-#     if discard_year:
-#         m.discard_year()
-#     m.categorize_indices((1./year_len,))
-#     m.transform_indices_to_boxes(X_DIM, Y_DIM, Z_VALUES)
-#     data = measurements.util.map.insert_values_in_map(m.deviations(minimum_measurements=5), no_data_value=np.inf)
-#     if layer is not None:
-#         data = data[:, :, :, layer]
-#         data = data.reshape(data.shape + (1,))
-#     util.plot.data(data, file, no_data_value=np.inf, vmin=0, vmax=vmax)
 
 
 def plot_interpolted_deviation_boxes(file='/tmp/wod_po4_box_deviation.png', year_len=12, vmin=0, vmax=None, layer=None, discard_year=True):
@@ -156,7 +95,7 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
         plt.scatter(shift, correlation, size, color='red')
         
         ## set spine lines size
-        util.plot.change_spine_line_size(fig, linewidth=2)
+        util.plot.set_spine_line_size(fig, line_width=2)
         
         ## save plot
         file = os.path.join(path, 'wod_po4_correlogram_min_measurements_' + str(min_measurements) + '_direction_' + str(direction_index) + '.png')
@@ -164,3 +103,29 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
         plt.close(fig)
         
         util.plot.trim(file)
+
+
+
+
+def plot_interpolated_deviation_histogram(file='/tmp/wod_po4_interpolated_deviation_histogram.png', step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
+    deviation = measurements.po4.wod.deviation.io.load_deviations()
+    deviation[deviation < 0.05] = 0.051     # for rounding errors
+    
+    plot_histogram(deviation, file, step_size=step_size, x_min=x_min, x_max=x_max, use_log_scale=use_log_scale)
+
+
+def plot_mean_histogram(file='/tmp/wod_po4_mean_histogram.png', step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
+    mean = measurements.po4.wod.data.io.load_measurement_results()
+    
+    plot_histogram(mean, file, step_size=step_size, x_min=x_min, x_max=x_max, use_log_scale=use_log_scale)
+
+
+
+def plot_histogram(data, file, step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
+    if x_min is None:
+        x_min = np.floor(np.min(data) / step_size) * step_size
+    if x_max is None:
+        x_max = np.ceil(np.max(data) / step_size) * step_size
+    bins = np.arange(x_min, x_max+step_size, step_size)
+    
+    util.plot.histogram(data, bins, file, use_log_scale=use_log_scale)
