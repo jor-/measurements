@@ -1,13 +1,13 @@
 import numpy as np
 
-import measurements.po4.woa.data.io
+import measurements.po4.woa.data13.load
 import measurements.util.map
 import util.plot
 
 
 
 def plot_sample_mean(file='/tmp/woa_po4_sample_mean.png', vmax=None, layer=None):
-    data = measurements.po4.woa.data.io.means()
+    data = measurements.po4.woa.data13.load.means()
     assert data.ndim == 4
     for t_index in range(len(data)): 
         data[t_index] = measurements.util.map.apply_mask(data[t_index], land_value=np.inf)
@@ -19,7 +19,7 @@ def plot_sample_mean(file='/tmp/woa_po4_sample_mean.png', vmax=None, layer=None)
 
 
 def plot_sample_deviation(file='/tmp/woa_po4_sample_deviation.png', vmax=None, layer=None):
-    data = measurements.po4.woa.data.io.varis()**(1/2)
+    data = measurements.po4.woa.data13.load.varis()**(1/2)
     assert data.ndim == 4
     for t_index in range(len(data)): 
         data[t_index] = measurements.util.map.apply_mask(data[t_index], land_value=np.inf)
@@ -31,7 +31,7 @@ def plot_sample_deviation(file='/tmp/woa_po4_sample_deviation.png', vmax=None, l
 
 
 def plot_sample_nob(file='/tmp/woa_po4_sample_nob.png', vmax=None, layer=None):
-    data = measurements.po4.woa.data.io.nobs()
+    data = measurements.po4.woa.data13.load.nobs()
     if layer is not None:
         data = data[:, :, :, layer]
         data = data.reshape(data.shape + (1,))

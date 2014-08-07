@@ -1,6 +1,6 @@
 import measurements.util.data
 
-from .constants import MEASUREMENTS_DICT_UNSORTED_FILE, MEASUREMENTS_DICT_FILE
+from .constants import MEASUREMENTS_DICT_UNSORTED_FILE, MEASUREMENTS_DICT_SORTED_FILE
 
 
 # def add_cruises_to_measurements(measurements, cruises):
@@ -53,9 +53,9 @@ class Measurements_Sorted(measurements.util.data.Measurements_Sorted, Measuremen
         super().__init__()
     
     
-    def save(self, file=MEASUREMENTS_DICT_FILE):
+    def save(self, file=MEASUREMENTS_DICT_SORTED_FILE):
         super().save(file)
     
-    def load(self, file=MEASUREMENTS_DICT_FILE):
+    def load(self, file=MEASUREMENTS_DICT_SORTED_FILE):
         super().load(file)
 

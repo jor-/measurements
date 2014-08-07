@@ -1,8 +1,10 @@
-import numpy as np
 import math
 import bisect
 import itertools
 import logging
+
+import numpy as np
+import scipy.stats
 
 
 import util.io
@@ -56,6 +58,65 @@ class Measurements_Unsorted():
         
         return value
         
+    
+    def iterate(self, fun, minimum_measurements=1, return_type='array'):
+        measurements_dict = self.measurements_dict
+        
+        ## check input
+        if return_type not in ('array', 'self'):
+            raise ValueError('Unknown return_type "%s". Only "array" and "self" are supported.' % return_type)
+        
+        ## init
+        if return_type is 'array':
+            values = []
+        else:
+            values = type(self)()
+        
+        ## iterate
+        for (t, t_dict) in measurements_dict.items():
+            for (x, x_dict) in t_dict.items():
+                for (y, y_dict) in x_dict.items():
+                    for (z, results_list) in y_dict.items():
+                        if len(results_list) >= minimum_measurements:
+                            results = np.array(results_list)
+                            value = fun(results)
+                            
+                            ## insert
+                            if return_type is 'array':
+                                row = [t, x, y, z, value]
+                                values.append(row)
+                            else:
+                                index = (t, x, y, z)
+                                values.add_result(index, value)
+        
+        ## finishing
+        if return_type is 'array':
+            values = np.array(values)
+            logger.debug('{} values calculated.'.format(values.shape[0]))
+        
+        return values
+    
+    
+    
+    def values(self, minimum_measurements=1):
+        logger.debug('Returnung values of measurements with minimal {} results.'.format(minimum_measurements))
+        
+        measurements_dict = self.measurements_dict
+        all_measurements = []
+        all_results = []
+        
+        ## iterate
+        for (t, t_dict) in measurements_dict.items():
+            for (x, x_dict) in t_dict.items():
+                for (y, y_dict) in x_dict.items():
+                    for (z, results_list) in y_dict.items():
+                        if len(results_list) >= minimum_measurements:
+                            measurement = (t, x, y, z)
+                            all_measurements.append(measurement)
+                            results = np.array(results_list)
+                            all_results.append(results)
+        
+        return [np.array(all_measurements), all_results]
     
     
     ## transform indices
@@ -143,8 +204,8 @@ class Measurements_Unsorted():
         self.transform_indices(transform_function)
     
     
-    def transform_indices_to_boxes(self, x_dim, y_dim, z_values):
-        def transform_index_to_boxes(index, x_dim, y_dim, z_values):
+    def transform_indices_to_boxes(self, x_dim, y_dim, z_values_left):
+        def transform_index_to_boxes(index, x_dim, y_dim, z_values_left):
             def transform_space_index(index, range, new_len):
                 index = np.floor(((index - range[0]) / (range[1] - range[0])) * new_len)
                 if index == new_len:
@@ -157,16 +218,16 @@ class Measurements_Unsorted():
                 index[1] += 360
             index[1] = transform_space_index(index[1], (0, 360), x_dim)
             index[2] = transform_space_index(index[2], (-90, 90), y_dim)
-            index[3] = bisect.bisect_right(z_values, index[3]) - 1
+            index[3] = bisect.bisect_right(z_values_left, index[3]) - 1
             
             index = tuple(index)
             
             return index
         
         
-        logger.debug('Transform indices to boxes with x_dim %d, y_dim %d and z_values %s.' % (x_dim, y_dim, str(z_values)))
+        logger.debug('Transform indices to boxes with x_dim {}, y_dim {} and z_values_left {}.'.format(x_dim, y_dim, z_values_left))
         
-        transform_function = lambda index: transform_index_to_boxes(index, x_dim=x_dim, y_dim=y_dim, z_values=z_values)
+        transform_function = lambda index: transform_index_to_boxes(index, x_dim=x_dim, y_dim=y_dim, z_values_left=z_values_left)
         
         self.transform_indices(transform_function)
     
@@ -267,6 +328,12 @@ class Measurements_Unsorted():
     
     
     
+    def log_results(self):
+        logger.debug('Applying logarithm to results.')
+        transform_function = lambda x: (np.log(np.asarray(x))).tolist()
+        self.transform_result(transform_function)
+    
+    
     ## filter
     def filter(self, filter_function):
         measurements_dict = self.measurements_dict
@@ -332,7 +399,6 @@ class Measurements_Unsorted():
         return values
     
     
-    
     def numbers(self, minimum_measurements=1, return_type='array'):
         logger.debug('Calculate numbers of measurements with %d minimal measurements.', minimum_measurements)
         
@@ -370,6 +436,49 @@ class Measurements_Unsorted():
         
         return self.iterate(calculate_deviation, minimum_measurements, return_type=return_type)
     
+    ## tests for normality
+    
+    def dagostino_pearson_test(self, minimum_measurements=50, alpha=0.05, return_type='array'):
+        logger.debug('Calculate D´Agostino-Person-test for normality of measurements with minimal {} results with alpha {}.'.format(minimum_measurements, alpha))
+        
+        test_results = self.iterate(lambda x: scipy.stats.normaltest(x)[1], minimum_measurements, return_type=return_type)
+        
+        if alpha is not None:
+            test_results[:,4] = (test_results[:,4] >= alpha).astype(np.float)
+        return test_results
+    
+    def shapiro_wilk_test(self, minimum_measurements=50, alpha=0.05, return_type='array'):
+        logger.debug('Calculate Shapiro-Wilk-test for normality of measurements with minimal {} results with alpha {}.'.format(minimum_measurements, alpha))
+        
+        test_results = self.iterate(lambda x: scipy.stats.shapiro(x)[1], minimum_measurements, return_type=return_type)
+        
+        if alpha is not None:
+            test_results[:,4] = (test_results[:,4] >= alpha).astype(np.float)
+        return test_results
+    
+    def anderson_test(self, minimum_measurements=50, alpha=0.05, return_type='array'):
+        logger.debug('Calculate Anderson-test for normality of measurements with minimal {} results with alpha {}.'.format(minimum_measurements, alpha))
+        
+        def test(x, alpha):
+            ## get test values
+            t = scipy.stats.anderson(x)
+            test_value = t[0]
+            test_bounds = t[1]
+            test_alphas = t[2] / 100
+            
+            ## get bound for alpha
+            index = np.where(test_alphas == alpha)[0]
+            if len(index) == 0:
+                raise ValueError('The alpha value {} is not supported for this test. Only to values {} are supported.'.format(alpha, test_alphas))
+            index = index[0]
+            bound = test_bounds[index]
+            
+            ## check if test passed
+            return test_value <= bound
+        
+        test_results = self.iterate(lambda x:test(x, alpha), minimum_measurements, return_type=return_type)
+        return test_results
+        
     
     
     ## total correlogram and correlation

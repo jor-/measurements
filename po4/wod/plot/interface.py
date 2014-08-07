@@ -1,5 +1,4 @@
 import numpy as np
-import bisect
 import os.path
 
 import matplotlib.pyplot as plt
@@ -11,8 +10,6 @@ import measurements.po4.wod.deviation.io
 import measurements.util.map
 import ndop.oed.io
 import util.plot
-
-from ndop.model.constants import (METOS_X_DIM as X_DIM, METOS_Y_DIM as Y_DIM, METOS_Z as Z_VALUES)
 
 
 

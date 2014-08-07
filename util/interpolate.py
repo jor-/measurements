@@ -127,30 +127,7 @@ class Time_Periodic_Earth_Interpolater(Time_Periodic_Interpolator):
         
         logging.debug('Initiating time periodic earth interpolator with {} data points, time len {}, wrap around amount {} and {} linear interpolators with total overlapping of {}.'.format(len(data_points), t_len, wrap_around_amount, number_of_linear_interpolators, total_overlapping_linear_interpolators))
         
-        
-#         ## if data points, append values for lower and upper bound of depth
-#         lower_depth_bound = np.min(data_points[3,:])
-#         upper_depth_bound = np.max(data_points[3,:])
-#         
-#         assert lower_depth_bound >= 0 and upper_depth_bound <= MAX_SEA_DEPTH
-#         
-#         if lower_depth_bound > 0:
-#             lower_depth_bound_data_indices = np.where(data_points[3,:] == lower_depth_bound)[0]
-#             lower_depth_bound_data_points = data_points[lower_depth_bound_data_indices]
-#             lower_depth_bound_data_points[3,:] = 0
-#         else:
-#             lower_depth_bound_data_mask = np.array([])
-#         if upper_depth_bound < MAX_SEA_DEPTH:
-#             upper_depth_bound_data_indices = np.where(data_points[3,:] == lower_depth_bound)[0]
-#             upper_depth_bound_data_points = data_points[upper_depth_bound_data_indices]
-#             upper_depth_bound_data_points[3,:] = MAX_SEA_DEPTH
-#         
-#         data_points = np.concatenate((lower_depth_bound_data_points, data_points, upper_depth_bound_data_points), axis=0)
-#         data_indices = np.concatenate((lower_depth_bound_data_indices, np.arange(len(data_values)), upper_depth_bound_data_indices), axis=0)
-#         
-#         data_values = data_values[data_indices]
-#         
-#         ## call super constructor
+        ## call super constructor
         self.order = number_of_linear_interpolators
         
         t_scaling = 4 * EARTH_RADIUS / t_len

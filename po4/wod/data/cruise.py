@@ -20,7 +20,7 @@ class Cruise():
     def __init__(self, file):
         from . import constants
         
-        logger.debug('Loading cruise from %s.' % file)
+        logger.debug('Loading cruise from {}.'.format(file))
         
         ## open netcdf file
         f = scipy.io.netcdf.netcdf_file(file, 'r')
@@ -43,39 +43,51 @@ class Cruise():
         self.dt_float = dt_float
         
         ## read coordinates and valid measurements
-        self.x = float(f.variables[constants.LON].data)
-        self.y = float(f.variables[constants.LAT].data)
+        try:
+            self.x = float(f.variables[constants.LON].data)
+            self.y = float(f.variables[constants.LAT].data)
+            
+            z = f.variables[constants.DEPTH].data
+            po4 = f.variables[constants.PO4].data
+            
+            z_flag = f.variables[constants.DEPTH_FLAG].data
+            po4_flag = f.variables[constants.PO4_FLAG].data
+            po4_profile_flag = f.variables[constants.PO4_PROFILE_FLAG].data
+        except KeyError as e:
+            missing_key = e.args[0]
+            warnings.warn('Date with name {} is missing in file {}!'.format(missing_key, file))
+            z = np.array([])
+            po4 = np.array([])
         
-        z_flag = f.variables[constants.DEPTH_FLAG].data
-        po4_flag = f.variables[constants.PO4_FLAG].data
-        po4_profile_flag = f.variables[constants.PO4_PROFILE_FLAG].data
-        valid_mask = np.logical_and(po4_flag == 0, z_flag == 0) * (po4_profile_flag == 0)
+        ## remove invalid measurements
+        if len(po4) > 0:
+            valid_mask = np.logical_and(po4_flag == 0, z_flag == 0) * (po4_profile_flag == 0)
+            z = z[valid_mask]
+            po4 = po4[valid_mask]
+            
+            valid_mask = po4 != constants.MISSING_VALUE
+            z = z[valid_mask]
+            po4 = po4[valid_mask]
         
-        z = f.variables[constants.DEPTH].data[valid_mask]
-        po4 = f.variables[constants.PO4].data[valid_mask]
+        ## check values
+        if np.any(po4 < 0):
+            warnings.warn('PO4 in {} is lower then 0!'.format(file))
+            valid_mask = po4 > 0
+            po4 = po4[valid_mask]
+            z = z[valid_mask]
         
-        valid_mask = po4 != constants.MISSING_VALUE
-        z = z[valid_mask]
-        po4 = po4[valid_mask]
+        if np.any(z < 0):
+            warnings.warn('Depth in {} is lower then 0!'.format(file))
+            z[z < 0] = 0
         
+        ## save values
         self.z = z
         self.po4 = po4
         
         ## close file
         f.close()
         
-        ## check values
-        if np.any(po4 < 0):
-            warnings.warn('PO4 in %s is lower then 0.' % file)
-            valid_mask = po4 > 0
-            po4 = po4[valid_mask]
-            z = z[valid_mask]
-        
-        if np.any(z < 0):
-            warnings.warn('Depth in %s is lower then 0.' % file)
-            z[z < 0] = 0
-        
-        logger.debug('Cruise from %s loaded.' % file)
+        logger.debug('Cruise from {} loaded.'.format(file))
     
     @property
     def number_of_measurements(self):
@@ -198,14 +210,6 @@ class Cruise_Collection():
         
         ## load cruises
         logger.debug('Loading cruises from found files.')
-#         def load_cruise(file):
-#             cruise = Cruise(file)
-#             cruise.land_sea_mask = land_sea_mask
-#             cruise.spatial_indices
-#             return cruise
-#         
-#         cruises = [load_cruise(file) for file in files]
-        
         cruises = [Cruise(file) for file in files]
         logger.debug('%d cruises loaded.' % len(cruises))
         
