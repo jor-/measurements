@@ -25,7 +25,7 @@ def nobs():
 
 
 
-def varis():
+def variances():
     from .constants import VARIS_FILE
     data = npy_or_save(VARIS_FILE)
     return data

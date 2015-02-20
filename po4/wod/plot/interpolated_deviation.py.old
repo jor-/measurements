@@ -1,0 +1,15 @@
+import numpy as np
+
+import measurements.po4.wod.deviation.values
+
+import util.plot
+import util.logging
+
+
+with util.logging.Logger():
+    v_min=0.05
+    file = '/tmp/wod13_po4_interpolated_deviation_{}.png'
+#     for (data, lsm_str) in ((measurements.po4.wod.deviation.values.for_TMM(12), 'lsm_12_tmm'), (measurements.po4.wod.deviation.values.for_TMM(52), 'lsm_52_tmm'), (measurements.po4.wod.deviation.values.for_WOA13R(52), 'lsm_52_woa13r'), (measurements.po4.wod.deviation.values.for_WOA13(52), 'lsm_52_woa13')):
+#     for (data, lsm_str, v_max) in ((measurements.po4.wod.deviation.values.for_TMM(1), 'lsm_1_tmm', 0.3), (measurements.po4.wod.deviation.values.for_TMM(12), 'lsm_12_tmm', 0.4), (measurements.po4.wod.deviation.values.for_TMM(48), 'lsm_48_tmm', 0.5)):
+    for (data, lsm_str, v_max) in ((measurements.po4.wod.deviation.values.for_TMM(1), 'lsm_1_tmm', 0.3), (measurements.po4.wod.deviation.values.for_TMM(12), 'lsm_12_tmm', 0.4), (measurements.po4.wod.deviation.values.for_TMM(48), 'lsm_48_tmm', 0.5)):
+        util.plot.data(data, file.format(lsm_str), no_data_value=np.inf, vmin=v_min, vmax=v_max)

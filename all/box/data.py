@@ -48,9 +48,9 @@ def means():
     return data
 
 
-def varis():
+def variances():
     from .constants import VARIS_FILE
-    data = npy_or_save_dop_and_po4(VARIS_FILE, measurements.dop.box.load.varis, measurements.po4.woa.data13.load.varis)
+    data = npy_or_save_dop_and_po4(VARIS_FILE, measurements.dop.box.load.variances, measurements.po4.woa.data13.load.variances)
     
     assert np.all(data[np.logical_not(np.isnan(data))] > 0)
     

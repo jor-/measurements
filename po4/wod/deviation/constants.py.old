@@ -1,0 +1,38 @@
+import os.path
+
+from ..constants import ANALYSIS_DIR
+
+DEVIATION_DIR = os.path.join(ANALYSIS_DIR, 'deviation')
+
+INTERPOLATED_DEVIATION_FILENAME = 'interpolated_deviation_{}_OLD.npy'
+INTERPOLATED_DEVIATION_FOR_LSM_FILENAME = 'interpolated_deviation_{}_{}.npy'
+
+INTERPOLATED_DEVIATION_INTERPOLATOR_SETUP = (0.1, 2, 0.2)
+
+
+
+
+############## OLD
+## constants for sample standard deviation
+#SEPARATION_VALUES = [1, 1, 1, [0, 50, 120, 220, 360, 550, 790, 1080, 1420, 1810, 2250, 2740, 3280, 3870, 4510, 9000]]
+#SEPARATION_VALUES = [1./52., 1, 1, [0, 25, 50, 85, 120, 170, 220, 290, 360, 455, 550, 670, 790, 935, 1080, 1250, 1420, 1615, 1810, 2030, 2250, 2495, 2740, 3010, 3280, 3575, 3870, 4190, 4510, 6755, 9000]]
+T_DIM = 52
+SEPARATION_VALUES = [1./T_DIM, 1, 1, [0, 25, 50, 85, 120, 170, 220, 290, 360, 455, 550, 670, 790, 935, 1080, 1250, 1420, 1615, 1810, 2030, 2250, 2495, 2740, 3010, 3280, 3575, 3870, 4190, 4510, 6000, 8000, 10000]]
+T_LEN = 1
+X_LEN = 360
+Y_LEN = 360
+MEASUREMENT_DEVIATIONS_ESTIMATION_FILE = os.path.join(DEVIATION_DIR, 'measurement_deviations_estimation_{}.npy'.format(T_DIM))
+
+
+## constants for interpolation
+# AMOUNT_OF_WRAP_AROUND = 0.1
+# # NUMBER_OF_LINEAR_INTERPOLATOR = 2
+# # TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR = 0.15
+# NUMBER_OF_LINEAR_INTERPOLATOR = 12
+# TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR = 0.4
+
+INTERPOLATOR_SETUP = (0.1, 2, 0.2)
+PARALLEL = True
+
+MEASUREMENT_DEVIATIONS_INTERPOLATION_FILE = os.path.join(DEVIATION_DIR, 'measurement_deviations_interpolation_{}_{}.npy'.format(T_DIM, str(INTERPOLATOR_SETUP).replace(' ','')))
+####################

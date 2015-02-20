@@ -18,7 +18,8 @@ def woa_data(data_name, divide_annual_values):
     ## load annual data
     t_dim = len(MONTHLY_FILES)
     data = data_from_file(ANNUAL_FILE, data_name)
-    data = data.repeat(t_dim, 0)
+#     data = data.repeat(t_dim, 0)
+    data = np.tile(data.T, t_dim).T
     if divide_annual_values:
         data /= t_dim
     

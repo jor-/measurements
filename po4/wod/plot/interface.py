@@ -3,29 +3,93 @@ import os.path
 
 import matplotlib.pyplot as plt
 
-from measurements.po4.wod.data.results import Measurements_Unsorted as Measurements
-from measurements.po4.wod.data.io import load_measurement_dict_unsorted as load_measurement_dict
-from measurements.po4.wod.correlation import estimation, model
-import measurements.po4.wod.deviation.io
-import measurements.util.map
-import ndop.oed.io
+from measurements.po4.wod.correlogram import estimation, model
+
+import measurements.land_sea_mask.data
+import measurements.po4.wod.mean.values
+import measurements.po4.wod.deviation.values
+
 import util.plot
 
 
 
+# def interpolated_data(data_kind, lsm_kind, t_dim):
+#     if data_kind == 'mean':
+#         values = measurements.po4.wod.mean.values
+#         
+#         v_min = 0
+#         v_max = 2.5
+#         
+#     elif data_kind == 'deviation':
+#         values = measurements.po4.wod.deviation.values
+#         
+#         v_min = 0.05
+#         if t_dim == 1:
+#             v_max = 0.3
+#         elif t_dim == 4:
+#             v_max = 0.35
+#         elif t_dim == 12:
+#             v_max = 0.4
+#         elif t_dim == 48:
+#             v_max = 0.5
+#     
+#     
+#     if lsm_kind == 'TMM':
+#         data = values.for_TMM(t_dim=t_dim)
+#     elif lsm_kind == 'WOA13':
+#         data = values.for_WOA13(t_dim=t_dim)
+#     elif lsm_kind == 'WOA13R':
+#         data = values.for_WOA13R(t_dim=t_dim)
+#     
+#     file = '/tmp/po4_wod13_interpolated_{}_lsm_{}.png'.format(data_kind, lsm_kind.lower())
+#     util.plot.data(data, file, no_data_value=np.inf, vmin=v_min, vmax=v_max)
 
-def plot_interpolted_deviation_boxes(file='/tmp/wod_po4_box_deviation.png', year_len=12, vmin=0, vmax=None, layer=None, discard_year=True):
-    data = ndop.oed.io.load_deviation_boxes()
+
+def data(calculation_kind, data_kind, lsm_kind, t_dim):
+    assert calculation_kind in ('sample', 'interpolated')
+    assert data_kind in ('mean', 'deviation')
+    assert lsm_kind in ('TMM', 'WOA13', 'WOA13R')
     
-    m = Measurements()
-    m.add_results(data[:,:-1], data[:,-1])
-    m.categorize_indices((1./year_len,))
+    if data_kind == 'mean':
+        values = measurements.po4.wod.mean.values
+        
+        v_min = 0
+        v_max = 2.5
+        
+    elif data_kind == 'deviation':
+        values = measurements.po4.wod.deviation.values
+        
+        v_min = 0.05
+        if t_dim == 1:
+            v_max = 0.3
+        elif t_dim == 4:
+            v_max = 0.35
+        elif t_dim == 12:
+            v_max = 0.4
+        elif t_dim == 48:
+            v_max = 0.5
     
-    data = measurements.util.map.insert_values_in_map(m.means(), no_data_value=np.inf)
-    if layer is not None:
-        data = data[:, :, :, layer]
-        data = data.reshape(data.shape + (1,))
-    util.plot.data(data, file, no_data_value=np.inf, vmin=vmin, vmax=vmax)
+    if calculation_kind == 'sample':
+        values = values.Interpolator()
+        if lsm_kind == 'TMM':
+            lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=t_dim)
+        elif lsm_kind == 'WOA13':
+            lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13(t_dim=t_dim)
+        elif lsm_kind == 'WOA13R':
+            lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=t_dim)
+        data = values.sample_data_for_lsm(lsm)
+        
+    elif calculation_kind == 'interpolated':
+        if lsm_kind == 'TMM':
+            data = values.for_TMM(t_dim=t_dim)
+        elif lsm_kind == 'WOA13':
+            data = values.for_WOA13(t_dim=t_dim)
+        elif lsm_kind == 'WOA13R':
+            data = values.for_WOA13R(t_dim=t_dim)
+    
+    file = '/tmp/po4_wod13_{}_{}_lsm_{}.png'.format(calculation_kind, data_kind, lsm_kind.lower())
+    util.plot.data(data, file, no_data_value=np.inf, vmin=v_min, vmax=v_max)
+
 
 
 def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
@@ -95,7 +159,7 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
         util.plot.set_spine_line_size(fig, line_width=2)
         
         ## save plot
-        file = os.path.join(path, 'wod_po4_correlogram_min_measurements_' + str(min_measurements) + '_direction_' + str(direction_index) + '.png')
+        file = os.path.join(path, 'po4_wod13_correlogram_min_measurements_' + str(min_measurements) + '_direction_' + str(direction_index) + '.png')
         plt.savefig(file, transparent=True)
         plt.close(fig)
         
@@ -104,25 +168,8 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
 
 
 
-def plot_interpolated_deviation_histogram(file='/tmp/wod_po4_interpolated_deviation_histogram.png', step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
-    deviation = measurements.po4.wod.deviation.io.load_deviations()
+def plot_interpolated_deviation_histogram(file='/tmp/po4_wod13_interpolated_deviation_histogram.png', step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
+    deviation = measurements.po4.wod.deviation.values.for_points()
     deviation[deviation < 0.05] = 0.051     # for rounding errors
     
     plot_histogram(deviation, file, step_size=step_size, x_min=x_min, x_max=x_max, use_log_scale=use_log_scale)
-
-
-def plot_mean_histogram(file='/tmp/wod_po4_mean_histogram.png', step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
-    mean = measurements.po4.wod.data.io.load_measurement_results()
-    
-    plot_histogram(mean, file, step_size=step_size, x_min=x_min, x_max=x_max, use_log_scale=use_log_scale)
-
-
-
-def plot_histogram(data, file, step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
-    if x_min is None:
-        x_min = np.floor(np.min(data) / step_size) * step_size
-    if x_max is None:
-        x_max = np.ceil(np.max(data) / step_size) * step_size
-    bins = np.arange(x_min, x_max+step_size, step_size)
-    
-    util.plot.histogram(data, bins, file, use_log_scale=use_log_scale)

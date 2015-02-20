@@ -3,7 +3,8 @@ import bisect
 import logging
 
 import util.io
-import measurements.util.interpolate
+# import measurements.util.interpolate
+import util.math.interpolate
 
 
 def load_from_netcdf(netcdf_file, netcdf_dataname):
@@ -70,7 +71,8 @@ def save():
     
     logging.debug('Interpolating variance for {} points.'.format(interpolation_points.shape[0]))
     
-    interpolator = measurements.util.interpolate.Time_Periodic_Non_Cartesian_Interpolator(data_points, data_values, t_len=nobs.shape[0], x_len=nobs.shape[1], t_scale=False, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, total_overlapping_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR)
+#     interpolator = measurements.util.interpolate.Time_Periodic_Non_Cartesian_Interpolator(data_points, data_values, t_len=nobs.shape[0], x_len=nobs.shape[1], t_scale=False, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, total_overlapping_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR)
+    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=vari.shape, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, total_overlapping_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR)
     
     vari[interpolation_points_indices] = interpolator.interpolate(interpolation_points)
     

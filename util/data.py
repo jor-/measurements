@@ -34,6 +34,8 @@ class Measurements_Unsorted():
             result_list.append(result)
     
     def add_results(self, indices, results):
+        assert len(indices) == len(results)
+        
         results_len = len(results)
         logger.debug('Adding {} measurements.'.format(results_len))
         for i in range(results_len):
@@ -48,23 +50,87 @@ class Measurements_Unsorted():
     def load(self, file):
         logger.debug('Loading measurements from %s.', file)
         self.measurements_dict = util.io.load_object(file)
+        return self
     
     
-    def get_value(self, index):
+    def result(self, index):
         value = self.measurements_dict
         
         for i in index:
             value = value[i]
         
         return value
-        
     
-    def iterate(self, fun, minimum_measurements=1, return_type='array'):
+    
+    def __getitem__(self, key):
+        return self.result(key)
+    
+    
+    def has_results(self, index):
+        value = self.measurements_dict
+        
+        for i in index:
+            try:
+                value = value[i]
+            except KeyError:
+                return False
+        
+        return len(value) > 0
+    
+    
+    def all_points(self):
+        all_points = []
+        for (t, x, y, z, results_list) in self.iterate_generator():
+            for result in results_list:
+                all_points.append((t, x, y, z))
+        
+        all_points = np.array(all_points)
+        assert all_points.ndim == 2
+        assert all_points.shape[1] == 4
+        return all_points
+    
+    
+    def all_results(self):
+        all_results = []
+        for (t, x, y, z, results_list) in self.iterate_generator():
+            all_results.extend(results_list)
+        
+        all_results = np.array(all_results)
+        return all_results
+    
+    
+    def all_points_and_results(self):
+#         all_values = []
+#         for (t, x, y, z, results_list) in self.iterate_generator():
+#             for result in results_list:
+#                 all_values.append((t, x, y, z, result))
+#         
+#         all_values = np.array(all_values)
+#         assert all_values.ndim == 2
+#         assert all_values.shape[1] == 5
+#         return all_values
+        return np.concatenate(self.all_points(), self.all_results(), axis=1)
+    
+    
+    
+    
+    def iterate_generator(self):
         measurements_dict = self.measurements_dict
         
+        for (t, t_dict) in measurements_dict.items():
+            for (x, x_dict) in t_dict.items():
+                for (y, y_dict) in x_dict.items():
+                    for (z, results_list) in y_dict.items():
+                        yield (t, x, y, z, results_list)
+    
+    
+    
+    def iterate(self, fun, minimum_measurements=1, return_type='array'):
+#         measurements_dict = self.measurements_dict
+        
         ## check input
-        if return_type not in ('array', 'self'):
-            raise ValueError('Unknown return_type "%s". Only "array" and "self" are supported.' % return_type)
+        if return_type not in ('array', 'self', 'measurements'):
+            raise ValueError('Unknown return_type "%s". Only "array", "self" and "measurements" are supported.' % return_type)
         
         ## init
         if return_type is 'array':
@@ -73,21 +139,18 @@ class Measurements_Unsorted():
             values = type(self)()
         
         ## iterate
-        for (t, t_dict) in measurements_dict.items():
-            for (x, x_dict) in t_dict.items():
-                for (y, y_dict) in x_dict.items():
-                    for (z, results_list) in y_dict.items():
-                        if len(results_list) >= minimum_measurements:
-                            results = np.array(results_list)
-                            value = fun(results)
-                            
-                            ## insert
-                            if return_type is 'array':
-                                row = [t, x, y, z, value]
-                                values.append(row)
-                            else:
-                                index = (t, x, y, z)
-                                values.add_result(index, value)
+        for (t, x, y, z, results_list) in self.iterate_generator():
+            if len(results_list) >= minimum_measurements:
+                results = np.array(results_list)
+                value = fun(results)
+                
+                ## insert
+                if return_type is 'array':
+                    row = [t, x, y, z, value]
+                    values.append(row)
+                else:
+                    index = (t, x, y, z)
+                    values.add_result(index, value)
         
         ## finishing
         if return_type is 'array':
@@ -96,36 +159,34 @@ class Measurements_Unsorted():
         
         return values
     
+#     def all_values(self):
+#         measurements_dict = self.measurements_dict
+#         all_measurements = []
+#         all_results = []
+#         
+#         ## iterate
+#         for (t, t_dict) in measurements_dict.items():
+#             for (x, x_dict) in t_dict.items():
+#                 for (y, y_dict) in x_dict.items():
+#                     for (z, results_list) in y_dict.items():
+#                         if len(results_list) >= minimum_measurements:
+#                             measurement = (t, x, y, z)
+#                             all_measurements.append(measurement)
+#                             results = np.array(results_list)
+#                             all_results.append(results)
+        
+#         logger.debug('Returning {} values of measurements with minimal {} results.'.format(len(all_results), minimum_measurements))
     
     
-    def values(self, minimum_measurements=1):
-        logger.debug('Returnung values of measurements with minimal {} results.'.format(minimum_measurements))
-        
-        measurements_dict = self.measurements_dict
-        all_measurements = []
-        all_results = []
-        
-        ## iterate
-        for (t, t_dict) in measurements_dict.items():
-            for (x, x_dict) in t_dict.items():
-                for (y, y_dict) in x_dict.items():
-                    for (z, results_list) in y_dict.items():
-                        if len(results_list) >= minimum_measurements:
-                            measurement = (t, x, y, z)
-                            all_measurements.append(measurement)
-                            results = np.array(results_list)
-                            all_results.append(results)
-        
-        return [np.array(all_measurements), all_results]
+    
+    
     
     
     ## transform indices
     
     def transform_indices(self, transform_function):
         measurements_dict = self.measurements_dict
-        measurements_dict_type = type(measurements_dict)
-        measurements_dict_transformed = measurements_dict_type()
-        self.measurements_dict = measurements_dict_transformed
+        self.measurements_dict = type(measurements_dict)()
         
         for (t, t_dict) in  measurements_dict.items():
             for (x, x_dict) in t_dict.items():
@@ -133,7 +194,6 @@ class Measurements_Unsorted():
                     for (z, results) in y_dict.items():
                         index = (t, x, y, z)
                         index_transformed = transform_function(index)
-                        
                         self.add_result(index_transformed, results)
     
     
@@ -146,6 +206,10 @@ class Measurements_Unsorted():
             ## discard year
             if discard_year:
                 index[0] = index[0] % 1
+            
+            ## remove right bound of last y box
+            if index[2] == 90:
+                index[2] = 90 - 10**(-6)
             
             ## iterate over dimensions
             for i in range(len(separation_values)):
@@ -176,18 +240,6 @@ class Measurements_Unsorted():
                         except IndexError:
                             raise ValueError('Index value %d exceeds range of separation values (right sight of separation values is %d).' % (index[i], value_left))
                         index[i] = (value_left + value_right) / 2.0
-                    
-#                     # wrap around
-#                     if wrap_around_ranges is not None:
-#                         try:
-#                             wrap_around_range = wrap_around_ranges[i]
-#                         except IndexError:
-#                             wrap_around_range = None
-#                     else:
-#                         wrap_around_range = None
-#                     
-#                     if wrap_around_range is not None:
-#                         index[i] = measurements.util.calculate.wrap_around_index(index[i], wrap_around_range)
             
             index = tuple(index)
             return index
@@ -202,6 +254,11 @@ class Measurements_Unsorted():
         transform_function = lambda index: categorize_index(index, separation_values, discard_year=discard_year)
         
         self.transform_indices(transform_function)
+    
+    
+    def categorize_indices_to_lsm(self, lsm, discard_year=False):
+        self.categorize_indices((1/lsm.t_dim, 360/lsm.x_dim, 180/lsm.y_dim, lsm.z), discard_year=discard_year)
+    
     
     
     def transform_indices_to_boxes(self, x_dim, y_dim, z_values_left):
@@ -232,6 +289,24 @@ class Measurements_Unsorted():
         self.transform_indices(transform_function)
     
     
+    def transform_indices_to_lsm(self, lsm):
+        def transform_t(index):
+            index = list(index)
+            index[0] = index[0] % 1
+            index[0] = math.floor(index[0] * lsm.t_dim)
+            return index
+        
+        self.transform_indices(transform_t)
+        self.transform_indices_to_boxes(lsm.x_dim, lsm.y_dim, lsm.z_left)
+    
+    
+    def coordinates_to_map_indices(self, lsm):
+        self.transform_indices(lambda point: lsm.coordinate_to_map_index(point))
+    
+    def map_indices_to_coordinates(self, lsm):
+        self.transform_indices(lambda index: lsm.map_index_to_coordinate(index))
+    
+    
     def discard_year(self):
         logger.debug('Discarding year.')
         
@@ -244,30 +319,30 @@ class Measurements_Unsorted():
         self.transform_indices(transform_function)
     
     
-    def discard_time(self):
-        logger.debug('Discarding time.')
+    def dicard_index(self, index):
+        logger.debug('Discarding index {}.'.format(index))
         
-        def transform_function(index):
-            index_list = list(index)
-            index_list[0] = 0
-            index = tuple(index_list)
-            return index
+        def transform_function(current_index):
+            current_index = list(current_index)
+            current_index[index] = 0
+            current_index = tuple(current_index)
+            return current_index
             
         self.transform_indices(transform_function)
     
+    
+    def dicard_indices(self, indices):
+        for index in indices:
+            self.dicard_index(index)
+    
+    
+    def discard_time(self):
+        logger.debug('Discarding time.')
+        self.dicard_index(0)
     
     def discard_space(self):
         logger.debug('Discarding space.')
-        
-        def transform_function(index):
-            index_list = list(index)
-            for i in range(1, len(index_list)):
-                index_list[i] = 0
-                index = tuple(index_list)
-            return index
-            
-        self.transform_indices(transform_function)
-    
+        self.dicard_indices((1,2,3))
     
     
     
@@ -281,7 +356,8 @@ class Measurements_Unsorted():
             for (x, x_dict) in t_dict.items():
                 for (y, y_dict) in x_dict.items():
                     for (z, results) in y_dict.items():
-                        results_transformed = transform_function(results)
+                        index = (t, x, y, z)
+                        results_transformed = transform_function(index, results)
                         
                         # make to list if not a list
                         try:
@@ -315,8 +391,8 @@ class Measurements_Unsorted():
                         categorized_index = self.categorize_index(index, same_bounds, discard_year=True)
                         
                         try:
-                            mean = means.get_value(categorized_index)[0]
-                            deviation = deviations.get_value(categorized_index)[0]
+                            mean = means[categorized_index][0]
+                            deviation = deviations[categorized_index][0]
                             match = True
                         except KeyError:
                             match = False
@@ -327,76 +403,175 @@ class Measurements_Unsorted():
                                 self.add_result(index, result_normalized)
     
     
+    def set_min_result(self, min_results):
+        logger.debug('Applying min value {} to results.'.format(min_results))
+        
+        def transform_function(index, results):
+            for i in range(len(results)):
+                if results[i] < min_results:
+                    results[i] = min_results
+            return results
+        
+        self.transform_result(transform_function)
+        
+    
     
     def log_results(self):
         logger.debug('Applying logarithm to results.')
-        transform_function = lambda x: (np.log(np.asarray(x))).tolist()
+        transform_function = lambda index, results: (np.log(np.asarray(results))).tolist()
         self.transform_result(transform_function)
     
     
     ## filter
-    def filter(self, filter_function):
-        measurements_dict = self.measurements_dict
-        measurements_dict_type = type(measurements_dict)
-        measurements_dict_transformed = measurements_dict_type()
-        self.measurements_dict = measurements_dict_transformed
+    
+    def filter(self, filter_function, apply_to_copy=False):
+        if apply_to_copy:
+            measurements_base = self
+            measurements_results = type(self)()
+        else:
+            measurements_base = type(self)()
+            measurements_results = self
+            
+            ## swap measurement dicts
+            measurements_dict_tmp = measurements_base.measurements_dict
+            measurements_base.measurements_dict = measurements_results.measurements_dict
+            measurements_results.measurements_dict = measurements_dict_tmp
         
-        for (t, t_dict) in  measurements_dict.items():
-            for (x, x_dict) in t_dict.items():
-                for (y, y_dict) in x_dict.items():
-                    for (z, results) in y_dict.items():
-                        index = (t, x, y, z)
-                        if filter_function(index, results):
-                            self.add_result(index, results)
+        ## iterate over measurements
+        for (t, x, y, z, results) in measurements_base.iterate_generator():
+            index = (t, x, y, z)
+            if filter_function(index, results):
+                measurements_results.add_result(index, results)
+        
+        return measurements_results
     
     
-    def filter_min_measurements(self, min_measurements=1):
+    def filter_min_measurements(self, min_measurements=1, apply_to_copy=False):
         def filter_function(index, results):
             return len(results) >= min_measurements
         
-        self.filter(filter_function)
+        return self.filter(filter_function, apply_to_copy=apply_to_copy)
     
+    
+    def filter_same_index(self, index, equal_bounds=(0,0,0,0), discard_year=True, only_one_per_year=True, apply_to_copy=False):
+        ## prepare bounds
+        assert len(equal_bounds) == 4
+        equal_bounds = list(equal_bounds)
+        try:
+            float(equal_bounds[3])
+        except TypeError:
+            ## get z bound for index z value
+#             for i in range(1, len(equal_bounds[3])):
+#                 if index[3] <= equal_bounds[3][i, 0]:
+#                     equal_bounds[3] = equal_bounds[3][i-1, 1]
+#                     break
+            z_bound_found = False
+            i = 0
+            while not z_bound_found:
+                if index[3] <= equal_bounds[3][i+1, 0]:
+                    z_bound_found = True
+                else:
+                    i += 1
+                    z_bound_found = i == len(equal_bounds[3]) - 1
+            equal_bounds[3] = equal_bounds[3][i, 1]
+        equal_bounds = np.array(equal_bounds)
+        
+        ## prepare index
+        index_base = np.array(index)
+        if discard_year:
+            index_base[0] = index_base[0] % 1
+        
+#         ## filter
+#         def filter_function(index, results):
+#             index = np.asarray(index)
+#             if discard_year:
+#                 index[0] = index[0] % 1
+#             return np.all(np.abs(index_base - index) <= equal_bounds)
+#         
+#         return self.filter(filter_function, apply_to_copy=apply_to_copy)
+        
+        
+        
+        ## filter all measurements with index in equal bounds
+        filtered_indices = []
+        filtered_results = []
+        
+        for (t, t_dict) in  self.measurements_dict.items():
+            if (not discard_year and np.abs(index_base[0] - t) <= equal_bounds[0]) or (discard_year and np.abs(index_base[0] - t % 1) <= equal_bounds[0]):
+                for (x, x_dict) in t_dict.items():
+                    if np.abs(index_base[1] - x) <= equal_bounds[1]:
+                        for (y, y_dict) in x_dict.items():
+                            if np.abs(index_base[2] - y) <= equal_bounds[2]:
+                                for (z, results) in y_dict.items():
+                                    if np.abs(index_base[3] - z) <= equal_bounds[3]:
+                                        index = (t, x, y, z)
+                                        filtered_indices.append(index)
+                                        filtered_results.append(results)
+#                                         measurements_filtered.add_result(index, results)
+        
+        ## filter only one per year
+        measurements_filtered = type(self)()
+        if only_one_per_year:
+            filtered_indices = np.array(filtered_indices)
+            filtered_results = np.array(filtered_results)
+            
+            years = np.unique(np.floor_divide(filtered_indices[:,0], 1))
+            index_scale = np.copy(index_base)
+            for year in years:
+                index_scale[0] = index_base[0]%1 + year
+                
+                min_index = np.linalg.norm(((filtered_indices - index_scale) / equal_bounds), ord=2, axis=1).argmin()
+                measurements_filtered.add_result(filtered_indices[min_index], filtered_results[min_index])
+            number_of_filtered_measurements = len(years)
+        else:
+            measurements_filtered.add_results(indices, results)
+            number_of_filtered_measurements = len(results)
+        
+#         logger.debug('{} results for index {} with equal bounds {} and discard year {} filtered.'.format(number_of_filtered_measurements, index, equal_bounds, discard_year))
+        logger.debug('{} results for index {} with equal bounds {} filtered.'.format(number_of_filtered_measurements, index, equal_bounds))
+        
+        return measurements_filtered
     
     
     
     ## compute values
     
-    def iterate(self, fun, minimum_measurements=1, return_type='array'):
-        measurements_dict = self.measurements_dict
-        
-        ## check input
-        if return_type not in ('array', 'self'):
-            raise ValueError('Unknown return_type "%s". Only "array" and "self" are supported.' % return_type)
-        
-        ## init
-        if return_type is 'array':
-            values = []
-        else:
-            values = type(self)()
-        
-        ## iterate
-        for (t, t_dict) in measurements_dict.items():
-            for (x, x_dict) in t_dict.items():
-                for (y, y_dict) in x_dict.items():
-                    for (z, results_list) in y_dict.items():
-                        if len(results_list) >= minimum_measurements:
-                            results = np.array(results_list)
-                            value = fun(results)
-                            
-                            ## insert
-                            if return_type is 'array':
-                                row = [t, x, y, z, value]
-                                values.append(row)
-                            else:
-                                index = (t, x, y, z)
-                                values.add_result(index, value)
-        
-        ## finishing
-        if return_type is 'array':
-            values = np.array(values)
-            logger.debug('{} values calculated.'.format(values.shape[0]))
-        
-        return values
+#     def iterate(self, fun, minimum_measurements=1, return_type='array'):
+#         measurements_dict = self.measurements_dict
+#         
+#         ## check input
+#         if return_type not in ('array', 'self'):
+#             raise ValueError('Unknown return_type "%s". Only "array" and "self" are supported.' % return_type)
+#         
+#         ## init
+#         if return_type is 'array':
+#             values = []
+#         else:
+#             values = type(self)()
+#         
+#         ## iterate
+#         for (t, t_dict) in measurements_dict.items():
+#             for (x, x_dict) in t_dict.items():
+#                 for (y, y_dict) in x_dict.items():
+#                     for (z, results_list) in y_dict.items():
+#                         if len(results_list) >= minimum_measurements:
+#                             results = np.array(results_list)
+#                             value = fun(results)
+#                             
+#                             ## insert
+#                             if return_type is 'array':
+#                                 row = [t, x, y, z, value]
+#                                 values.append(row)
+#                             else:
+#                                 index = (t, x, y, z)
+#                                 values.add_result(index, value)
+#         
+#         ## finishing
+#         if return_type is 'array':
+#             values = np.array(values)
+#             logger.debug('{} values calculated.'.format(values.shape[0]))
+#         
+#         return values
     
     
     def numbers(self, minimum_measurements=1, return_type='array'):
@@ -436,6 +611,9 @@ class Measurements_Unsorted():
         
         return self.iterate(calculate_deviation, minimum_measurements, return_type=return_type)
     
+    
+    
+    
     ## tests for normality
     
     def dagostino_pearson_test(self, minimum_measurements=50, alpha=0.05, return_type='array'):
@@ -456,8 +634,8 @@ class Measurements_Unsorted():
             test_results[:,4] = (test_results[:,4] >= alpha).astype(np.float)
         return test_results
     
-    def anderson_test(self, minimum_measurements=50, alpha=0.05, return_type='array'):
-        logger.debug('Calculate Anderson-test for normality of measurements with minimal {} results with alpha {}.'.format(minimum_measurements, alpha))
+    def anderson_darling_test(self, minimum_measurements=50, alpha=0.05, return_type='array'):
+        logger.debug('Calculate Anderson-Darling-test for normality of measurements with minimal {} results with alpha {}.'.format(minimum_measurements, alpha))
         
         def test(x, alpha):
             ## get test values
@@ -481,7 +659,7 @@ class Measurements_Unsorted():
         
     
     
-    ## total correlogram and correlation
+    ## total correlogram and correlation (autocorrelation)
     
     def _get_first_dim_shifted(self, measurements_dict_list, shift, same_bound, wrap_around_range=None):
         logger.debug('Getting first dim shifted with shift %f and same bound %f.' % (shift, same_bound))
@@ -804,6 +982,116 @@ class Measurements_Unsorted():
         return correlation
     
     
+    
+    ## correlation
+    
+    def filter_same_indices(self, equal_bounds=(0,0,0,0), discard_year=True, only_one_per_year=True, min_measurements=10):
+        logger.debug('Filtering results with same indicies with equal bound {}, discard year {} and min measurements {}.'.format(equal_bounds, discard_year, min_measurements))
+        
+        measurements = type(self)()
+        
+        for (t, t_dict) in  self.measurements_dict.items():
+            if discard_year:
+                t = t % 1
+            for (x, x_dict) in t_dict.items():
+                for (y, y_dict) in x_dict.items():
+                    for (z, results) in y_dict.items():
+                        index = (t, x, y, z)
+                        
+                        if not measurements.has_results(index):
+                            measurements_same_index = self.filter_same_index(index, equal_bounds=equal_bounds, discard_year=discard_year, only_one_per_year=only_one_per_year, apply_to_copy=True)
+                            
+                            transform_function = lambda index, results: [(index[0], result) for result in results]
+                            measurements_same_index.transform_result(transform_function)
+                            measurements_same_index_results = measurements_same_index.all_results()
+                            
+                            if len(measurements_same_index_results) >= min_measurements:
+                                logger.debug('{} values with index {} passed filter.'.format(len(measurements_same_index_results), index))
+                                measurements.add_result(index, measurements_same_index_results)
+        
+        return measurements
+        
+    
+    
+    
+    def correlation(self, equal_bounds, min_measurements=10, measurements_same_indices=None):
+        measurements_correlation = type(self)()
+        
+        if measurements_same_indices is None:
+            measurements_same_indices = self.filter_same_indices(equal_bounds=equal_bounds, discard_year=True, only_one_per_year=True, min_measurements=min_measurements)
+        
+        ## iterate over each pair of measurement indices
+        number_of_measurement1 = 0
+        for (t1, x1, y1, z1, transformed_results1) in measurements_same_indices.iterate_generator():
+            number_of_measurement2 = 0
+            for (t2, x2, y2, z2, transformed_results2) in measurements_same_indices.iterate_generator():
+                ## skip previous measurements
+                if number_of_measurement2 > number_of_measurement1:
+                    
+                    ## get matching measurements
+                    res = [(r1, r2) for (t1, r1) in transformed_results1 for (t2, r2) in transformed_results2 if np.abs(t1 - t2) <= equal_bounds[0]]
+                    res = np.array(res)
+                    n = len(res)
+                    
+                    ## calculate correlation
+                    if n >= min_measurements:
+                        x1 = res[:,0]
+                        x2 = res[:,1]
+                        
+                        m1 = x1.mean()
+                        m2 = x2.mean()
+                        s1 = np.sqrt(np.sum((x1 - m1)**2))
+                        s2 = np.sqrt(np.sum((x2 - m2)**2))
+                        
+                        correlation = np.sum((x1 - m1) / s1 * (x2 - m2) / s2)
+                        correlation_index = np.abs(index1 - index2)
+                        
+                        measurements_correlation.add_result(correlation_index, (n, correlation))
+                        
+                        logger.debug('Correlation {} calculated with {} measurements for index {}.'.format(correlation, n, correlation_index))
+                
+                number_of_measurement2 += 1
+            number_of_measurement1 += 1
+        
+        return measurements_correlation
+            
+        
+        
+#         for (t1, t_dict1) in  measurements_same_indices.items():
+#             for (x1, x_dict1) in t_dict.items():
+#                 for (y1, y_dict1) in x_dict.items():
+#                     for (z1, transformed_results1) in y_dict.items():
+#                         index1 = np.array((t1, x1, y1, z1))
+#                         
+#                         for (t2, t_dict2) in  measurements_same_indices.items():
+#                             for (x2, x_dict2) in t_dict.items():
+#                                 for (y2, y_dict2) in x_dict.items():
+#                                     for (z2, transformed_results2) in y_dict.items():
+#                                         index2 = np.array((t2, x2, y2, z2))
+#                         
+#                         
+#                                         ## get matching measurements
+#                                         res = [(r1, r2) for (t1, r1) in transformed_results1 for (t2, r2) in transformed_results2 if np.abs(t1 - t2) <= equal_bounds[0]]
+#                                         res = np.array(res)
+#                                         n = len(res)
+#                                         
+#                                         ## calculate correlation
+#                                         if n >= min_measurements:
+#                                             x1 = res[:,0]
+#                                             x2 = res[:,1]
+#                                             
+#                                             m1 = x1.mean()
+#                                             m2 = x2.mean()
+#                                             s1 = np.sqrt(np.sum((x1 - m1)**2))
+#                                             s2 = np.sqrt(np.sum((x2 - m2)**2))
+#                                             
+#                                             correlation = np.sum((x1 - m1) / s1 * (x2 - m2) / s2)
+#                                             correlation_index = np.abs(index1 - index2)
+#                                             
+#                                             self.add_result(correlation_index, correlation)
+        
+    
+    
 
 
 
@@ -864,10 +1152,10 @@ class Measurements_Sorted(Measurements_Unsorted):
     
     
     
-    def save(self, file):
-        super().save(file)
-    
-    
-    def load(self, file):
-        super().load(file)
+#     def save(self, file):
+#         super().save(file)
+#     
+#     
+#     def load(self, file):
+#         super().load(file)
 

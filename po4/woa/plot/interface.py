@@ -1,7 +1,8 @@
 import numpy as np
 
 import measurements.po4.woa.data13.load
-import measurements.util.map
+import measurements.land_sea_mask.data
+# import measurements.util.map
 import util.plot
 
 
@@ -9,8 +10,10 @@ import util.plot
 def plot_sample_mean(file='/tmp/woa_po4_sample_mean.png', vmax=None, layer=None):
     data = measurements.po4.woa.data13.load.means()
     assert data.ndim == 4
-    for t_index in range(len(data)): 
-        data[t_index] = measurements.util.map.apply_mask(data[t_index], land_value=np.inf)
+    lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=len(data))
+    data = lsm.apply_mask(data, land_value=np.inf)
+#     for t_index in range(t_dim): 
+#         data[t_index] = measurements.util.map.apply_mask(lsm, data[t_index], land_value=np.inf)
     
     if layer is not None:
         data = data[:, :, :, layer]
@@ -19,10 +22,12 @@ def plot_sample_mean(file='/tmp/woa_po4_sample_mean.png', vmax=None, layer=None)
 
 
 def plot_sample_deviation(file='/tmp/woa_po4_sample_deviation.png', vmax=None, layer=None):
-    data = measurements.po4.woa.data13.load.varis()**(1/2)
+    data = measurements.po4.woa.data13.load.variances()**(1/2)
     assert data.ndim == 4
-    for t_index in range(len(data)): 
-        data[t_index] = measurements.util.map.apply_mask(data[t_index], land_value=np.inf)
+    lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=len(data))
+    data = lsm.apply_mask(data, land_value=np.inf)
+#     for t_index in range(len(data)): 
+#         data[t_index] = measurements.util.map.apply_mask(lsm, data[t_index], land_value=np.inf)
     
     if layer is not None:
         data = data[:, :, :, layer]
@@ -32,6 +37,9 @@ def plot_sample_deviation(file='/tmp/woa_po4_sample_deviation.png', vmax=None, l
 
 def plot_sample_nob(file='/tmp/woa_po4_sample_nob.png', vmax=None, layer=None):
     data = measurements.po4.woa.data13.load.nobs()
+    assert data.ndim == 4
+    lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=len(data))
+    data = lsm.apply_mask(data, land_value=np.inf)
     if layer is not None:
         data = data[:, :, :, layer]
         data = data.reshape(data.shape + (1,))

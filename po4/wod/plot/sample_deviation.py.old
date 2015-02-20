@@ -1,0 +1,23 @@
+from util.logging import Logger
+
+import measurements.po4.wod.data.values
+import measurements.land_sea_mask.data
+import measurements.po4.constants
+import measurements.util.plot
+
+
+with Logger():
+    vmax = 0.5
+    min_measurements = measurements.po4.constants.DEVIATION_MIN_MEASUREMENTS
+    
+    file = '/tmp/po4_wod13_sample_deviation_lsm_{}.png'
+    files = (file.format('woa13'), file.format('woa13r'), file.format('tmm'))
+    lsms = (measurements.land_sea_mask.data.LandSeaMaskWOA13(), measurements.land_sea_mask.data.LandSeaMaskWOA13R(), measurements.land_sea_mask.data.LandSeaMaskTMM())
+    
+    for i in range(3):
+        lsm = lsms[i]
+        for t_dim in (12, 4, 1):
+            lsm.t_dim = t_dim
+            measurements.util.plot.sample_deviation(measurements.po4.wod.data.values.measurement_dict(), lsm=lsm, file=files[i], vmax=vmax, min_measurements=min_measurements)
+    
+    

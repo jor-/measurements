@@ -9,10 +9,10 @@ import ndop.model.data
 import util.io
 import util.datetime
 
-from .constants import CRUISES_FILE, DATA_DIR
-
 import logging
 logger = logging.getLogger(__name__)
+
+# from ndop.model.constants import LSM
 
 
 class Cruise():
@@ -20,7 +20,7 @@ class Cruise():
     def __init__(self, file):
         from . import constants
         
-        logger.debug('Loading cruise from {}.'.format(file))
+#         logger.debug('Loading cruise from {}.'.format(file))
         
         ## open netcdf file
         f = scipy.io.netcdf.netcdf_file(file, 'r')
@@ -45,7 +45,11 @@ class Cruise():
         ## read coordinates and valid measurements
         try:
             self.x = float(f.variables[constants.LON].data)
+            if self.x == 180:
+                self.x = -180
             self.y = float(f.variables[constants.LAT].data)
+            if self.y == -90 or self.y == 90:
+                self.x = 0
             
             z = f.variables[constants.DEPTH].data
             po4 = f.variables[constants.PO4].data
@@ -93,47 +97,47 @@ class Cruise():
     def number_of_measurements(self):
         return self.po4.size
     
-    @property
-    def land_sea_mask(self):
-        try:
-            return self.__land_sea_mask
-        except AttributeError:
-            raise Exception('Land sea mask is not set.')
-    
-    @land_sea_mask.setter
-    def land_sea_mask(self, land_sea_mask):
-        self.__land_sea_mask = land_sea_mask
-        self.__spatial_indices = None
-    
-    @property
-    def spatial_indices(self):
-        try:
-            indices = self.__spatial_indices
-        except AttributeError:
-            indices = None
-        
-        if indices == None:
-            logger.debug('Calculating spatil indices')
-            
-            land_sea_mask = self.land_sea_mask
-            x = self.x
-            y = self.y
-            z = self.z
-            
-            m = z.size
-            
-            indices = np.empty((m, 3), dtype=np.uint16)
-            
-            for i in range(m):
-                indices[i] = ndop.model.data.get_spatial_index(x, y, z[i], land_sea_mask)
-            
-            self.__spatial_indices = indices
-        
-        return indices
-    
-    @spatial_indices.setter
-    def spatial_indices(self, spatial_indices):
-        self.__spatial_indices = spatial_indices
+#     @property
+#     def land_sea_mask(self):
+#         try:
+#             return self.__land_sea_mask
+#         except AttributeError:
+#             raise Exception('Land sea mask is not set.')
+#     
+#     @land_sea_mask.setter
+#     def land_sea_mask(self, land_sea_mask):
+#         self.__land_sea_mask = land_sea_mask
+#         self.__spatial_indices = None
+#     
+#     @property
+#     def spatial_indices(self):
+#         try:
+#             indices = self.__spatial_indices
+#         except AttributeError:
+#             indices = None
+#         
+#         if indices == None:
+#             logger.debug('Calculating spatial indices')
+#             
+#             land_sea_mask = self.land_sea_mask
+#             x = self.x
+#             y = self.y
+#             z = self.z
+#             
+#             m = z.size
+#             
+#             indices = np.empty((m, 3), dtype=np.uint16)
+#             
+#             for i in range(m):
+#                 indices[i] = ndop.model.data.get_spatial_index(x, y, z[i], land_sea_mask)
+#             
+#             self.__spatial_indices = indices
+#         
+#         return indices
+#     
+#     @spatial_indices.setter
+#     def spatial_indices(self, spatial_indices):
+#         self.__spatial_indices = spatial_indices
     
     
     @property
@@ -167,14 +171,14 @@ class Cruise_Collection():
         except AttributeError:
             cruises = None
         
-        if cruises == None:
-            try:
-                self.load_cruises_from_pickle_file()
-            except (OSError, IOError):
-                self.load_cruises_from_netcdf()
-                self.save_cruises_to_pickle_file()
-            
-            cruises = self.cruises
+#         if cruises == None:
+#             try:
+#                 self.load_cruises_from_pickle_file()
+#             except (OSError, IOError):
+#                 self.load_cruises_from_netcdf()
+#                 self.save_cruises_to_pickle_file()
+#             
+#             cruises = self.cruises
         
         return cruises
     
@@ -183,30 +187,27 @@ class Cruise_Collection():
         self.__cruises = cruises
     
     
-    def calculate_spatial_indices(self):
-        cruises = self.cruises
-        
-        logger.debug('Calculating spatial indices for %d cruises.' % len(cruises))
-        
-        land_sea_mask = ndop.model.data.load_land_sea_mask()
-        
-        for cruise in cruises:
-            cruise.land_sea_mask = land_sea_mask
-            cruise.spatial_indices
-        
-        logger.debug('For %d cruises spatial indices calculted.' % len(cruises))
+#     def calculate_spatial_indices(self):
+#         cruises = self.cruises
+#         
+#         logger.debug('Calculating spatial indices for %d cruises.' % len(cruises))
+#         
+#         land_sea_mask = ndop.model.data.load_land_sea_mask()
+#         
+#         for cruise in cruises:
+#             cruise.land_sea_mask = land_sea_mask
+#             cruise.spatial_indices
+#         
+#         logger.debug('For %d cruises spatial indices calculted.' % len(cruises))
     
     
-    def load_cruises_from_netcdf(self, data_dir=DATA_DIR):
+    def load_cruises_from_netcdf(self, data_dir):
         logger.debug('Loading all cruises from netcdf files.')
         
         ## lookup files
         logger.debug('Looking up files in %s.' % data_dir)
         files = util.io.get_files(data_dir)
         logger.debug('%d files found.' % len(files))
-        
-        ## load land sea mask
-        land_sea_mask = ndop.model.data.load_land_sea_mask()
         
         ## load cruises
         logger.debug('Loading cruises from found files.')
@@ -223,13 +224,13 @@ class Cruise_Collection():
     
     
     
-    def save_cruises_to_pickle_file(self, file=CRUISES_FILE):
+    def save_cruises_to_pickle_file(self, file):
         logger.debug('Saving cruises at %s.' % file)
         util.io.save_object(self.cruises, file)
         logger.debug('Cruises saved at %s.' % file)
     
     
-    def load_cruises_from_pickle_file(self, file=CRUISES_FILE):
+    def load_cruises_from_pickle_file(self, file):
         logger.debug('Loading cruises at %s.' % file)
         self.cruises = util.io.load_object(file)
         logger.debug('Cruises loaded at %s.' % file)

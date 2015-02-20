@@ -1,0 +1,25 @@
+import argparse
+
+import measurements.po4.wod.plot.interface
+
+import util.logging
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Save interpolated data for points or lsm.')
+    
+    t_dims = (1, 4, 12, 48)
+    parser.add_argument('lsm', choices=('TMM', 'WOA13', 'WOA13R'), help='The aim to interpolate to.')
+    parser.add_argument('data', choices=('mean', 'deviation'), help='The data to interpolate.')
+    parser.add_argument('--t_dim', choices=(0,)+t_dims, type=int, default=0, help='Time dim.')
+    
+    args = vars(parser.parse_args())
+    
+    t_dim = args['t_dim']
+    if t_dim != 0:
+        t_dims = (t_dim,)
+    
+    with util.logging.Logger():
+        for t_dim in t_dims:
+            measurements.po4.wod.plot.interface.interpolated_data(args['data'], args['lsm'], t_dim)
+        

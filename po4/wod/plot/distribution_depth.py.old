@@ -1,0 +1,8 @@
+from util.logging import Logger
+
+import measurements.po4.wod.data.values
+import measurements.util.plot
+
+
+with Logger():
+    measurements.util.plot.distribution_depth(measurements.po4.wod.data.values.measurement_dict_unsorted(), file='/tmp/wod13_po4_distribution_depth.png')

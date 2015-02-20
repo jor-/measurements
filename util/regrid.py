@@ -2,7 +2,6 @@ import bisect
 import logging
 import numpy as np
 
-import measurements.util.map
 import util.math.interpolate
 
 
@@ -210,8 +209,8 @@ def get_nearest_temporal_index(t, t_dim, t_range=[0, 1]):
 
 
 
-def get_nearest_water_index(t, x, y, z, t_dim, land_sea_mask, z_values_left, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
-    t_index =  get_nearest_temporal_index(t, t_dim, t_range=t_range)
+def get_nearest_water_index(t, x, y, z, land_sea_mask, z_values_left, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
+    t_index =  get_nearest_temporal_index(t, land_sea_mask.t_dim, t_range=t_range)
     x_index, y_index, z_index = get_nearest_spatial_water_index(x, y, z, land_sea_mask, z_values_left, x_range=x_range, y_range=y_range)
     
     assert land_sea_mask[x_index, y_index] >= z_index
@@ -220,22 +219,26 @@ def get_nearest_water_index(t, x, y, z, t_dim, land_sea_mask, z_values_left, t_r
 
 
 
-def convert_point_to_box_index(t, x, y, z, t_dim, land_sea_mask, z_values_left, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
-    return get_nearest_water_index(t, x, y, z, t_dim, land_sea_mask, z_values_left, t_range=t_range, x_range=x_range, y_range=y_range)
+def convert_point_to_box_index(t, x, y, z, land_sea_mask, z_values_left, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
+    return get_nearest_water_index(t, x, y, z, land_sea_mask, z_values_left, t_range=t_range, x_range=x_range, y_range=y_range)
+
+
 
 
 ## regird
 
-def measurements_to_land_sea_mask(measurement_data, land_sea_mask, z_values_left, t_dim=12, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
+# def measurements_to_land_sea_mask(measurement_data, land_sea_mask, z_values_left, t_dim=12, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
+def measurements_to_land_sea_mask(measurement_data, land_sea_mask, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
     assert measurement_data.ndim == 2
     assert measurement_data.shape[1] in [5, 7]
     
+    z_values_left = land_sea_mask.z_left
     
     ## init arrays
-    nobs = measurements.util.map.init_masked_map(land_sea_mask=land_sea_mask, t_dim=t_dim, default_value=0, dtype=np.float64)
+    nobs = land_sea_mask.masked_map(default_value=0, dtype=np.float64)
     sum_of_values = np.copy(nobs)
     sum_of_squares = np.copy(nobs)
-    variances = measurements.util.map.init_masked_map(land_sea_mask=land_sea_mask, t_dim=t_dim, default_value=np.inf, dtype=np.float64)
+    variances = land_sea_mask.masked_map(default_value=np.inf, dtype=np.float64)
     
     ## init dim values
     number_of_measurements = measurement_data.shape[0]
@@ -250,7 +253,7 @@ def measurements_to_land_sea_mask(measurement_data, land_sea_mask, z_values_left
         else:
             data_nobs, data_sum_of_squares = measurement_data[i, 5:]
         
-        (t_index, x_index, y_index, z_index) = convert_point_to_box_index(t, x, y, z, t_dim, land_sea_mask, z_values_left, t_range=t_range, x_range=x_range, y_range=y_range)
+        (t_index, x_index, y_index, z_index) = convert_point_to_box_index(t, x, y, z, land_sea_mask, z_values_left, t_range=t_range, x_range=x_range, y_range=y_range)
         
         nobs[t_index, x_index, y_index, z_index] += data_nobs
         sum_of_values[t_index, x_index, y_index, z_index] += data_sum_of_values

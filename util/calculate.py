@@ -18,6 +18,13 @@ def wrap_around_index(index, index_range):
 
 
 
+def normalize_points(points, ranges):
+    points = np.asanyarray(points)
+    ranges = np.asanyarray(ranges)
+    return (points - range[:,0]) / (range[:,1] - range[:,0])
+
+
+
 def get_min_distance(point_1, point_2, t_range=None, x_range=None):
     distance = np.abs(point_1 - point_2)
     
