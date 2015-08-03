@@ -6,7 +6,7 @@ import util.math.spherical
 import util.math.interpolate
 
 import util.logging
-logger = util.logging.get_logger()
+logger = util.logging.logger
 
 
 
@@ -157,7 +157,8 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
             assert lower_depth_bound >= lower_depth and upper_depth_bound <= upper_depth
             
             if lower_depth_bound > lower_depth:
-                lower_depth_bound_indices = np.where(points[:,3] == lower_depth_bound)[0]
+                # lower_depth_bound_indices = np.where(points[:,3] == lower_depth_bound)[0]
+                lower_depth_bound_indices = np.where(np.isclose(points[:,3], lower_depth_bound))[0]
                 lower_depth_bound_points = points[lower_depth_bound_indices]
                 lower_depth_bound_points[:,3] = lower_depth
                 logger.debug('{} values appended for lower bound {}.'.format(len(lower_depth_bound_indices), lower_depth))
@@ -166,7 +167,8 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
                 lower_depth_bound_points = np.array([])
                 logger.debug('No values appended for lower bound {}.'.format(lower_depth))
             if upper_depth_bound < upper_depth:
-                upper_depth_bound_indices = np.where(points[:,3] == lower_depth_bound)[0]
+                # upper_depth_bound_indices = np.where(points[:,3] == lower_depth_bound)[0]
+                upper_depth_bound_indices = np.where(np.isclose(points[:,3], lower_depth_bound))[0]
                 upper_depth_bound_points = points[upper_depth_bound_indices]
                 upper_depth_bound_points[:,3] = upper_depth
                 logger.debug('{} values appended for upper bound {}.'.format(len(upper_depth_bound_indices), upper_depth))

@@ -1,9 +1,18 @@
 import os.path
 
-# from constants import BASE_DIR
-
-BASE_DIR = '/work_O2/sunip229/NDOP'
-BASE_DIR = os.path.join(BASE_DIR, 'measurements')
+import ndop.constants
+BASE_DIR = os.path.join(ndop.constants.BASE_DIR, 'measurements')
 
 EARTH_RADIUS = 6371 * 10**3
 MAX_SEA_DEPTH = 11 * 10**3
+
+
+DEVIATION_MIN_MEASUREMENTS = 5
+DEVIATION_MIN_VALUE = 0.05
+
+MEAN_MIN_MEASUREMENTS = 3
+
+CORRELATION_QUANTITY_SAME_BOX = 99
+CORRELATION_SAME_BOX = 0.95
+CORRELATION_MIN_ABS_VALUE = 0.01
+CORRELATION_MAX_ABS_VALUE = 0.95

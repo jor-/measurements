@@ -5,7 +5,7 @@ logger = logging.getLogger(__name__)
 import ndop.model.data
 import measurements.dop.pw.data
 import measurements.util.regrid
-import util.io
+import util.io.np
 
 
 
@@ -35,6 +35,6 @@ def save(land_sea_mask, z_values, t_dim=12):
     
     
     ## save values
-    util.io.save_npy(means, MEANS_FILE, make_read_only=True, create_path_if_not_exists=True)
-    util.io.save_npy(nobs, NOBS_FILE, make_read_only=True, create_path_if_not_exists=True)
-    util.io.save_npy(variances, VARIS_FILE, make_read_only=True, create_path_if_not_exists=True)
+    util.io.np.save(MEANS_FILE, means, make_read_only=True, create_path_if_not_exists=True)
+    util.io.np.save(NOBS_FILE, nobs, make_read_only=True, create_path_if_not_exists=True)
+    util.io.np.save(VARIS_FILE, variances, make_read_only=True, create_path_if_not_exists=True)

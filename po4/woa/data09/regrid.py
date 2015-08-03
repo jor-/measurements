@@ -2,7 +2,9 @@ import numpy as np
 import bisect
 import logging
 
-import util.io
+import util.io.np
+import util.io.netcdf
+import util.io.fs
 # import measurements.util.interpolate
 import util.math.interpolate
 
@@ -10,7 +12,7 @@ import util.math.interpolate
 def load_from_netcdf(netcdf_file, netcdf_dataname):
     logging.debug('Loading data from {}.'.format(netcdf_file))
     
-    data = util.io.load_netcdf_with_scipy(netcdf_file, netcdf_dataname)
+    data = util.io.netcdf.load_with_scipy(netcdf_file, netcdf_dataname)
     data = np.swapaxes(data, 1, 3)  # netcdf shape: (12, 15, 64, 128)
     
     return data
@@ -45,7 +47,7 @@ def save():
         for t in range(t_dim):
             data_monthly[t,:,:,z_index_annual_threshold:] = data_annual[0,:,:,z_index_annual_threshold:] * factor
         
-        util.io.save_npy(data_monthly, npy_file, make_read_only=True, create_path_if_not_exists=True)
+        util.io.np.save(npy_file, data_monthly, make_read_only=True, create_path_if_not_exists=True)
     
     
     ## revise variance
@@ -81,6 +83,6 @@ def save():
     
     ## saving interpolated variance
     logging.debug('Saving interpolated variance.')
-    util.io.make_writable(VARIS_FILE)
-    util.io.save_npy(vari, VARIS_FILE, make_read_only=True, create_path_if_not_exists=True)
+    util.io.fs.make_writable(VARIS_FILE)
+    util.io.np.save(VARIS_FILE, vari, make_read_only=True, create_path_if_not_exists=True)
     

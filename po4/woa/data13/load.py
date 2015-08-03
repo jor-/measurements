@@ -1,8 +1,10 @@
-import logging
 import numpy as np
 
-import util.io
+import util.io.netcdf
 import measurements.po4.woa.data13.save
+
+import util.logging
+logger = util.logging.logger
 
 
 ## (raw) data from woa
@@ -11,17 +13,17 @@ def woa_data(data_name, divide_annual_values):
     from .constants import ANNUAL_FILE, MONTHLY_FILES
     
     def data_from_file(file, data_name):
-        return util.io.load_netcdf_with_netcdf4(file, data_name).swapaxes(1,3)
+        return util.io.netcdf.load_with_netcdf4(file, data_name).swapaxes(1,3)
         assert data.ndim == 4
         assert data.shape[:3] == (1, 360, 180)
     
     ## load annual data
     t_dim = len(MONTHLY_FILES)
     data = data_from_file(ANNUAL_FILE, data_name)
-#     data = data.repeat(t_dim, 0)
-    data = np.tile(data.T, t_dim).T
+    # data = np.tile(data.T, t_dim).T
+    data = np.repeat(data, t_dim, axis=0)
     if divide_annual_values:
-        data /= t_dim
+        data = data / t_dim
     
     ## load monthly data
     for t in range(t_dim):
@@ -35,7 +37,7 @@ def woa_data(data_name, divide_annual_values):
 
 def depth_values():
     from .constants import ANNUAL_FILE, DEPTH_DATANAME
-    return util.io.load_netcdf_with_netcdf4(ANNUAL_FILE, DEPTH_DATANAME)
+    return util.io.netcdf.load_with_netcdf4(ANNUAL_FILE, DEPTH_DATANAME)
 
 
 def measurement_data():
@@ -75,10 +77,10 @@ def measurement_data():
 
 def npy_or_save(npy_file):
     try:
-        logging.debug('Loading data from {}.'.format(npy_file))
+        logger.debug('Loading data from {}.'.format(npy_file))
         data = np.load(npy_file)
     except (OSError, IOError):
-        logging.debug('File {} does not exists. Calculating PO4 woa data.'.format(npy_file))
+        logger.debug('File {} does not exists. Calculating PO4 woa data.'.format(npy_file))
         measurements.po4.woa.data13.save.measurements_to_metos_boxes()
         data = np.load(npy_file)
     

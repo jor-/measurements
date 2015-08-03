@@ -61,8 +61,10 @@ class Correlogram_Job(Job):
         
         ## init Job
         output_dir = os.path.join(base_dir, CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX + str(direction_index).zfill(2))
-        Job.__init__(self, output_dir, force_load=force_load)
-        Job.init(self, job_name, 7, [cpu_kind, 1, 1])
+        super().__init__(output_dir, force_load=force_load)
+        node_setup = util.rzcluster.interact.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
+        # super().init_job_file(job_name, 7, [cpu_kind, 1, 1])
+        super().init_job_file(job_name, node_setup)
         
         
         ## save options
@@ -143,8 +145,11 @@ class Correlation_Job(Job):
             factor_list += (range(max_factors[i]),)
         
         ## init Job
-        Job.__init__(self, output_dir, force_load=force_load)
-        Job.init(self, 1, 1, 7, job_name, cpu_kind=cpu_kind)
+        super().__init__(output_dir, force_load=force_load)
+        node_setup = util.rzcluster.interact.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
+        # super().init_job_file(1, 1, 7, job_name, cpu_kind=cpu_kind)
+        super().init_job_file(job_name, node_setup)
+        
         
         
         ## save options

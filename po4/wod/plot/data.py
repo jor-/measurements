@@ -9,9 +9,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Plot sample or interpolated mean or deviation.')
     
     t_dims = (1, 4, 12, 48)
-    lsms = ('TMM', 'WOA13', 'WOA13R')
-    parser.add_argument('calculation', choices=('sample', 'interpolate'))
+    lsms = ('TMM', 'WOA13R', 'WOA13')
     parser.add_argument('data', choices=('mean', 'deviation'))
+    parser.add_argument('calculation', choices=('sample', 'interpolated'))
     parser.add_argument('--lsm', choices=('all', )+lsms, default='all')
     parser.add_argument('--t_dim', choices=(0,)+t_dims, type=int, default=0)
     

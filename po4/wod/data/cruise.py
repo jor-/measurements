@@ -6,7 +6,8 @@ import warnings
 
 import ndop.model.data
 
-import util.io
+import util.io.fs
+import util.io.object
 import util.datetime
 
 import logging
@@ -158,7 +159,7 @@ class Cruise():
 
 
 
-class Cruise_Collection():
+class CruiseCollection():
     
     def __init__(self, cruises=None):
         self.__cruises = cruises
@@ -206,7 +207,7 @@ class Cruise_Collection():
         
         ## lookup files
         logger.debug('Looking up files in %s.' % data_dir)
-        files = util.io.get_files(data_dir)
+        files = util.io.fs.get_files(data_dir)
         logger.debug('%d files found.' % len(files))
         
         ## load cruises
@@ -226,11 +227,11 @@ class Cruise_Collection():
     
     def save_cruises_to_pickle_file(self, file):
         logger.debug('Saving cruises at %s.' % file)
-        util.io.save_object(self.cruises, file)
+        util.io.object.save(file, self.cruises)
         logger.debug('Cruises saved at %s.' % file)
     
     
     def load_cruises_from_pickle_file(self, file):
         logger.debug('Loading cruises at %s.' % file)
-        self.cruises = util.io.load_object(file)
+        self.cruises = util.io.object.load(file)
         logger.debug('Cruises loaded at %s.' % file)

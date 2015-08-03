@@ -4,7 +4,7 @@ import measurements.dop.pw.data
 import measurements.land_sea_mask.data
 
 import util.logging
-logger = util.logging.get_logger()
+logger = util.logging.logger
 
 
 def average():
@@ -14,7 +14,7 @@ def average():
     m = measurements.dop.pw.data.measurement_dict()
     sample_lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=52)
     m.categorize_indices_to_lsm(sample_lsm, discard_year=True)
-    deviations = m.deviations(minimum_measurements=DEVIATION_MIN_MEASUREMENTS)
+    deviations = m.deviations(min_values=DEVIATION_MIN_MEASUREMENTS)
     
     ## apply lower value bound
     deviations[deviations[:, -1] < DEVIATION_MIN_VALUE, -1] = DEVIATION_MIN_VALUE

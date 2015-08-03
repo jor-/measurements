@@ -5,7 +5,7 @@ import measurements.land_sea_mask.data
 import measurements.util.data
 
 import util.logging
-logger = util.logging.get_logger()
+logger = util.logging.logger
 
 
 def average():
@@ -30,14 +30,14 @@ def for_points(points=None):
     md = measurements.dop.pw.data.measurement_dict()
     sample_lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=48)
     md.categorize_indices_to_lsm(sample_lsm, discard_year=True)
-    means_md = md.means(minimum_measurements=MEAN_MIN_MEASUREMENTS, return_type='measurements')
+    means_md = md.means(min_values=MEAN_MIN_MEASUREMENTS, return_type='measurements')
     
     ## convert points to sample lsm indices
-    points_md = measurements.util.data.Measurements_Unsorted()
+    points_md = measurements.util.data.Measurements()
     n = len(points)
-    points_md.add_results(points, (0,)*n)
+    points_md.append_values(points, (0,)*n)
     points_md.categorize_indices_to_lsm(sample_lsm, discard_year=True)
-    points = points_md.all_points()
+    points = points_md.keys()
     
     ## chose for each point sample mean or average mean
     means = np.empty(n, np.float64)

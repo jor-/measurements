@@ -4,7 +4,7 @@ import measurements.land_sea_mask.constants
 import util.petsc.universal
 
 import util.logging
-logger = util.logging.get_logger()
+logger = util.logging.logger
 
 
 def _check_land_sea_mask(land_sea_mask):

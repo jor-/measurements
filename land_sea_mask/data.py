@@ -6,9 +6,10 @@ import measurements.land_sea_mask.depth
 
 import util.cache
 import util.petsc.universal
+import util.plot
 
 import util.logging
-logger = util.logging.get_logger()
+logger = util.logging.logger
 
 
 class LandSeaMask():
@@ -21,7 +22,7 @@ class LandSeaMask():
         self._depth_level = np.asanyarray(depth_level)
         
         self._t_dim = t_dim
-        self.discard_year = True
+#         self.discard_year = True
         self.t_centered = t_centered
     
     
@@ -88,6 +89,10 @@ class LandSeaMask():
     @property
     def z_center(self):
         return (self.z_left + self.z_right) / 2
+    
+    @property
+    def separation_values(self):
+        return (1/self.t_dim, 360/self.x_dim, 180/self.y_dim, self.z)
     
     
     ## lsm
@@ -221,9 +226,11 @@ class LandSeaMask():
     
     ## convert map indices and coordinates
     
-    def coordinate_to_map_index(self, t, x, y, z):
+    def coordinate_to_map_index(self, t, x, y, z, discard_year=True):
         ## t (center of the box, wrap around)
-        ti = (t % 1) / 1 * self.t_dim
+        if discard_year:
+            t = (t % 1)
+        ti = t * self.t_dim
         if self.t_centered:
             ti -= 0.5
         
@@ -245,18 +252,20 @@ class LandSeaMask():
         return (ti, xi, yi, zi)
     
     
-    def coordinates_to_map_indices(self, points):
+    def coordinates_to_map_indices(self, points, discard_year=True):
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
-        logger.debug('Transforming {} points to indices for {}'.format(len(points), self))
+        logger.debug('Transforming {} coordinates to map indices for {} with discard year {}.'.format(len(points), self, discard_year))
         
         new_points = np.empty(points.shape)
         for i in range(len(points)):
-            new_points[i] = self.coordinate_to_map_index(*points[i])
+            new_points[i] = self.coordinate_to_map_index(*points[i], discard_year=discard_year)
         
         if result_ndim == 1:
             new_points = new_points[0]
+        
+        logger.debug('Transforming from coordinates to map indices done.')
         return new_points
     
     
@@ -264,7 +273,8 @@ class LandSeaMask():
         ## t (left or center of the box, wrap around)
         if self.t_centered:
             ti += 0.5
-        t = (ti % self.t_dim) / self.t_dim * 1
+        # t = (ti % self.t_dim) / self.t_dim
+        t = ti / self.t_dim
         
         ## x (center of the box, wrap around)
         x = ((xi + 0.5) % self.x_dim) / self.x_dim * 360
@@ -290,7 +300,7 @@ class LandSeaMask():
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
-        logger.debug('Transforming {} indices from {} to coordinates'.format(len(points), self))
+        logger.debug('Transforming {} map indices from {} to coordinates'.format(len(points), self))
         
         new_points = np.empty(points.shape)
         for i in range(len(points)):
@@ -303,6 +313,7 @@ class LandSeaMask():
         assert new_points[:,2].max() <= 90 and new_points[:,2].min() >= -90
         assert new_points[:,3].min() >= 0
         
+        logger.debug('Transforming from map indices to coordinates done.')
         return new_points
     
     
@@ -328,7 +339,7 @@ class LandSeaMask():
     def insert_coordinate_values_in_map(self, values, no_data_value=0, apply_mask_last=True):
         values = np.copy(values)
         values[:,:-1] = self.coordinates_to_map_indices(values[:,:-1])
-        self.insert_index_values_in_map(values, no_data_value=no_data_value, apply_mask_last=apply_mask_last)
+        return self.insert_index_values_in_map(values, no_data_value=no_data_value, apply_mask_last=apply_mask_last)
     
     
     def insert_index_values_in_map(self, values, no_data_value=0, apply_mask_last=True):
@@ -367,6 +378,12 @@ class LandSeaMask():
         
         return value_map
     
+    
+    ## plot
+    def plot(self):
+        file = '/tmp/{}.png'.format(self)
+        util.plot.data(self.lsm, file, land_value=0, power_limits=(-10,10))
+    
 
 
 
@@ -379,7 +396,7 @@ class LandSeaMaskFromFile(LandSeaMask):
         depth = cache.get_value(DEPTH_NPY_FILENAME, self._calculate_depth)
         lsm = cache.get_value(LSM_NPY_FILENAME, self._calculate_lsm)
         
-        super(LandSeaMaskFromFile, self).__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
+        super().__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
     
     
     def _calculate_lsm(self):
@@ -393,7 +410,7 @@ class LandSeaMaskFromFile(LandSeaMask):
 class LandSeaMaskTMM(LandSeaMaskFromFile):
     def __init__(self, t_dim=None, t_centered=True):
         from .constants import TMM_DIR
-        super(LandSeaMaskTMM, self).__init__(TMM_DIR, t_dim=t_dim, t_centered=t_centered)
+        super().__init__(TMM_DIR, t_dim=t_dim, t_centered=t_centered)
     
     
     def _calculate_lsm(self):
@@ -418,14 +435,14 @@ class LandSeaMaskTMM(LandSeaMaskFromFile):
     
     
     def __str__(self):
-        return super(LandSeaMaskTMM, self).__str__() + '_tmm'
+        return super().__str__() + '_tmm'
 
 
 
 class LandSeaMaskWOA13(LandSeaMaskFromFile):
     def __init__(self, t_dim=None, t_centered=True):
         from .constants import WOA13_DIR
-        super(LandSeaMaskWOA13, self).__init__(WOA13_DIR, t_dim=t_dim, t_centered=t_centered)
+        super().__init__(WOA13_DIR, t_dim=t_dim, t_centered=t_centered)
     
     
     def _calculate_lsm(self):
@@ -468,9 +485,10 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
     
     
     def __str__(self):
-        return super(LandSeaMaskWOA13, self).__str__() + '_woa13'
-    
-    
+        return super().__str__() + '_woa13'
+
+
+
 class LandSeaMaskWOA13R(LandSeaMask):
     
     def __init__(self, t_dim=None, t_centered=True):
@@ -481,8 +499,11 @@ class LandSeaMaskWOA13R(LandSeaMask):
         lsm_woa13.z = depth
         lsm = lsm_woa13.lsm
         
-        super(LandSeaMaskWOA13R, self).__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
+        super().__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
         
     def __str__(self):
-        return super(LandSeaMaskWOA13R, self).__str__() + '_woa13r'
+        return super().__str__() + '_woa13r'
+
+
+
     

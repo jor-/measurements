@@ -2,6 +2,7 @@ import numpy as np
 
 import measurements.land_sea_mask.data
 import measurements.po4.wod.data.values
+import measurements.po4.wod.constants
 import measurements.util.interpolate
 
 import util.cache
@@ -14,12 +15,13 @@ class Interpolator:
         self.data_function = data_function
         self.cache = util.cache.HDD_NPY_Cache(interpolated_data_dir)
         self.interpolated_data_filename = interpolated_data_filename
-        self.sample_lsm_t_dim = 48
+#         self.sample_lsm_t_dim = 48
     
     
     @property
     def sample_lsm(self):
-        return measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=self.sample_lsm_t_dim)
+#         return measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=self.sample_lsm_t_dim)
+        return measurements.po4.wod.constants.SAMPLE_LSM
     
     @property
     def data(self):
@@ -33,8 +35,7 @@ class Interpolator:
         data = np.copy(self.data)
         data[:,:-1] = lsm.coordinates_to_map_indices(data[:,:-1])
         for i in range(len(data)):
-            if data[i, 3] > lsm.z_dim:
-                data[i, 3] = lsm.z_dim
+            data[i, 3] = min(data[i, 3], lsm.z_dim - 1)
         data_map = lsm.insert_index_values_in_map(data, no_data_value=no_data_value)
         return data_map
 
@@ -69,7 +70,7 @@ class Interpolator:
 
 
     def interpolated_data_for_points(self, interpolator_setup=(0.1, 1, 0.0, 0)):
-        filename = self.interpolated_data_filename.format('points', str(interpolator_setup).replace(' ','').replace('(','').replace(')',''))
+        filename = self.interpolated_data_filename.format('lexsorted_points', str(interpolator_setup).replace(' ','').replace('(','').replace(')',''))
         function = lambda :self.interpolated_data_for_points_calculate(interpolator_setup=interpolator_setup)
         return self.cache.get_value(filename, function)
 
@@ -78,17 +79,17 @@ class Interpolator:
         return self.interpolated_data_for_points(interpolator_setup=interpolator_setup)
     
     def data_for_TMM(self, t_dim, interpolator_setup):
-        lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=self.sample_lsm_t_dim)
+        lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=self.sample_lsm.t_dim)
         data = self.interpolated_data_for_lsm(lsm, interpolator_setup=interpolator_setup)
         return util.math.interpolate.change_dim(data, 0, t_dim)
     
     def data_for_WOA13(self, t_dim, interpolator_setup):
-        lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13(t_dim=self.sample_lsm_t_dim)
+        lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13(t_dim=self.sample_lsm.t_dim)
         data = self.interpolated_data_for_lsm(lsm, interpolator_setup=interpolator_setup)
         return util.math.interpolate.change_dim(data, 0, t_dim)
     
     def data_for_WOA13R(self, t_dim, interpolator_setup):
-        lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=self.sample_lsm_t_dim)
+        lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=self.sample_lsm.t_dim)
         data = self.interpolated_data_for_lsm(lsm, interpolator_setup=interpolator_setup)
         return util.math.interpolate.change_dim(data, 0, t_dim)
     

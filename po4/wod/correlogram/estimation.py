@@ -1,7 +1,7 @@
 import os.path
 import numpy as np
 
-import util.io
+import util.io.fs
 
 
 def get_base_dir(discard_year=False):
@@ -19,7 +19,7 @@ def get_direction_indices(discard_year=False):
     from .constants import CORRELOGRAM_DIRNAME
     
     base_dir = os.path.join(get_base_dir(discard_year), CORRELOGRAM_DIRNAME)
-    number_of_directions = len(util.io.get_dirs(base_dir, with_links=False))
+    number_of_directions = len(util.io.fs.get_dirs(base_dir, with_links=False))
     direction_indices = np.arange(number_of_directions)
     
     return direction_indices

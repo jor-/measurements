@@ -1,5 +1,21 @@
+import os.path
+
+from ..constants import ANALYSIS_DIR
+
+VALUE_DIR = os.path.join(ANALYSIS_DIR, 'correlation')
+MEASUREMENTS_SAME_POINTS_FILENAME = 'measurements_categorized.same_point_measurements.min_{min_values:0>2}_measurements.ppy'
+VALUES_MEASUREMENTS_FILENAME = 'measurements_categorized.{type}_nonstationary.min_{min_values:0>2}_measurements.max_{max_year_diff:0>2}_year_diff.ppy'
+VALUES_MEASUREMENTS_TRANSFORMED_FILENAME = 'measurements_categorized.{type}_nonstationary.min_{min_values:0>2}_measurements.max_{max_year_diff:0>2}_year_diff.transformed.ppy'
+
+
+
+## for uncategorized correlation
+
 import numpy as np
-Z = [0, 50, 120, 220, 360, 550, 790, 1080, 1420, 1810, 2250, 2740, 3280, 3870, 4510, 6000]
-# s = [25, 35, 50, 70, 95, 120, 145, 170, 195, 220, 245, 270, 295, 320, 1490, 2000]
-B = [12.5, 17.5, 25., 35., 47.5, 60., 72.5, 85., 97.5, 110., 122.5, 135., 147.5, 160., 745., 1000.]
-EQUAL_BOUNDS = [1./52., 1, 1, np.array([Z, B]).T]
+
+import measurements.po4.wod.constants
+
+T_DIM = measurements.po4.wod.constants.SAMPLE_LSM.t_dim
+Z = measurements.po4.wod.constants.SAMPLE_LSM.z
+B = ((Z[1:] - Z[:-1]) / 2)
+EQUAL_BOUNDS = [1./T_DIM, 1, 1, np.array([Z[:-1], B]).T]

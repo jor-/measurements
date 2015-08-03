@@ -8,8 +8,10 @@ CRUISES_DATA_DIR = os.path.join(WOD_DIR, 'data', 'cruises')
 CRUISES_LIST_FILENAME = 'cruises_list.ppy'
 MEASUREMENTS_DICT_SORTED_FILENAME = 'measurement_dict_sorted.ppy'
 MEASUREMENTS_DICT_UNSORTED_FILENAME = 'measurement_dict_unsorted.ppy'
-MEASUREMENTS_POINTS_FILENAME = 'measurement_points.npy'
-MEASUREMENTS_RESULTS_FILENAME = 'measurement_results.npy'
+# MEASUREMENTS_POINTS_FILENAME = 'measurement_points.npy'
+# MEASUREMENTS_RESULTS_FILENAME = 'measurement_results.npy'
+MEASUREMENTS_POINTS_FILENAME = 'measurement_lexsorted_points.npy'
+MEASUREMENTS_RESULTS_FILENAME = 'measurement_lexsorted_results.npy'
 
 BASE_DATE = datetime.datetime(1770, 1, 1)
 

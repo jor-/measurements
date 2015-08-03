@@ -40,3 +40,24 @@ def get_min_distance(point_1, point_2, t_range=None, x_range=None):
             distance[1] -= x_size / 2
     
     return distance
+
+# 
+# def lex_sorted_indices(points, first_index_first=True):
+#     n = points.shape[1]
+#     if first_index_first:
+#         axes = range(n)
+#     else:
+#         axes = range(n-1, -1, -1)
+#         
+#     return lex_sorted_indices_by_axes(points, axes)
+# 
+# 
+# def lex_sorted_indices_by_axes(points, axes):    
+#     ## sort measurements
+#     lex_list = []
+#     for i in range(len(axes)-1, -1, -1):
+#         lex_list.append(points[:, axes[i]])
+#     sorted_indices = np.lexsort(lex_list)
+#     
+#     return sorted_indices
+#     

@@ -6,10 +6,10 @@ from .constants import DATA_DIR, MEASUREMENTS_DICT_UNSORTED_FILENAME, MEASUREMEN
 
 
 
-class Measurements_Unsorted(measurements.util.data.Measurements_Unsorted):
+class Measurements(measurements.util.data.Measurements):
     
-    def __init__(self):
-        super().__init__()
+    def __init__(self, sorted=False):
+        super().__init__(sorted=sorted)
     
     def add_cruises(self, cruises):
         measurements_dict = self.measurements_dict
@@ -24,25 +24,35 @@ class Measurements_Unsorted(measurements.util.data.Measurements_Unsorted):
             
             for i in range(results.size):
                 index = (t, x, y, z[i])
-                self.add_result(index, results[i])
+                self.add_result(index, results[i])    
     
     
     def save(self, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_UNSORTED_FILENAME)):
         super().save(file)
     
-    def load(self, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_UNSORTED_FILENAME)):
+    
+    @classmethod
+    def load(cls, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_UNSORTED_FILENAME)):
         return super().load(file)
 
 
-class Measurements_Sorted(measurements.util.data.Measurements_Sorted, Measurements_Unsorted):
+
+class MeasurementsUnsorted(Measurements):
     
     def __init__(self):
-        super().__init__()
+        super().__init__(sorted=False)
+
+
+
+class MeasurementsSorted(Measurements):
     
+    def __init__(self):
+        super().__init__(sorted=False)
     
     def save(self, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_SORTED_FILENAME)):
         super().save(file)
     
-    def load(self, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_SORTED_FILENAME)):
+    @classmethod
+    def load(cls, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_SORTED_FILENAME)):
         return super().load(file)
 

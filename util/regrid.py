@@ -143,6 +143,7 @@ def is_water(spatial_indices, land_sea_mask):
 def get_all_water_boxes(land_sea_mask):
     logging.debug('Getting all water boxes.')
     
+    land_sea_mask = land_sea_mask.lsm
     (water_x, water_y) = np.where(land_sea_mask != 0)
     water_len = np.sum(land_sea_mask)
     water_boxes = np.empty([water_len, 3], dtype=np.int)

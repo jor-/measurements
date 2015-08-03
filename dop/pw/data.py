@@ -2,84 +2,13 @@ import calendar
 import datetime
 import numpy as np
 
-# import logging
-# logger = logging.getLogger(__name__)
-# import util.io
-
+import measurements.dop.pw.constants
 import measurements.util.data
 
+import util.math.sort
 import util.cache
 import util.logging
-logger = util.logging.get_logger()
-
-
-
-# def load_data_from_file(data_file, calculation_funtion):
-#     ## try to load data
-#     try:
-#         data = np.load(data_file)
-#         logger.debug('{} DOP data sets loaded from {}.'.format(data.shape[0], data_file))
-#     
-#     ## otherwise calculate data and save
-#     except (OSError, IOError):
-#         data = calculation_funtion()
-#         logger.debug('{} DOP data sets saved to {}.'.format(data.shape[0], data_file))
-#         util.io.save_npy_and_txt(data, data_file, make_read_only=True)
-#     
-#     assert data.ndim == 2
-#     assert data.shape[1] == 5
-#     
-#     return data
-
-
-# 
-# 
-# def prepare_ladolfi_data(measurement_file, time_start, time_end, valid_data_flag):
-#     
-#     # convert missing values to - Inf
-#     def convert_missing_values_to_nan(value_string):
-#         try:
-#             value = float(value_string)
-#         except ValueError:
-#             value = - float('nan')
-#         
-#         return value
-#     
-#     # load data, columns: lat, long, depth, dop, flag
-#     data = np.loadtxt(measurement_file, converters={3: convert_missing_values_to_nan})
-#     if data.shape[1] != 5:
-#         raise ValueError('The data in {} has not 5 columns. Its shape is {}'.format(measurement_file, data.shape))
-#     
-#     # skip invalid data and flag
-#     data = data[data[:,4]==valid_data_flag]
-#     data = data[:,:4]
-#     data = data[data[:,3]>=0]
-#     data = data[np.logical_not(np.isnan(data[:,3]))]
-#     
-#     # move columns in order long, lat, depth, dop
-#     data[:,[0, 1]] = data[:,[1, 0]]
-#     
-#     # sort data in priority by long, lat, depth
-#     data = data[np.lexsort((data[:,2], data[:,1], data[:,0]))]
-#     
-#     # interpolate time
-#     n = data.shape[0]
-#     t = np.arange(n) / (n-1) * (time_end - time_start) + time_start
-#     t = t.reshape([n, 1])
-#     data = np.concatenate((t, data), axis=1)
-#     
-#     logger.debug('{} DOP data sets loaded from {}.'.format(data.shape[0], measurement_file))
-#     
-#     return data
-
-
-# def load_ladolfi_2002():
-#     from .constants import LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_TIME_START, LADOLFI_2002_TIME_END, LADOLFI_2002_VALID_DATA_FLAG, LADOLFI_2002_DATA_FILE
-#     
-#     data = load_data_from_file(LADOLFI_2002_DATA_FILE, lambda : prepare_ladolfi_data(LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_TIME_START, LADOLFI_2002_TIME_END, LADOLFI_2002_VALID_DATA_FLAG))
-#     
-#     return data
-
+logger = util.logging.logger
 
 
 
@@ -144,12 +73,6 @@ def load_ladolfi_2002():
 
 
 
-# def load_ladolfi_2004():
-#     from .constants import LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_TIME_START, LADOLFI_2004_TIME_END, LADOLFI_2004_VALID_DATA_FLAG, LADOLFI_2004_DATA_FILE
-#     
-#     data = load_data_from_file(LADOLFI_2004_DATA_FILE, lambda : prepare_ladolfi_data(LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_TIME_START, LADOLFI_2004_TIME_END, LADOLFI_2004_VALID_DATA_FLAG))
-#     
-#     return data
 
 def load_ladolfi_2004():
     from measurements.dop.pw.constants import DATA_FILENAME, LADOLFI_2004_DIR, LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_START_DATE, LADOLFI_2004_END_DATE, LADOLFI_2004_VALID_DATA_FLAG
@@ -221,13 +144,6 @@ def prepare_yoshimura_data(measurement_file):
 
 
 
-# def load_yoshimura_2007():
-#     from .constants import YOSHIMURA_2007_DATA_FILE, YOSHIMURA_2007_MEASUREMENT_FILE
-#     
-#     data = load_data_from_file(YOSHIMURA_2007_DATA_FILE, lambda : prepare_yoshimura_data(YOSHIMURA_2007_MEASUREMENT_FILE))
-#     
-#     return data
-
 
 def load_yoshimura_2007():
     from measurements.dop.pw.constants import DATA_FILENAME, YOSHIMURA_2007_DIR, YOSHIMURA_2007_MEASUREMENT_FILE
@@ -249,8 +165,37 @@ def points_and_values():
     values = data_array[:, -1]
     return (points, values)
 
+
+def data_calculate():
+    values = np.concatenate((load_ladolfi_2002(), load_ladolfi_2004(), load_yoshimura_2007()))
+    
+    ## sort measurements
+    sorted_indices = util.math.sort.lex_sorted_indices(values)
+    assert sorted_indices.ndim == 1
+    values = values[sorted_indices]
+    
+    ## split measurements
+    points = values[:, :-1]
+    results = values[:, -1]
+    
+    return (points, results)
+
+
+def points():
+    cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
+    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_POINTS_FILENAME, lambda :measurements_calculate()[0])
+
+def results():
+    cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
+    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_RESULTS_FILENAME, lambda :measurements_calculate()[1])
+
+
+def points_and_results():
+    return (points(), results())
+
+
 def measurement_dict():
     (points, values) = points_and_values()
-    measurement_data = measurements.util.data.Measurements_Unsorted()
-    measurement_data.add_results(points, values)
+    measurement_data = measurements.util.data.Measurements()
+    measurement_data.append_values(points, values)
     return measurement_data
