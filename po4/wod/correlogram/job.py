@@ -3,11 +3,10 @@ import numpy as np
 
 import measurements.po4.wod.correlogram.estimation
 
-import util.rzcluster.interact
-from util.rzcluster.job import Job
+import util.batch.universal.system
 
 
-class Correlogram_Job(Job):
+class Correlogram_Job(util.batch.universal.system.Job):
     
     def __init__(self, direction_index, discard_year=False, cpu_kind='f_ocean2', force_load=False, debug=False):
         from .constants import MEASUREMENTS_NORMALIZED_DICT_FILE, CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX, CORRELOGRAM_JOB_DIRECTION_FILENAME, CORRELOGRAM_JOB_CORRELOGRAM_FILENAME
@@ -62,7 +61,7 @@ class Correlogram_Job(Job):
         ## init Job
         output_dir = os.path.join(base_dir, CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX + str(direction_index).zfill(2))
         super().__init__(output_dir, force_load=force_load)
-        node_setup = util.rzcluster.interact.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
+        node_setup = util.batch.universal.system.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
         # super().init_job_file(job_name, 7, [cpu_kind, 1, 1])
         super().init_job_file(job_name, node_setup)
         
@@ -146,7 +145,7 @@ class Correlation_Job(Job):
         
         ## init Job
         super().__init__(output_dir, force_load=force_load)
-        node_setup = util.rzcluster.interact.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
+        node_setup = util.batch.universal.system.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
         # super().init_job_file(1, 1, 7, job_name, cpu_kind=cpu_kind)
         super().init_job_file(job_name, node_setup)
         
