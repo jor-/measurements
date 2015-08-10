@@ -6,7 +6,6 @@ import measurements.land_sea_mask.depth
 
 import util.cache
 import util.petsc.universal
-import util.plot
 
 import util.logging
 logger = util.logging.logger
@@ -381,6 +380,7 @@ class LandSeaMask():
     
     ## plot
     def plot(self):
+        import util.plot
         file = '/tmp/{}.png'.format(self)
         util.plot.data(self.lsm, file, land_value=0, power_limits=(-10,10))
     
