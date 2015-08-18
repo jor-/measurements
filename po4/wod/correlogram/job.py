@@ -61,9 +61,9 @@ class Correlogram_Job(util.batch.universal.system.Job):
         ## init Job
         output_dir = os.path.join(base_dir, CORRELOGRAM_DIRNAME, CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX + str(direction_index).zfill(2))
         super().__init__(output_dir, force_load=force_load)
-        node_setup = util.batch.universal.system.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
+        nodes_setup = util.batch.universal.system.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
         # super().init_job_file(job_name, 7, [cpu_kind, 1, 1])
-        super().init_job_file(job_name, node_setup)
+        super().init_job_file(job_name, nodes_setup)
         
         
         ## save options
@@ -145,9 +145,9 @@ class Correlation_Job(Job):
         
         ## init Job
         super().__init__(output_dir, force_load=force_load)
-        node_setup = util.batch.universal.system.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
+        nodes_setup = util.batch.universal.system.NodeSetup(memory=7, node_kind=cpu_kind, cpus=1, nodes=1)
         # super().init_job_file(1, 1, 7, job_name, cpu_kind=cpu_kind)
-        super().init_job_file(job_name, node_setup)
+        super().init_job_file(job_name, nodes_setup)
         
         
         
