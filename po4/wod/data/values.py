@@ -46,28 +46,28 @@ def measurement_dict_unsorted():
 
 def measurement_dict():
     return measurement_dict_unsorted()
-    
+
 
 def measurements_calculate():
     logger.debug('Loading and calculating measurements.')
-    
+
     ## load measurements
     m = measurement_dict_unsorted()
-    
+
     values = m.items()
     assert values.ndim == 2
     n = values.shape[1]
     assert n == 5
-    
+
     ## sort measurements
     sorted_indices = util.math.sort.lex_sorted_indices(values)
     assert sorted_indices.ndim == 1
     values = values[sorted_indices]
-    
+
     ## split measurements
     points = values[:, :-1]
     results = values[:, -1]
-    
+
     return (points, results)
 
 def measurement_points():

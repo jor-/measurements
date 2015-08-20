@@ -12,9 +12,9 @@ def plot_sample_mean(file='/tmp/woa_po4_sample_mean.png', v_max=None, layer=None
     assert data.ndim == 4
     lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=len(data))
     data = lsm.apply_mask(data, land_value=np.inf)
-#     for t_index in range(t_dim): 
+#     for t_index in range(t_dim):
 #         data[t_index] = measurements.util.map.apply_mask(lsm, data[t_index], land_value=np.inf)
-    
+
     if layer is not None:
         data = data[:, :, :, layer]
         data = data.reshape(data.shape + (1,))
@@ -26,9 +26,9 @@ def plot_sample_deviation(file='/tmp/woa_po4_sample_deviation.png', v_max=None, 
     assert data.ndim == 4
     lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=len(data))
     data = lsm.apply_mask(data, land_value=np.inf)
-#     for t_index in range(len(data)): 
+#     for t_index in range(len(data)):
 #         data[t_index] = measurements.util.map.apply_mask(lsm, data[t_index], land_value=np.inf)
-    
+
     if layer is not None:
         data = data[:, :, :, layer]
         data = data.reshape(data.shape + (1,))

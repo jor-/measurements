@@ -11,7 +11,7 @@ def distribution_time(measurement_dict, file='/tmp/distribution_time.png', time_
     m = measurement_dict
     m.discard_space()
     m.categorize_indices((time_step,))
-    
+
     n = m.numbers()
     t = n[:,0]
     if t_min is None:
@@ -19,7 +19,7 @@ def distribution_time(measurement_dict, file='/tmp/distribution_time.png', time_
     if t_max is None:
         t_max = t.max()
     n = n[:,4]
-    
+
     util.plot.histogram(t, file, weights=n, bins=range(int(t_min),int(t_max+2)), tick_power=tick_power)
 
 
@@ -60,7 +60,7 @@ def _prepare_filename(file, lsm=None, insertion=None):
         file_prefix = file_prefix + '_' + insertion
     if lsm is not None:
         file_prefix = file_prefix + '_' + str(lsm)
-    
+
     return file_prefix + file_ext
 
 
@@ -71,7 +71,7 @@ def _plot_map(data, lsm, file, layer=None, v_min=None, v_max=None, use_log_scale
         data = data.reshape(data.shape + (1,))
     file = _prepare_filename(file, lsm)
     util.plot.data(data, file, no_data_value=np.inf, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale)
-    
+
 def _plot_histogram(data, lsm, file, bins=None, step_size=None, v_min=None, v_max=None, use_log_scale=False, tick_power=None):
     file = _prepare_filename(file, lsm, 'histogram')
     util.plot.histogram(data, file, bins=bins, step_size=step_size, x_min=v_min, x_max=v_max, use_log_scale=use_log_scale, tick_power=tick_power)

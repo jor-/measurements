@@ -26,23 +26,23 @@ PYTHON_DIR = os.path.join(BASE_DIR, 'python')
 
 
 # ## old stuff
-# 
-# 
+#
+#
 # T_RANGE = (0, 1)
 # X_RANGE = (-180, 180)
-# 
-# 
+#
+#
 # SEPARATION_VALUES = (1/(365.0*2.0),)
-# 
+#
 # SEPARATION_VALUES_DISCARD_YEAR = (1/(365.0*8.0),)
 # SAME_BOUNDS_DISCARD_YEAR = (1/(365.0*2.0), 0.2, 0.2, 10)
 # DIM_RANGES_DISCARD_YEAR = ((0, 1), (-180, 180), (-90, 90), (0, 9000))
-# 
+#
 # CORRELOGRAM_DIRNAME = 'correlogram'
 # CORRELOGRAM_JOB_OUTPUT_DIRNAME_PREFIX = 'direction_'
 # CORRELOGRAM_JOB_DIRECTION_FILENAME = 'direction.npy'
 # CORRELOGRAM_JOB_CORRELOGRAM_FILENAME = 'correlogram.npy'
-# 
+#
 # CORRELATION_JOB_DIRECTION = (1/52., 0.5, 0.5, 20)
 # CORRELATION_JOB_OUTPUT_DIRNAME_PREFIX = 'correlation/t_factor_'
 # CORRELATION_JOB_MIN_MEASUREMENTS = 100

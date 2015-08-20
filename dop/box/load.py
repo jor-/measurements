@@ -18,7 +18,7 @@ def npy_or_save(npy_file):
         land_sea_mask = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=12)
         measurements.dop.box.regrid.save(land_sea_mask)
         data = np.load(npy_file)
-    
+
     return data
 
 

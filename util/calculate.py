@@ -27,37 +27,37 @@ def normalize_points(points, ranges):
 
 def get_min_distance(point_1, point_2, t_range=None, x_range=None):
     distance = np.abs(point_1 - point_2)
-    
+
     ## wrap around
     if t_range is not None:
         t_size = t_range[1] - t_range[0]
         if distance[0] > t_size / 2:
             distance[0] -= t_size / 2
-            
+
     if x_range is not None:
         x_size = x_range[1] - x_range[0]
         if distance[1] > x_size / 2:
             distance[1] -= x_size / 2
-    
+
     return distance
 
-# 
+#
 # def lex_sorted_indices(points, first_index_first=True):
 #     n = points.shape[1]
 #     if first_index_first:
 #         axes = range(n)
 #     else:
 #         axes = range(n-1, -1, -1)
-#         
+#
 #     return lex_sorted_indices_by_axes(points, axes)
-# 
-# 
-# def lex_sorted_indices_by_axes(points, axes):    
+#
+#
+# def lex_sorted_indices_by_axes(points, axes):
 #     ## sort measurements
 #     lex_list = []
 #     for i in range(len(axes)-1, -1, -1):
 #         lex_list.append(points[:, axes[i]])
 #     sorted_indices = np.lexsort(lex_list)
-#     
+#
 #     return sorted_indices
-#     
+#

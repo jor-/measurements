@@ -28,17 +28,17 @@ VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR = 0
 VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND = (0.1, 0.1, 0, 0)
 
 
-# 
+#
 # ## DOP
 # YOSHIMURA_DOP_MEASUREMENT_FILE = os.path.join(BASE_DIR, 'dop/Yoshimura2007/Yoshimura2007_prepared.txt')
 # LADOLFI_2002_DOP_MEASUREMENT_FILE = os.path.join(BASE_DIR, 'dop/Ladolfi2002/CD139_DOP_prepared.txt')
 # LADOLFI_2004_DOP_MEASUREMENT_FILE = os.path.join(BASE_DIR, 'dop/Ladolfi2004/D279_DOP_prepared.txt')
-# 
+#
 # DOP_NOBS = os.path.join(BASE_DIR, 'dop/dop_2.8x2.8_monthly_nobs.npy')
 # DOP_VARIS = os.path.join(BASE_DIR, 'dop/dop_2.8x2.8_monthly_vari.npy')
 # DOP_MEANS = os.path.join(BASE_DIR, 'dop/dop_2.8x2.8_monthly_mean.npy')
-# 
-# 
+#
+#
 # ## BOTH
 # NOBS = os.path.join(BASE_DIR, 'dop_po4_2.8x2.8_monthly_nobs.npy')
 # VARIS = os.path.join(BASE_DIR, 'dop_po4_2.8x2.8_monthly_vari.npy')

@@ -14,7 +14,7 @@ def npy_or_save(npy_file):
         logger.debug('File {} does not exists. Calculating PO4 data.'.format(npy_file))
         measurements.po4.woa.data09.regrid.save()
         data = np.load(npy_file)
-    
+
     return data
 
 
