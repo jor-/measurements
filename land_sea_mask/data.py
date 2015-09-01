@@ -21,8 +21,9 @@ class LandSeaMask():
         self._depth_level = np.asanyarray(depth_level)
 
         self._t_dim = t_dim
-#         self.discard_year = True
         self.t_centered = t_centered
+        
+        self.memory_cache = util.cache.MemoryCache()
 
 
     ## dims and z
@@ -105,16 +106,9 @@ class LandSeaMask():
         return self._lsm.shape
 
     def __getitem__(self, key):
+        if len(key) >= 4:
+            raise ValueError('Length of key has to be less or equal 3, but key is {}.'.format(key))
         return self._lsm[key[-2:]]
-
-
-#     def regrid_z(self, new_z_values):
-#         logger.debug('Regridding old z {} to new z {}.'.format(self.z, new_z_values))
-#
-#         z_values = self.z
-#         for i in range(len(z_values)):
-#             self._lsm[self._lsm == i] = bisect.bisect_left(new_z_values, z_values[i])
-#         self._depth_level = new_z_values
 
 
 
@@ -131,95 +125,39 @@ class LandSeaMask():
 
     ## indices
 
-    @property
-    def sea_indices(self):
+    def sea_indices_calculate(self):
         masked_map = self.masked_map(dtype=np.float16)
         sea_indices = np.array(np.where(np.logical_not(np.isnan(masked_map)))).transpose()
         logger.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
+        assert sea_indices.ndim == 2
         return sea_indices
 
+    @property
+    def sea_indices(self):
+        return self.memory_cache.get_value('sea_indices', self.sea_indices_calculate)
+    
 
+    def sea_coordinates_calculate(self):
+        sea_coordinates = self.map_indices_to_coordinates(self.sea_indices)
+        assert sea_coordinates.ndim == 2
+        return sea_coordinates
+    
     @property
     def sea_coordinates(self):
-        return self.map_indices_to_coordinates(self.sea_indices)
+        return self.memory_cache.get_value('sea_coordinates', self.sea_coordinates_calculate)
+    
+
+    # @property
+    # def sea_indices(self):
+    #     masked_map = self.masked_map(dtype=np.float16)
+    #     sea_indices = np.array(np.where(np.logical_not(np.isnan(masked_map)))).transpose()
+    #     logger.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
+    #     return sea_indices
 
 
-#
-#     ## convert map indices and coordinates
-#
-#     def coordinate_to_map_index(self, point):
-#         ## t (center of the box, wrap around)
-#         t = (point[0] % 1) / 1 * self.t_dim - 0.5
-#
-#         ## x (center of the box, wrap around)
-#         x = (point[1] % 360) / 360 * self.x_dim - 0.5
-#
-#         ## y (center of the box, no wrap around)#, consider lowmost and topmost box)
-#         y = (point[2] + 90) / 180 * self.y_dim  - 0.5
-#
-#         ## z (center of the box, no wrap around)
-#         z = bisect.bisect_left(self.z_center, point[3]) - 1
-#         if z == -1:
-#             z += (point[3] - self.z_left[0]) / (self.z_center[0] - self.z_left[0])
-#         elif z == len(self.z_center) - 1:
-#             z += (point[3] - self.z_center[z]) / (self.z_right[z] - self.z_center[z])
-#         else:
-#             z += (point[3] - self.z_center[z]) / (self.z_center[z+1] - self.z_center[z])
-#
-#         return (t, x, y, z)
-#
-#     def coordinates_to_map_indices(self, points):
-#         result_ndim = points.ndim
-#         if points.ndim == 1:
-#             points = points[np.newaxis]
-#         logger.debug('Transforming {} points to indices for {}'.format(len(points), self))
-#
-#         new_points = np.empty(points.shape)
-#         for i in range(len(points)):
-#             new_points[i] = self.coordinate_to_map_index(points[i])
-#
-#         if result_ndim == 1:
-#             new_points = new_points[0]
-#         return new_points
-#
-#     def map_index_to_coordinate(self, t, x, y, z):
-#         ## t (center of the box, wrap around)
-#         t = (index[0] + 0.5 % self.t_dim) / self.t_dim * 1
-#
-#         ## x (center of the box, wrap around)
-#         x = ((index[1] + 0.5) % self.x_dim) / self.x_dim * 360
-#
-#         ## y (center of the box, no wrap around, consider lowmost and topmost box)
-#         y = (index[2] + 0.5) / self.y_dim * 180 - 90
-#
-#         ## z (center of the box, no wrap around)
-#         index_z_floor = int(np.floor(index[3]))
-#         index_z_fraction = index[3] % 1
-#         index_z_max = len(self.z_center)-1
-#         if index[3] < 0:
-#             z = self.z_left[0] * (1 - index_z_fraction) + self.z_center[0] *  index_z_fraction
-#         elif index[3] >= index_z_max:
-# #             z = self.z_center[len(self.z_center)-1] * (1 - index_z_fraction) + self.z_right[len(self.z_center)-1] *  index_z_fraction
-#             z = self.z_center[index_z_max] + (self.z_right[index_z_max] - self.z_center[index_z_max]) * (index[3] - index_z_max)
-#         else:
-#             z = self.z_center[index_z_floor] * (1 - index_z_fraction) + self.z_center[index_z_floor + 1] *  index_z_fraction
-#
-#         return (t, x, y, z)
-#
-#
-#     def map_indices_to_coordinates(self, points):
-#         result_ndim = points.ndim
-#         if points.ndim == 1:
-#             points = points[np.newaxis]
-#         logger.debug('Transforming {} indices from {} to coordinates'.format(len(points), self))
-#
-#         new_points = np.empty(points.shape)
-#         for i in range(len(points)):
-#             new_points[i] = self.map_index_to_coordinate(points[i])
-#
-#         if result_ndim == 1:
-#             new_points = new_points[0]
-#         return new_points
+    #     @property
+    # def sea_coordinates(self):
+    #     return self.map_indices_to_coordinates(self.sea_indices)
 
 
 
