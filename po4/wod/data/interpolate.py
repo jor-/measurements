@@ -33,7 +33,7 @@ class Interpolator:
 
     def sample_data_for_lsm(self, lsm, no_data_value=np.inf):
         data = np.copy(self.data)
-        data[:,:-1] = lsm.coordinates_to_map_indices(data[:,:-1])
+        data[:, :-1] = lsm.coordinates_to_map_indices(data[:, :-1])
         for i in range(len(data)):
             data[i, 3] = min(data[i, 3], lsm.z_dim - 1)
         data_map = lsm.insert_index_values_in_map(data, no_data_value=no_data_value)

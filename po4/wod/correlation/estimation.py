@@ -55,10 +55,8 @@ def sample_values_transformed(value_type, min_values, max_year_diff=float('inf')
         from measurements.po4.wod.constants import SAMPLE_LSM
 
         value_dict = sample_values(value_type, min_values=min_values, max_year_diff=max_year_diff)
-        # value_dict.transform_values(lambda key, value: value[1])
         value_dict.coordinates_to_map_indices(SAMPLE_LSM)
         value_dict.keys_to_int_keys(np.int32)
-        # value_dict.means(min_values=1, return_type='self')
 
         return value_dict
 
@@ -82,16 +80,6 @@ class SampleCorrelation():
     def __init__(self, min_values, max_year_diff=float('inf'), same_box_correlation=CORRELATION_SAME_BOX, same_box_quantity=CORRELATION_QUANTITY_SAME_BOX, no_data_correlation=None, return_type=measurements.util.correlation.RETURN_CORRELATION):
         logger.debug('Preparing sample correlation with min_value {}, same_box_correlation {}, same_box_quantity {}, no_data_correlation {} and return type {}.'.format(min_values, same_box_correlation, same_box_quantity, no_data_correlation, return_type))
 
-        # ## chose return index
-        # if return_type == RETURN_QUANTITY:
-        #     return_index = 0
-        # elif return_type == RETURN_CORRELATION:
-        #     return_index = 1
-        # elif return_type == RETURN_QUANTITY_AND_CORRELATION:
-        #     return_index = slice(2)
-        # else:
-        #     raise ValueError('Return type {} has to be in {}!'.format(return_type, (RETURN_QUANTITY, RETURN_CORRELATION, RETURN_QUANTITY_AND_CORRELATION)))
-        # self.return_index = return_index
         self.return_index = measurements.util.correlation.chose_return_index(return_type)
 
 
@@ -124,9 +112,6 @@ class SampleCorrelation():
 
             for i in range(len(keys)):
                 keys[i][0] = keys[i][0] - year_min
-                # keys[i] = measurements.util.data.Measurements.categorize_index(keys[i], self.lsm.separation_values, discard_year=False)
-                # keys[i] = self.lsm.coordinate_to_map_index(*keys[i], discard_year=False)
-                # keys[i] = tuple(np.array(np.round(keys[i]), dtype=np.int32))
                 keys[i] = transform_key(keys[i], discard_year=False)
 
             ## if same point return same box correlation
@@ -150,50 +135,6 @@ class SampleCorrelation():
         return (quantity, correlation)[self.return_index]
 
 
-
-    #
-    # def value(self, keys):
-    #     assert len(keys) == 2
-    #
-    #     ## if same point return 1
-    #     if np.all(keys[0] == keys[1]):
-    #         quantity = same_box_quantity
-    #         correlation = 1
-    #         return 1
-    #
-    #     ## remove min t and categorize
-    #     keys = [list(keys[0]), list(keys[1])]
-    #     year_min = min([int(keys[0][0]), int(keys[1][0])])
-    #
-    #     for i in range(len(keys)):
-    #         keys[i][0] = keys[i][0] - year_min
-    #         keys[i] = measurements.util.data.Measurements.categorize_index(keys[i], self.lsm.separation_values, discard_year=False)
-    #         keys[i] = self.lsm.coordinate_to_map_index(*keys[i], discard_year=False)
-    #         keys[i] = tuple(np.array(np.round(keys[i]), dtype=np.int32))
-    #
-    #     ## if same point return same box correlation
-    #     if np.all(keys[0] == keys[1]):
-    #         return self.same_box_correlation
-    #
-    #     ## otherwise use sample correlation
-    #     try:
-    #         sample_correlation = self.value_dict[keys]
-    #     except KeyError:
-    #         sample_correlation = None
-    #
-    #     if sample_correlation is not None:
-    #         assert len(sample_correlation) == 1
-    #         # sample_correlation = sample_correlation[0]
-    #         # if np.abs(sample_correlation) <= self.max_correlation:
-    #         #     correlation = sample_correlation
-    #         # else:
-    #         #     correlation = self.max_correlation * np.sign(sample_correlation)
-    #         correlation = sample_correlation[0]
-    #     else:
-    #         correlation = self.no_data_value
-    #
-    #     return correlation
-    #
 
     def __getitem__(self, key):
         return self.value(key)
