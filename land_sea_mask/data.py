@@ -178,13 +178,20 @@ class LandSeaMask():
         yi = (y + 90) / 180 * self.y_dim  - 0.5
 
         ## z (center of the box, no wrap around)
-        zi = bisect.bisect_left(self.z_center, z) - 1
+        r = self.z_right
+        c = self.z_center
+        m = len(c)-1
+        
+        zi = bisect.bisect_left(c, z) - 1
         if zi == -1:
-            zi += (z - self.z_left[0]) / (self.z_center[0] - self.z_left[0])
-        elif zi == len(self.z_center) - 1:
-            zi += (z - self.z_center[zi]) / (self.z_right[zi] - self.z_center[zi])
+            assert z <= c[0]
+            zi = 1/2 * (z / c[0] - 1)
+        elif zi == m:
+            assert z >= c[m]
+            zi = m +  1/2 * (z - c[m]) / (r[m] - c[m])
         else:
-            zi += (z - self.z_center[zi]) / (self.z_center[zi+1] - self.z_center[zi])
+            assert z >= c[zi] and z <= c[zi+1]
+            zi += 1/2 * (min(z, r[zi]) - c[zi]) / (r[zi] - c[zi]) + 1/2 * (max(z, r[zi]) - r[zi]) / (c[zi+1] - r[zi])
 
         return (ti, xi, yi, zi)
 
@@ -210,7 +217,6 @@ class LandSeaMask():
         ## t (left or center of the box, wrap around)
         if self.t_centered:
             ti += 0.5
-        # t = (ti % self.t_dim) / self.t_dim
         t = ti / self.t_dim
 
         ## x (center of the box, wrap around)
@@ -220,16 +226,26 @@ class LandSeaMask():
         y = (yi + 0.5) / self.y_dim * 180 - 90
 
         ## z (center of the box, no wrap around)
-        index_z_floor = int(np.floor(zi))
-        index_z_fraction = zi % 1
-        index_z_max = len(self.z_center)-1
+        r = self.z_right
+        c = self.z_center
+        m = len(c)-1
+        
         if zi < 0:
-            z = self.z_left[0] * (1 - index_z_fraction) + self.z_center[0] *  index_z_fraction
-        elif zi >= index_z_max:
-            z = self.z_center[index_z_max] + (self.z_right[index_z_max] - self.z_center[index_z_max]) * (zi - index_z_max)
+            z = (2 * zi + 1) * c[0]
+            assert z <= c[0]
+        elif zi >= m:
+            z = 2 * (zi - m) * (r[m] - c[m]) + c[m]
+            assert z >= c[m]
         else:
-            z = self.z_center[index_z_floor] * (1 - index_z_fraction) + self.z_center[index_z_floor + 1] *  index_z_fraction
-
+            zi_floor = int(np.floor(zi))
+            zi_fraction = zi % 1
+            if zi_floor < 0.5:
+                z = 2 * zi_fraction * (r[zi_floor] - c[zi_floor]) + c[zi_floor]
+            else:
+                zi_fraction -= 0.5
+                z = 2 * zi_fraction * (c[zi_floor + 1] - r[zi_floor]) + r[zi_floor]
+            assert z >= c[zi_floor] and z <= c[zi_floor+1]
+            
         return (t, x, y, z)
 
 
