@@ -99,13 +99,13 @@ def periodic_with_coordinates(data, interpolation_points, lsm_base, interpolator
 
     ## for y and z set interpolations points to min and max of data
     for k in (2, 3):
-        data_points_min = data_points[:,k].min()
-        data_points_max = data_points[:,k].max()
+        data_points_min = data_points[:, k].min()
+        data_points_max = data_points[:, k].max()
         for i in range(len(interpolation_points)):
-            if interpolation_points[i,k] < data_points_min:
-                interpolation_points[i,k] = data_points_min
-            if interpolation_points[i,k] > data_points_max:
-                interpolation_points[i,k] = data_points_max
+            if interpolation_points[i, k] < data_points_min:
+                interpolation_points[i, k] = data_points_min
+            if interpolation_points[i, k] > data_points_max:
+                interpolation_points[i, k] = data_points_max
 
     ## prepare wrap_around_amount
     wrap_around_amount=interpolator_setup[0]
