@@ -15,12 +15,10 @@ class Interpolator:
         self.data_function = data_function
         self.cache = util.cache.HDD_NPY_Cache(interpolated_data_dir)
         self.interpolated_data_filename = interpolated_data_filename
-#         self.sample_lsm_t_dim = 48
 
 
     @property
     def sample_lsm(self):
-#         return measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=self.sample_lsm_t_dim)
         return measurements.po4.wod.constants.SAMPLE_LSM
 
     @property
@@ -63,7 +61,7 @@ class Interpolator:
     def interpolated_data_for_points_calculate(self, interpolator_setup=(0.1, 1, 0.0, 0)):
         data = np.copy(self.data)
 
-        interpolation_points = measurements.po4.wod.data.values.measurement_points()
+        interpolation_points = measurements.po4.wod.data.values.points()
         interpolated_data = measurements.util.interpolate.periodic_with_coordinates(data, interpolation_points, self.sample_lsm, interpolator_setup=interpolator_setup)
 
         return interpolated_data

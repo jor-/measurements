@@ -9,7 +9,7 @@ logger = util.logging.logger
 
 
 def average():
-    values = measurements.dop.pw.data.points_and_values()[1]
+    values = measurements.dop.pw.data.points_and_results()[1]
     average = values.mean()
 
     logger.debug('Got averaged DOP value {} from {} estimations.'.format(average, len(values)))
@@ -21,7 +21,7 @@ def for_points(points=None):
 
     ## load points if not passed
     if points is None:
-        points = measurements.dop.pw.data.points_and_values()[0]
+        points = measurements.dop.pw.data.points_and_results()[0]
 
     ## calculate average mean
     average_mean = average()

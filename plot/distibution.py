@@ -29,9 +29,9 @@ if __name__ == "__main__":
         tick_power = 3
         use_log_scale = True
 
-    t_min = measurements.po4.wod.data.values.measurement_points()[:,0].min()
-    t_max = measurements.po4.wod.data.values.measurement_points()[:,0].max()
-    z_max = measurements.po4.wod.data.values.measurement_points()[:,3].max()
+    t_min = measurements.po4.wod.data.values.points()[:,0].min()
+    t_max = measurements.po4.wod.data.values.points()[:,0].max()
+    z_max = measurements.po4.wod.data.values.points()[:,3].max()
 
     type = args.type
     if type != 'all':

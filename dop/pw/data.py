@@ -159,14 +159,8 @@ def data():
     data = np.concatenate((load_ladolfi_2002(), load_ladolfi_2004(), load_yoshimura_2007()))
     return data
 
-def points_and_values():
-    data_array = data()
-    points = data_array[:, :-1]
-    values = data_array[:, -1]
-    return (points, values)
 
-
-def data_calculate():
+def points_and_results():
     values = np.concatenate((load_ladolfi_2002(), load_ladolfi_2004(), load_yoshimura_2007()))
 
     ## sort measurements
@@ -183,19 +177,22 @@ def data_calculate():
 
 def points():
     cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
-    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_POINTS_FILENAME, lambda :measurements_calculate()[0])
+    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_POINTS_FILENAME, lambda :points_and_results()[0])
 
 def results():
     cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
-    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_RESULTS_FILENAME, lambda :measurements_calculate()[1])
+    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_RESULTS_FILENAME, lambda :points_and_results()[1])
 
 
-def points_and_results():
-    return (points(), results())
+def points_near_water_mask(lsm, max_land_boxes=0):
+    cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
+    filename = measurements.dop.pw.constants.MEASUREMENTS_POINTS_ARE_NEAR_WATER_FILENAME.format(lsm=lsm, max_land_boxes=max_land_boxes)
+    return cache.get_value(filename, lambda: lsm.points_near_water_mask(points(), max_land_boxes=max_land_boxes))
+
 
 
 def measurement_dict():
-    (points, values) = points_and_values()
+    (points, values) = points_and_results()
     measurement_data = measurements.util.data.Measurements()
     measurement_data.append_values(points, values)
     return measurement_data

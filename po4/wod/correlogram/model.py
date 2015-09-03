@@ -606,11 +606,11 @@ class Correlation_Model_Combined(Correlation_Model_Base):
 
 class Correlation_Model():
     def __init__(self):
-        from ..data.io import load_measurement_points
+        from ..data.values import points
 
         self.logger = logging.getLogger(__name__)
 
-        self.points = load_measurement_points()
+        self.points = points()
 #         self.correlation_model = Correlation_Model_Combined(extend_correlation_model_by_C(Correlation_Model_2()), Correlation_Model_6())
 #         self.p_opt = np.array([  1.42467926e-02,   1.09009491e-01,   1.14544485e-01, 1.27031987e-02,   2.82689543e-01,   3.15936466e-01, 9.27357261e+01,   7.78565009e+04,   2.93241272e-01, 7.81488396e+04,   0.00000000e+00,   9.16141645e-01, 6.82714979e-01,   1.00000000e+00,   9.13380330e-02, 0.00000000e+00])
 #         self.correlation_model = Correlation_Model_Combined(extend_correlation_model_by_C(Correlation_Model_8()), Correlation_Model_9())

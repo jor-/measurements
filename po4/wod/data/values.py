@@ -70,15 +70,21 @@ def measurements_calculate():
 
     return (points, results)
 
-def measurement_points():
+
+def points():
     cache = util.cache.HDD_NPY_Cache(measurements.po4.wod.data.constants.DATA_DIR)
     return cache.get_value(measurements.po4.wod.data.constants.MEASUREMENTS_POINTS_FILENAME, lambda :measurements_calculate()[0])
 
-def measurement_results():
+def results():
     cache = util.cache.HDD_NPY_Cache(measurements.po4.wod.data.constants.DATA_DIR)
     return cache.get_value(measurements.po4.wod.data.constants.MEASUREMENTS_RESULTS_FILENAME, lambda :measurements_calculate()[1])
 
-def measurements_points_and_results():
-    return (measurement_points(), measurement_results())
+
+def points_near_water_mask(lsm, max_land_boxes=0):
+    cache = util.cache.HDD_NPY_Cache(measurements.po4.wod.data.constants.DATA_DIR)
+    filename = measurements.po4.wod.data.constants.MEASUREMENTS_POINTS_ARE_NEAR_WATER_FILENAME.format(lsm=lsm, max_land_boxes=max_land_boxes)
+    return cache.get_value(filename, lambda: lsm.points_near_water_mask(points(), max_land_boxes=max_land_boxes))
+    
+
 
 
