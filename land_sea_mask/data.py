@@ -26,18 +26,23 @@ class LandSeaMask():
         self.memory_cache = util.cache.MemoryCache()
 
 
-    ## dims and z
+    ## dims
 
     @property
     def t_dim(self):
-        if self._t_dim is not None:
-            return self._t_dim
-        else:
-            raise ValueError('T dim is not set.')
+        return self._t_dim
 
     @t_dim.setter
     def t_dim(self, new_t_dim):
         self._t_dim = new_t_dim
+
+    @property
+    def t_dim_with_value_check(self):
+        t_dim = self.t_dim
+        if t_dim is not None and t_dim != 0:
+            return t_dim
+        else:
+            raise ValueError('T dim is not set.')
 
 
     @property
@@ -58,12 +63,18 @@ class LandSeaMask():
 
     @property
     def dim(self):
-        if self.t_dim is None:
+        if self.t_dim is None or self.t_dim == 0:
             return (self.x_dim, self.y_dim, self.z_dim)
         else:
             return (self.t_dim, self.x_dim, self.y_dim, self.z_dim)
 
+    @property
+    def ndim(self):
+        return len(self.dim)
 
+
+    ## z
+    
     @property
     def z(self):
         return self._depth_level
@@ -92,7 +103,7 @@ class LandSeaMask():
 
     @property
     def separation_values(self):
-        return (1/self.t_dim, 360/self.x_dim, 180/self.y_dim, self.z)
+        return (1/self.t_dim_with_value_check, 360/self.x_dim, 180/self.y_dim, self.z)
 
 
     ## lsm
@@ -114,7 +125,7 @@ class LandSeaMask():
 
     def __str__(self):
         try:
-            t_dim = self.t_dim
+            t_dim = self.t_dim_with_value_check
         except ValueError:
             t_dim = None
         if t_dim is not None:
@@ -134,7 +145,7 @@ class LandSeaMask():
 
     @property
     def sea_indices(self):
-        return self.memory_cache.get_value('sea_indices', self.sea_indices_calculate)
+        return self.memory_cache.get_value('sea_indices_{}'.format(self.dim), self.sea_indices_calculate)
     
 
     def sea_coordinates_calculate(self):
@@ -144,32 +155,48 @@ class LandSeaMask():
     
     @property
     def sea_coordinates(self):
-        return self.memory_cache.get_value('sea_coordinates', self.sea_coordinates_calculate)
+        return self.memory_cache.get_value('sea_coordinates_{}'.format(self.dim), self.sea_coordinates_calculate)
     
 
-    # @property
-    # def sea_indices(self):
-    #     masked_map = self.masked_map(dtype=np.float16)
-    #     sea_indices = np.array(np.where(np.logical_not(np.isnan(masked_map)))).transpose()
-    #     logger.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
-    #     return sea_indices
+    def is_point_near_water(self, point, max_land_boxes=0):
+        old_t_dim =  self.t_dim
+        self.t_dim = None
+        
+        sea_indices = self.sea_indices
+        map_index = np.asarray(self.coordinate_to_map_index(*point, discard_year=True))
+        distance = np.abs(sea_indices - map_index[np.newaxis, :])
+        
+        self.t_dim = old_t_dim
+        
+        is_near_water = np.any(np.all(distance <= 0.5 + max_land_boxes, axis=1))
+        logger.debug('Point {} is near water {} with max_nland_boxes {}.'.format(point, is_near_water, max_land_boxes))
+        return is_near_water
 
 
-    #     @property
-    # def sea_coordinates(self):
-    #     return self.map_indices_to_coordinates(self.sea_indices)
+    def points_near_water_mask(self, points, max_land_boxes=0):
+        n = len(points)
+        results = np.ones(n, dtype=np.bool)
+        for i in range(n):
+            results[i] = self.is_point_near_water(points[i], max_land_boxes=max_land_boxes)
+        return results
 
-
+    
 
     ## convert map indices and coordinates
 
     def coordinate_to_map_index(self, t, x, y, z, discard_year=True):
         ## t (center of the box, wrap around)
-        if discard_year:
-            t = (t % 1)
-        ti = t * self.t_dim
-        if self.t_centered:
-            ti -= 0.5
+        try:
+            t_dim = self.t_dim_with_value_check
+        except ValueError:
+            t_dim = None
+        
+        if t_dim is not None:
+            if discard_year:
+                t = (t % 1)
+            ti = t * t_dim
+            if self.t_centered:
+                ti -= 0.5
 
         ## x (center of the box, wrap around)
         xi = (x % 360) / 360 * self.x_dim - 0.5
@@ -193,7 +220,11 @@ class LandSeaMask():
             assert z >= c[zi] and z <= c[zi+1]
             zi += 1/2 * (min(z, r[zi]) - c[zi]) / (r[zi] - c[zi]) + 1/2 * (max(z, r[zi]) - r[zi]) / (c[zi+1] - r[zi])
 
-        return (ti, xi, yi, zi)
+        ## return
+        if t_dim is not None:
+            return (ti, xi, yi, zi)
+        else:
+            return (xi, yi, zi)
 
 
     def coordinates_to_map_indices(self, points, discard_year=True):
@@ -202,8 +233,9 @@ class LandSeaMask():
             points = points[np.newaxis]
         logger.debug('Transforming {} coordinates to map indices for {} with discard year {}.'.format(len(points), self, discard_year))
 
-        new_points = np.empty(points.shape)
-        for i in range(len(points)):
+        n = len(points)
+        new_points = np.empty((n, self.ndim))
+        for i in range(n):
             new_points[i] = self.coordinate_to_map_index(*points[i], discard_year=discard_year)
 
         if result_ndim == 1:
@@ -215,9 +247,14 @@ class LandSeaMask():
 
     def map_index_to_coordinate(self, ti, xi, yi, zi):
         ## t (left or center of the box, wrap around)
-        if self.t_centered:
-            ti += 0.5
-        t = ti / self.t_dim
+        try:
+            t_dim = self.t_dim_with_value_check
+        except ValueError:
+            t_dim = None
+        if t_dim is not None:
+            if self.t_centered:
+                ti += 0.5
+            t = ti / self.t_dim_with_value_check
 
         ## x (center of the box, wrap around)
         x = ((xi + 0.5) % self.x_dim) / self.x_dim * 360
@@ -245,8 +282,13 @@ class LandSeaMask():
                 zi_fraction -= 0.5
                 z = 2 * zi_fraction * (c[zi_floor + 1] - r[zi_floor]) + r[zi_floor]
             assert z >= c[zi_floor] and z <= c[zi_floor+1]
+        
+        ## return
+        if t_dim is not None:
+            return (t, x, y, z)
+        else:
+            return (x, y, z)
             
-        return (t, x, y, z)
 
 
     def map_indices_to_coordinates(self, points):
@@ -255,8 +297,9 @@ class LandSeaMask():
             points = points[np.newaxis]
         logger.debug('Transforming {} map indices from {} to coordinates'.format(len(points), self))
 
-        new_points = np.empty(points.shape)
-        for i in range(len(points)):
+        n = len(points)
+        new_points = np.empty((n, self.ndim))
+        for i in range(n):
             new_points[i] = self.map_index_to_coordinate(*points[i])
 
         if result_ndim == 1:

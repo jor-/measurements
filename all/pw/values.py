@@ -6,26 +6,19 @@ import measurements.po4.wod.data.values
 import measurements.dop.pw.deviation
 import measurements.po4.wod.deviation.values
 
-import measurements.util.calculate
 
-
-def points_and_results():
-    (dop_points, dop_values) = measurements.dop.pw.data.points_and_values()
-    po4_points = measurements.po4.wod.data.values.measurement_points()
-    po4_values = measurements.po4.wod.data.values.measurement_results()
-
-    points = (dop_points, po4_points)
-    values = (dop_values, po4_values)
-
-    return (points, values)
 
 
 def points():
-    return points_and_results()[0]
+    return (measurements.dop.pw.data.points(), measurements.po4.wod.data.values.points())
 
 
 def results():
-    return points_and_results()[1]
+    return (measurements.dop.pw.data.results(), measurements.po4.wod.data.values.results())
+
+
+def points_near_water_mask(lsm, max_land_boxes=0):
+    return (measurements.dop.pw.data.points_near_water_mask(lsm, max_land_boxes=max_land_boxes), measurements.po4.wod.data.values.points_near_water_mask(lsm, max_land_boxes=max_land_boxes))
 
 
 def deviation():
@@ -47,10 +40,3 @@ def deviation_TMM(t_dim=12):
 
     return deviation
 
-
-# def sorted_indices():
-#     unsorted_points = points()
-#     sorted_indices = []
-#     for p in unsorted_points:
-#         sorted_indices.append(measurements.util.calculate.lex_sorted_indices(p))
-#     return sorted_indices

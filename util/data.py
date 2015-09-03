@@ -212,6 +212,10 @@ class Measurements(util.multi_dict.MultiDict):
     def filter_year(self, year, return_type='self'):
         return self.filter_key_range(0, [year, year+1-10**(-10)], return_type=return_type)
     
+    
+    def filter_points_near_water(self, lsm, max_land_boxes=0, return_type='self'):
+        self.filter_with_boolean_function(lambda point, values: lsm.is_point_near_water(point, max_land_boxes=max_land_boxes), return_type=return_type)
+    
 
 
     def filter_same_point_with_bounds(self, point, equal_bounds=(0,0,0,0), discard_year=True, only_one_per_year=True):
