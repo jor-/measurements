@@ -26,9 +26,9 @@ def chose_return_index(return_type):
 
 class Model():
 
-    def __init__(self, min_values, max_year_diff, no_data_correlation=None, same_box_quantity=CORRELATION_QUANTITY_SAME_BOX, same_box_correlation=CORRELATION_SAME_BOX, min_abs_correlation=CORRELATION_MIN_ABS_VALUE, max_abs_correlation=CORRELATION_MAX_ABS_VALUE, return_type=RETURN_CORRELATION):
+    def __init__(self, min_values, max_year_diff=float('inf'), no_data_correlation=None, same_box_quantity=CORRELATION_QUANTITY_SAME_BOX, same_box_correlation=CORRELATION_SAME_BOX, min_abs_correlation=CORRELATION_MIN_ABS_VALUE, max_abs_correlation=CORRELATION_MAX_ABS_VALUE, return_type=RETURN_CORRELATION):
 
-        logger.debug('Initiating {} with min_values {}, max_year_diff {}, no_data_correlation {}, same_box_quantity {}, same_box_correlation {}, min_abs_correlation {}, max_abs_correlation {} and return_type {}'.format(self, min_values, max_year_diff, no_data_correlation, same_box_quantity, same_box_correlation, min_abs_correlation, max_abs_correlation, return_type))
+        logger.debug('Initiating {} with min_values {}, max_year_diff {}, no_data_correlation {}, same_box_quantity {}, same_box_correlation {}, min_abs_correlation {}, max_abs_correlation {} and return_type {}.'.format(self, min_values, max_year_diff, no_data_correlation, same_box_quantity, same_box_correlation, min_abs_correlation, max_abs_correlation, return_type))
 
         ## save values
         self.min_values = min_values
