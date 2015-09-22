@@ -169,7 +169,7 @@ class LandSeaMask():
         self.t_dim = old_t_dim
         
         is_near_water = np.any(np.all(distance <= 0.5 + max_land_boxes, axis=1))
-        logger.debug('Point {} is near water {} with max_nland_boxes {}.'.format(point, is_near_water, max_land_boxes))
+        logger.debug('Point {} is near water {} with max_land_boxes {}.'.format(point, is_near_water, max_land_boxes))
         return is_near_water
 
 
