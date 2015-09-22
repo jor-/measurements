@@ -17,10 +17,6 @@ def results():
     return (measurements.dop.pw.data.results(), measurements.po4.wod.data.values.results())
 
 
-def points_near_water_mask(lsm, max_land_boxes=0):
-    return (measurements.dop.pw.data.points_near_water_mask(lsm, max_land_boxes=max_land_boxes), measurements.po4.wod.data.values.points_near_water_mask(lsm, max_land_boxes=max_land_boxes))
-
-
 def deviation():
     dop_deviation = measurements.dop.pw.deviation.for_points()
     po4_deviation = measurements.po4.wod.deviation.values.for_points()

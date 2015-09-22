@@ -125,7 +125,7 @@ class CorrelationMatrix(measurements.util.correlation.Model):
         self.kargs = kargs
         self.reordering = positive_definite_approximation_reorder_after_each_step
 
-        self.memory_cache = util.cache.MemoryCache()
+        self.memory_cache = util.cache.MemoryCacheDeactivatable()
 
         from measurements.dop.pw.constants import CORRELATION_DIR as DOP_CORRELATION_DIR
         from measurements.po4.wod.correlation.constants import VALUE_DIR as PO4_CORRELATION_DIR
@@ -135,6 +135,13 @@ class CorrelationMatrix(measurements.util.correlation.Model):
         self.object_cache = util.cache.HDD_ObjectCache(CORRELATION_DIR, use_memory_cache=True)
         self.npy_cache = util.cache.HDD_NPY_Cache(CORRELATION_DIR, use_memory_cache=True)
 
+
+    ## cache
+    
+    def memory_cache_switch(self, enabled):
+        self.memory_cache.switch(enabled)
+        self.object_cache.memory_cache_switch(enabled)
+        self.npy_cache.memory_cache_switch(enabled)
 
 
     ## properties
@@ -171,9 +178,6 @@ class CorrelationMatrix(measurements.util.correlation.Model):
     def ordering_method(self):
         return 'default'
 
-    # @property
-    # def reordering(self):
-    #     return True
 
 
     ##  point index dicts
@@ -298,13 +302,6 @@ class CorrelationMatrix(measurements.util.correlation.Model):
     @property
     def sample_quantity_and_correlation_matrix(self):
         from measurements.all.pw.constants import SAMPLE_CORRELATION_AND_QUANTITY_MATRIX_FILENAME
-
-        # filename = SAMPLE_CORRELATION_AND_QUANTITY_MATRIX_FILENAME.format(min_values=self.min_values, max_year_diff=self.max_year_diff, type='coo')
-        # quantity_and_correlation_matrix = self.object_cache[(filename, lambda : self.sample_quantity_and_correlation_matrix_calculate('coo'))]
-        #
-        # filename = SAMPLE_CORRELATION_AND_QUANTITY_MATRIX_FILENAME.format(min_values=self.min_values, max_year_diff=self.max_year_diff, type=self.format)
-        # quantity_and_correlation_matrix = self.object_cache[(filename, lambda : quantity_and_correlation_matrix.asformat(self.format).astype(self.dtype))]
-
         filename = SAMPLE_CORRELATION_AND_QUANTITY_MATRIX_FILENAME.format(min_values=self.min_values, max_year_diff=self.max_year_diff, type=self.format)
         quantity_and_correlation_matrix = self.object_cache[(filename, lambda : self.sample_quantity_and_correlation_matrix_calculate(format=self.format, dtype=self.dtype))]
         return quantity_and_correlation_matrix
@@ -318,7 +315,6 @@ class CorrelationMatrix(measurements.util.correlation.Model):
         correlation_matrix = correlation_matrix + scipy.sparse.eye(self.n) + correlation_matrix.transpose()
         return correlation_matrix.astype(dtype)
 
-    # @property
     def sample_correlation_matrix(self):
         return self.sample_correlation_matrix_calculate(format=self.format, dtype=self.dtype)
 
@@ -331,7 +327,6 @@ class CorrelationMatrix(measurements.util.correlation.Model):
         quantity_matrix = quantity_matrix + quantity_matrix.transpose()
         return quantity_matrix.astype(dtype)
 
-    # @property
     def sample_quantity_matrix(self):
         return self.sample_quantity_matrix_calculate(format=self.format)
 
@@ -354,11 +349,9 @@ class CorrelationMatrix(measurements.util.correlation.Model):
 
         return correlation_matrix.asformat(format).astype(dtype)
 
-    # @property
     def correlation_matrix(self, use_memory_cache=True):
         from measurements.all.pw.constants import CORRELATION_MATRIX_FILENAME
         filename = CORRELATION_MATRIX_FILENAME.format(min_values=self.min_values, max_year_diff=self.max_year_diff, type=self.format)
-        # correlation_matrix = self.object_cache[(filename, lambda : self.correlation_matrix_calculate(format=self.format, dtype=self.dtype), use_memory_cache=use_memory_cache)]
         correlation_matrix = self.object_cache.get_value(filename, lambda : self.correlation_matrix_calculate(format=self.format, dtype=self.dtype), use_memory_cache=use_memory_cache)
 
         return correlation_matrix
@@ -370,7 +363,6 @@ class CorrelationMatrix(measurements.util.correlation.Model):
         import util.math.sparse.decompose.with_cholmod
         from measurements.all.pw.constants import CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME
         reduction_factors_file = self.npy_cache.get_file(CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME.format(min_values=self.min_values, max_year_diff=self.max_year_diff, ordering_method=ordering_method, reordering=reordering))
-        # correlation_matrix = self.correlation_matrix
         correlation_matrix, reduction_factors = util.math.sparse.decompose.with_cholmod.approximate_positive_definite(self.correlation_matrix(use_memory_cache=False), min_abs_value=self.min_abs_correlation, ordering_method=ordering_method, reorder_after_each_step=reordering, use_long=True, reduction_factors_file=reduction_factors_file)
         return correlation_matrix.asformat(format).astype(dtype), reduction_factors.astype(dtype)
 
@@ -418,6 +410,9 @@ class CorrelationMatrix(measurements.util.correlation.Model):
         filename = CORRELATION_MATRIX_CHOLESKY_FACTORS_FILENAME.format(min_values=self.min_values, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, type=self.format)
         P, L = self.object_cache[(filename, lambda : self.correlation_matrix_cholesky_decomposition_calculate(ordering_method=self.ordering_method, format=self.format, dtype=self.dtype))]
         return P, L
+
+
+
 
 
 
