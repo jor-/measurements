@@ -1052,97 +1052,99 @@ class MeasurementsSamePoints(Measurements):
         else:
             calculate_correlation = value_type == POSSIBLE_VALUE_TYPES[0]
 
-        ## check max_year_diff
-        if max_year_diff is None or max_year_diff == float('inf'):
-            t = self.values()[:,0]
-            max_year_diff = int(np.ceil(t.max() - t.min()))
-            logger.debug('Using max_year_diff {}.'.format(max_year_diff))
-
         ## prepare value measurement dict
         if stationary:
             value_measurements = MeasurementsCovarianceStationary()
         else:
             value_measurements = MeasurementsCovariance()
-
-
-        ## iterate over each pair of measurement indices
-        index_of_measurement = [0, 0]
-        for (key_0, transformed_value_list_0) in self.iterator_keys_and_value_lists():
-            index_of_measurement[1] = 0
-            for (key_1, transformed_value_list_1) in self.iterator_keys_and_value_lists():
-
-                ## skip previous values
-                if index_of_measurement[1] > index_of_measurement[0] or (index_of_measurement[1] == index_of_measurement[0] and max_year_diff > 1):
-
-                    ## make keys to list
-                    keys = (tuple(key_0), tuple(key_1))
-
-                    ## calculate all desired year offsets
-                    desired_year_offsets = tuple(range(1, max_year_diff))
-                    if not np.allclose(keys[0], keys[1]):
-                        desired_year_offsets += tuple(range(-max_year_diff+1, 1))
-
-                    if not np.isclose(keys[0][0], keys[1][0]):
-                        if keys[0][0] < keys[1][0]:
-                            desired_year_offsets +=  (max_year_diff,)
-                        else:
-                            desired_year_offsets +=  (-max_year_diff,)
-
-                    ## for all year offsets
-                    for desired_year_offset in desired_year_offsets:
-
-                        ## get values with desired year offset and t fraction diff
-                        matching_results = []
-                        for (t0, r0) in transformed_value_list_0:
-                            for (t1, r1) in transformed_value_list_1:
-                                year_offset = int(t0) - int(t1)
-                                if year_offset == desired_year_offset:
-                                    matching_results.append([r0, r1])
-                        matching_results = np.array(matching_results)
-                        n = len(matching_results)
-
-
-                        ## if enough measurements
-                        if n >= min_values:
-
-                            ## calculate auxiliary values
-                            x0 = matching_results[:,0]
-                            x1 = matching_results[:,1]
-
-                            m0 = x0.mean()
-                            m1 = x1.mean()
-
-                            if calculate_correlation:
-                                s0 = np.sqrt(np.sum((x0 - m0)**2))
-                                s1 = np.sqrt(np.sum((x1 - m1)**2))
-
-                            if not calculate_correlation or (s0 > 0 and s1 > 0):
-                                ## calculate value
-                                if calculate_correlation:
-                                    value = np.sum(((x0 - m0) / s0) * ((x1 - m1) / s1))
-                                    assert value >= -1 and value <= 1
-                                else:
-                                    value = np.sum((x0 - m0) * (x1 - m1))
-
-                                value = (n, value)
-
-                                ## prepare key pair
-                                value_keys = [list(keys[0]), list(keys[1])]
-                                if desired_year_offset >= 0:
-                                    value_keys[0][0] = value_keys[0][0] + desired_year_offset
-                                else:
-                                    value_keys[1][0] = value_keys[1][0] - desired_year_offset
-
-                                ## add value to value dict
-                                value_measurements.append_value(value_keys, value)
-
-                                logger.debug('{} {} calculated with {} values for index {}.'.format(value_type, value, n, value_keys))
+        
+        ## calculate values
+        if len(self) > 0:
+    
+            ## check max_year_diff
+            if max_year_diff is None or max_year_diff == float('inf'):
+                t = self.values()[:,0]
+                max_year_diff = int(np.ceil(t.max() - t.min()))
+                logger.debug('Using max_year_diff {}.'.format(max_year_diff))
+    
+            ## iterate over each pair of measurement indices
+            index_of_measurement = [0, 0]
+            for (key_0, transformed_value_list_0) in self.iterator_keys_and_value_lists():
+                index_of_measurement[1] = 0
+                for (key_1, transformed_value_list_1) in self.iterator_keys_and_value_lists():
+    
+                    ## skip previous values
+                    if index_of_measurement[1] > index_of_measurement[0] or (index_of_measurement[1] == index_of_measurement[0] and max_year_diff > 1):
+    
+                        ## make keys to list
+                        keys = (tuple(key_0), tuple(key_1))
+    
+                        ## calculate all desired year offsets
+                        desired_year_offsets = tuple(range(1, max_year_diff))
+                        if not np.allclose(keys[0], keys[1]):
+                            desired_year_offsets += tuple(range(-max_year_diff+1, 1))
+    
+                        if not np.isclose(keys[0][0], keys[1][0]):
+                            if keys[0][0] < keys[1][0]:
+                                desired_year_offsets +=  (max_year_diff,)
                             else:
-                                logger.warning('Correlation for key {} and {} could not be calculated since a sample standard deviation is zero. Skipping this correlation'.format(keys[0], keys[1]))
-
-
-                index_of_measurement[1] += 1
-            index_of_measurement[0] += 1
+                                desired_year_offsets +=  (-max_year_diff,)
+    
+                        ## for all year offsets
+                        for desired_year_offset in desired_year_offsets:
+    
+                            ## get values with desired year offset and t fraction diff
+                            matching_results = []
+                            for (t0, r0) in transformed_value_list_0:
+                                for (t1, r1) in transformed_value_list_1:
+                                    year_offset = int(t0) - int(t1)
+                                    if year_offset == desired_year_offset:
+                                        matching_results.append([r0, r1])
+                            matching_results = np.array(matching_results)
+                            n = len(matching_results)
+    
+    
+                            ## if enough measurements
+                            if n >= min_values:
+    
+                                ## calculate auxiliary values
+                                x0 = matching_results[:,0]
+                                x1 = matching_results[:,1]
+    
+                                m0 = x0.mean()
+                                m1 = x1.mean()
+    
+                                if calculate_correlation:
+                                    s0 = np.sqrt(np.sum((x0 - m0)**2))
+                                    s1 = np.sqrt(np.sum((x1 - m1)**2))
+    
+                                if not calculate_correlation or (s0 > 0 and s1 > 0):
+                                    ## calculate value
+                                    if calculate_correlation:
+                                        value = np.sum(((x0 - m0) / s0) * ((x1 - m1) / s1))
+                                        assert value >= -1 and value <= 1
+                                    else:
+                                        value = np.sum((x0 - m0) * (x1 - m1)) / (n-1)
+    
+                                    value = (n, value)
+    
+                                    ## prepare key pair
+                                    value_keys = [list(keys[0]), list(keys[1])]
+                                    if desired_year_offset >= 0:
+                                        value_keys[0][0] = value_keys[0][0] + desired_year_offset
+                                    else:
+                                        value_keys[1][0] = value_keys[1][0] - desired_year_offset
+    
+                                    ## add value to value dict
+                                    value_measurements.append_value(value_keys, value)
+    
+                                    logger.debug('{} {} calculated with {} values for index {}.'.format(value_type, value, n, value_keys))
+                                else:
+                                    logger.warning('Correlation for key {} and {} could not be calculated since a sample standard deviation is zero. Skipping this correlation'.format(keys[0], keys[1]))
+    
+    
+                    index_of_measurement[1] += 1
+                index_of_measurement[0] += 1
 
         return value_measurements
 
