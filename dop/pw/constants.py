@@ -28,9 +28,6 @@ DATA_FILENAME = 'data.npy'
 ## data cache
 from measurements.constants import MEASUREMENTS_POINTS_FILENAME, MEASUREMENTS_RESULTS_FILENAME, MEASUREMENTS_POINTS_ARE_NEAR_WATER_FILENAME
 
-# MEASUREMENTS_POINTS_FILENAME = 'measurement_lexsorted_points.npy'
-# MEASUREMENTS_RESULTS_FILENAME = 'measurement_lexsorted_results.npy'
-
 
 from measurements.po4.wod.constants import SAMPLE_LSM
 

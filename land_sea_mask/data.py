@@ -192,9 +192,9 @@ class LandSeaMask():
             t_dim = None
         
         if t_dim is not None:
-            if discard_year:
-                t = (t % 1)
             ti = t * t_dim
+            if discard_year:
+                ti = (ti % t_dim)
             if self.t_centered:
                 ti -= 0.5
 
@@ -357,7 +357,7 @@ class LandSeaMask():
             except IndexError:
                 raise ValueError('Index {} exceeds dimension {}.'.format(index, value_map.shape))
 
-            if value_map[index] == no_data_value:
+            if value_map[index] == no_data_value or (np.isnan(value_map[index]) and np.isnan(no_data_value)):
                 value_map[index] = value
             else:
                 value_map[index] = value_map[index] + value

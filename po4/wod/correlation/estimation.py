@@ -8,16 +8,16 @@ import util.cache
 import util.logging
 logger = util.logging.logger
 
-from measurements.constants import CORRELATION_SAME_BOX, CORRELATION_QUANTITY_SAME_BOX
+from measurements.po4.wod.constants import SAMPLE_LSM
 
 
+## different boxes values
 
 def measurements_same_points(min_values):
     from measurements.po4.wod.correlation.constants import VALUE_DIR, MEASUREMENTS_SAME_POINTS_FILENAME
 
     def calculate_function():
         m = measurements.po4.wod.data.results.Measurements.load()
-        from measurements.po4.wod.constants import SAMPLE_LSM
         m.categorize_indices_to_lsm(SAMPLE_LSM, discard_year=False)
         m.means(return_type='self')
         return m.filter_same_points_except_year(min_values=min_values)
@@ -32,7 +32,7 @@ def sample_values(value_type, min_values, max_year_diff=float('inf')):
     if value_type not in POSSIBLE_VALUE_TYPES:
         raise ValueError('Value type has to be in {} but it is {}.'.format(POSSIBLE_VALUE_TYPES, value_type))
 
-    from measurements.po4.wod.correlation.constants import VALUE_DIR, VALUES_MEASUREMENTS_FILENAME
+    from measurements.po4.wod.correlation.constants import VALUE_DIR, SAMPLE_VALUE_DICT_FILENAME
 
     def calculate_function():
         ms = measurements_same_points(min_values=min_values)
@@ -40,7 +40,7 @@ def sample_values(value_type, min_values, max_year_diff=float('inf')):
         return covariance
 
     cache = util.cache.HDD_ObjectWithSaveCache(VALUE_DIR, measurements.util.data.MeasurementsCovariance.load)
-    return cache.get_value(VALUES_MEASUREMENTS_FILENAME.format(type=value_type, max_year_diff=max_year_diff, min_values=min_values), calculate_function)
+    return cache.get_value(SAMPLE_VALUE_DICT_FILENAME.format(type=value_type, max_year_diff=max_year_diff, min_values=min_values), calculate_function)
 
 
 
@@ -49,108 +49,101 @@ def sample_values_transformed(value_type, min_values, max_year_diff=float('inf')
     if value_type not in POSSIBLE_VALUE_TYPES:
         raise ValueError('Value type has to be in {} but it is {}.'.format(POSSIBLE_VALUE_TYPES, value_type))
 
-    from measurements.po4.wod.correlation.constants import VALUE_DIR, VALUES_MEASUREMENTS_TRANSFORMED_FILENAME
+    from measurements.po4.wod.correlation.constants import VALUE_DIR, SAMPLE_VALUE_DICT_TRANSFORMED_FILENAME
 
     def calculate_function():
-        from measurements.po4.wod.constants import SAMPLE_LSM
-
         value_dict = sample_values(value_type, min_values=min_values, max_year_diff=max_year_diff)
-        value_dict.coordinates_to_map_indices(SAMPLE_LSM)
-        value_dict.keys_to_int_keys(np.int32)
-
-        return value_dict
+        return transform_sample_value_dict(value_dict)
 
     cache = util.cache.HDD_ObjectWithSaveCache(VALUE_DIR, measurements.util.data.MeasurementsCovariance.load)
-    return cache.get_value(VALUES_MEASUREMENTS_TRANSFORMED_FILENAME.format(type=value_type, max_year_diff=max_year_diff, min_values=min_values), calculate_function)
+    return cache.get_value(SAMPLE_VALUE_DICT_TRANSFORMED_FILENAME.format(type=value_type, max_year_diff=max_year_diff, min_values=min_values), calculate_function)
 
+
+## same box correlation
+
+def same_box_sample_correlations_calculate():
+    all_values = measurements.po4.wod.data.results.Measurements.load()
+    same_box_sample_correlations_dict = measurements.util.correlation.same_box_sample_correlations(all_values, SAMPLE_LSM)
+    return same_box_sample_correlations_dict
+
+def same_box_sample_correlations():
+    from measurements.po4.wod.correlation.constants import VALUE_DIR, SAME_BOX_SAMPLE_CORRELATION_DICT_FILENAME
+    cache = util.cache.HDD_ObjectWithSaveCache(VALUE_DIR, measurements.util.data.Measurements.load)
+    return cache[SAME_BOX_SAMPLE_CORRELATION_DICT_FILENAME, same_box_sample_correlations_calculate]
+
+def same_box_sample_correlations_transformed_calculate():
+    value_dict = same_box_sample_correlations()
+    return transform_sample_value_dict(value_dict)
+
+def same_box_sample_correlations_transformed():
+    from measurements.po4.wod.correlation.constants import VALUE_DIR, SAME_BOX_SAMPLE_CORRELATION_DICT_TRANSFORMED_FILENAME
+    cache = util.cache.HDD_ObjectWithSaveCache(VALUE_DIR, measurements.util.data.Measurements.load)
+    return cache[SAME_BOX_SAMPLE_CORRELATION_DICT_TRANSFORMED_FILENAME, same_box_sample_correlations_transformed_calculate]
+    
+    
+
+## different boxes correlation
+
+def different_boxes_sample_correlations_calculate(min_values, max_year_diff=float('inf')):
+    ## calculate sample deviations
+    values = measurements.po4.wod.data.results.Measurements.load()
+    values.categorize_indices_to_lsm(SAMPLE_LSM, discard_year=True)
+    sample_deviations = values.deviations(min_values=measurements.constants.DEVIATION_MIN_MEASUREMENTS, return_type='measurements')
+    sample_deviations = transform_sample_value_dict(sample_deviations)
+    
+    def get_deviation(key):
+        key = transform_key(key, discard_year=True)
+        deviation_list = sample_deviations[key]
+        assert len(deviation_list) == 1
+        deviation = deviation_list[0]
+        return deviation
+    
+    ## calculate different boxes correlations
+    sample_covariances = sample_values('covariance', min_values, max_year_diff=max_year_diff)
+    sample_correlation = measurements.util.data.MeasurementsCovariance()
+    for key in sample_covariances.keys():
+        ## get number_of_measurements and covariance
+        covariance_list = sample_covariances[key]
+        assert len(covariance_list) == 1
+        assert len(covariance_list[0]) == 2
+        number_of_measurements, covariance = covariance_list[0]
+        ## get deviations
+        assert len(key) == 2
+        deviations = np.array([get_deviation(key[0]), get_deviation(key[1])])
+        ## calculate and insert number_of_measurements and correlation
+        if np.all(deviations > 0):
+            correlation = covariance / deviations.prod()
+            # assert correlation >= -1 and correlation <= 1
+            sample_correlation.append_value(key, [number_of_measurements, correlation])
+    
+    return sample_correlation
+
+def different_boxes_sample_correlations(min_values, max_year_diff=float('inf')):
+    from measurements.po4.wod.correlation.constants import VALUE_DIR, DIFFERENT_BOXES_SAMPLE_CORRELATION_DICT_FILENAME
+    cache = util.cache.HDD_ObjectWithSaveCache(VALUE_DIR, measurements.util.data.MeasurementsCovariance.load)
+    return cache[DIFFERENT_BOXES_SAMPLE_CORRELATION_DICT_FILENAME.format(min_values=min_values, max_year_diff=max_year_diff), lambda: different_boxes_sample_correlations_calculate(min_values=min_values, max_year_diff=max_year_diff)]
+
+def different_boxes_sample_correlations_transformed_calculate(min_values, max_year_diff=float('inf')):
+    value_dict = different_boxes_sample_correlations(min_values=min_values, max_year_diff=max_year_diff)
+    return transform_sample_value_dict(value_dict)
+
+def different_boxes_sample_correlations_transformed(min_values, max_year_diff=float('inf')):
+    from measurements.po4.wod.correlation.constants import VALUE_DIR, DIFFERENT_BOXES_SAMPLE_CORRELATION_DICT_TRANSFORMED_FILENAME
+    cache = util.cache.HDD_ObjectWithSaveCache(VALUE_DIR, measurements.util.data.MeasurementsCovariance.load)
+    return cache[DIFFERENT_BOXES_SAMPLE_CORRELATION_DICT_TRANSFORMED_FILENAME.format(min_values=min_values, max_year_diff=max_year_diff), lambda: different_boxes_sample_correlations_transformed_calculate(min_values=min_values, max_year_diff=max_year_diff)]
+
+    
+
+## util
+
+def transform_sample_value_dict(value_dict):
+    value_dict.coordinates_to_map_indices(SAMPLE_LSM)
+    value_dict.keys_to_int_keys(np.int32)
+    return value_dict
 
 
 def transform_key(key, discard_year=False):
-    from measurements.po4.wod.constants import SAMPLE_LSM
-    key = measurements.util.data.Measurements.categorize_index(key, SAMPLE_LSM.separation_values, discard_year=discard_year)
-    key = SAMPLE_LSM.coordinate_to_map_index(*key, discard_year=False)
+    key = SAMPLE_LSM.coordinate_to_map_index(*key, discard_year=discard_year)
     key = tuple(np.array(np.round(key), dtype=np.int32))
     return key
 
-
-
-
-class SampleCorrelation():
-
-    def __init__(self, min_values, max_year_diff=float('inf'), same_box_correlation=CORRELATION_SAME_BOX, same_box_quantity=CORRELATION_QUANTITY_SAME_BOX, no_data_correlation=None, return_type=measurements.util.correlation.RETURN_CORRELATION):
-        logger.debug('Preparing sample correlation with min_value {}, same_box_correlation {}, same_box_quantity {}, no_data_correlation {} and return type {}.'.format(min_values, same_box_correlation, same_box_quantity, no_data_correlation, return_type))
-
-        self.return_index = measurements.util.correlation.chose_return_index(return_type)
-
-
-        ## save values
-        self.same_box_correlation = same_box_correlation
-        self.same_box_quantity = same_box_quantity
-        # self.max_correlation = max_correlation
-        self.no_data_correlation = no_data_correlation
-
-        from measurements.po4.wod.constants import SAMPLE_LSM
-        self.lsm_separation_values = SAMPLE_LSM.separation_values
-        self.lsm = SAMPLE_LSM
-
-        ## get value dict
-        self.value_dict = sample_values_transformed('correlation', min_values=min_values, max_year_diff=max_year_diff)
-
-
-    def value(self, keys):
-        assert len(keys) == 2
-
-        ## if same point return 1
-        if np.all(keys[0] == keys[1]):
-            quantity = self.same_box_quantity
-            correlation = 1
-
-        ## remove min t and categorize
-        else:
-            keys = [list(keys[0]), list(keys[1])]
-            year_min = min([int(keys[0][0]), int(keys[1][0])])
-
-            for i in range(len(keys)):
-                keys[i][0] = keys[i][0] - year_min
-                keys[i] = transform_key(keys[i], discard_year=False)
-
-            ## if same point return same box correlation
-            if np.all(keys[0] == keys[1]):
-                quantity = self.same_box_quantity
-                correlation = self.same_box_correlation
-
-            ## otherwise use sample correlation
-            else:
-                try:
-                    sample_correlation = self.value_dict[keys]
-                except KeyError:
-                    sample_correlation = None
-                    quantity = 0
-                    correlation = self.no_data_correlation
-
-                if sample_correlation is not None:
-                    assert len(sample_correlation) == 1
-                    quantity, correlation = sample_correlation[0]
-
-        return (quantity, correlation)[self.return_index]
-
-
-
-    def __getitem__(self, key):
-        return self.value(key)
-
-
-    @property
-    def number_of_sample_values(self):
-        return len(self.value_dict)
-
-    def __len__(self):
-        return self.number_of_sample_values
-
-
-    @property
-    def effective_max_year_diff(self):
-        d = 0
-        for key in self.value_dict.keys():
-            d = max(d, np.ceil(np.abs(key[0,0] - key[1,0])))
-        return d
