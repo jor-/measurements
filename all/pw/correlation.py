@@ -3,7 +3,6 @@ import scipy.sparse
 
 import measurements.all.pw.values
 import measurements.dop.pw.correlation
-import measurements.po4.wod.correlation.model
 import measurements.po4.wod.correlation.estimation
 import measurements.util.correlation
 import measurements.util.data
