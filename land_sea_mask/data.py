@@ -117,9 +117,14 @@ class LandSeaMask():
         return self._lsm.shape
 
     def __getitem__(self, key):
-        if len(key) >= 4:
-            raise ValueError('Length of key has to be less or equal 3, but key is {}.'.format(key))
-        return self._lsm[key[-2:]]
+        if len(key) == 2:
+            return self._lsm[key]
+        elif len(key) == 3:
+            return self._lsm[key[1:]]
+        elif len(key) == 4:
+            return self._lsm[key[1:4]] > key[4]
+        else:
+            raise ValueError('Length of key has to be in (2, 3, 4), but key is {}.'.format(key))
 
 
 
@@ -175,7 +180,7 @@ class LandSeaMask():
 
     def points_near_water_mask(self, points, max_land_boxes=0):
         n = len(points)
-        results = np.ones(n, dtype=np.bool)
+        results = np.empty(n, dtype=np.bool)
         for i in range(n):
             results[i] = self.is_point_near_water(points[i], max_land_boxes=max_land_boxes)
         return results
@@ -184,7 +189,7 @@ class LandSeaMask():
 
     ## convert map indices and coordinates
 
-    def coordinate_to_map_index(self, t, x, y, z, discard_year=True):
+    def coordinate_to_map_index(self, t, x, y, z, discard_year=True, float_indices=True):
         ## t (center of the box, wrap around)
         try:
             t_dim = self.t_dim_with_value_check
@@ -201,7 +206,7 @@ class LandSeaMask():
         ## x (center of the box, wrap around)
         xi = (x % 360) / 360 * self.x_dim - 0.5
 
-        ## y (center of the box, no wrap around)#, consider lowmost and topmost box)
+        ## y (center of the box, no wrap around)
         yi = (y + 90) / 180 * self.y_dim  - 0.5
 
         ## z (center of the box, no wrap around)
@@ -220,29 +225,47 @@ class LandSeaMask():
             assert z >= c[zi] and z <= c[zi+1]
             zi += 1/2 * (min(z, r[zi]) - c[zi]) / (r[zi] - c[zi]) + 1/2 * (max(z, r[zi]) - r[zi]) / (c[zi+1] - r[zi])
 
-        ## return
+        ## concatenate (float) index
         if t_dim is not None:
-            return (ti, xi, yi, zi)
+            map_index = (ti, xi, yi, zi)
         else:
-            return (xi, yi, zi)
+            map_index = (xi, yi, zi)
+        
+        ## convert to int if needed
+        if not float_indices:
+            map_index = np.array(np.round(map_index), dtype=np.int32)
+            if map_index[-1] > self.z_dim:          # below z bottom
+                map_index[-1] = self.z_dim  
+            if map_index[-2] == self.y_dim:         # y = 90 degree
+                map_index[-2] = self.y_dim - 1
+            map_index = tuple(map_index)
+            assert len(map_index) == 3 or (not discard_year) or (map_index[0] >= 0 and map_index[0] < self.t_dim)
+            assert (map_index[-3] >= 0 and map_index[-3] < self.x_dim)
+            assert (map_index[-2] >= 0 and map_index[-2] < self.y_dim)
+            assert (map_index[-1] >= 0 and map_index[-1] <= self.z_dim)
+        
+        ## return
+        return map_index
 
 
-    def coordinates_to_map_indices(self, points, discard_year=True):
+
+    def coordinates_to_map_indices(self, points, discard_year=True, float_indices=True):
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
-        logger.debug('Transforming {} coordinates to map indices for {} with discard year {}.'.format(len(points), self, discard_year))
+        logger.debug('Transforming {} coordinates to map indices for {} with discard year {} and float_indices {}.'.format(len(points), self, discard_year, float_indices))
 
         n = len(points)
         new_points = np.empty((n, self.ndim))
         for i in range(n):
-            new_points[i] = self.coordinate_to_map_index(*points[i], discard_year=discard_year)
+            new_points[i] = self.coordinate_to_map_index(*points[i], discard_year=discard_year, float_indices=float_indices)
 
         if result_ndim == 1:
             new_points = new_points[0]
 
         logger.debug('Transforming from coordinates to map indices done.')
         return new_points
+
 
 
     def map_index_to_coordinate(self, ti, xi, yi, zi):
@@ -259,7 +282,7 @@ class LandSeaMask():
         ## x (center of the box, wrap around)
         x = ((xi + 0.5) % self.x_dim) / self.x_dim * 360
 
-        ## y (center of the box, no wrap around, consider lowmost and topmost box)
+        ## y (center of the box, no wrap around)
         y = (yi + 0.5) / self.y_dim * 180 - 90
 
         ## z (center of the box, no wrap around)
@@ -276,7 +299,7 @@ class LandSeaMask():
         else:
             zi_floor = int(np.floor(zi))
             zi_fraction = zi % 1
-            if zi_floor < 0.5:
+            if zi_fraction < 0.5:
                 z = 2 * zi_fraction * (r[zi_floor] - c[zi_floor]) + c[zi_floor]
             else:
                 zi_fraction -= 0.5
@@ -332,6 +355,10 @@ class LandSeaMask():
         return masked_map
 
 
+    def bool_mask(self):
+        return self.masked_map(dtype=np.bool, default_value=True, land_value=False)
+
+
     def insert_coordinate_values_in_map(self, values, no_data_value=0, apply_mask_last=True):
         values = np.copy(values)
         values[:,:-1] = self.coordinates_to_map_indices(values[:,:-1])
@@ -379,7 +406,7 @@ class LandSeaMask():
     def plot(self):
         import util.plot
         file = '/tmp/{}.png'.format(self)
-        util.plot.data(self.lsm, file, land_value=0, power_limits=(-10,10))
+        util.plot.data(self.lsm, file, land_value=0, power_limit=10)
 
 
 
