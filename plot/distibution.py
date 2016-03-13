@@ -25,7 +25,7 @@ if __name__ == "__main__":
         use_log_scale = False
     else:
         load_data = measurements.po4.wod.data.values.measurement_dict
-        data = 'po4_wod13'
+        data = 'po4_-_wod13'
         tick_power = 3
         use_log_scale = True
 
@@ -42,12 +42,12 @@ if __name__ == "__main__":
         for type in types:
 
             if type == 'time':
-                measurements.util.plot.distribution_time(load_data(), file='/tmp/{}_distribution_time.png'.format(data), t_min=t_min, t_max=t_max, tick_power=tick_power)
+                measurements.util.plot.distribution_time(load_data(), file='/tmp/{}_-_distribution_time_-.png'.format(data), t_min=t_min, t_max=t_max, tick_power=tick_power)
             if type == 'year':
                 for time_len in (365, 2880, 48):
-                    measurements.util.plot.distribution_year(load_data(), file='/tmp/{}_distribution_year_{}.png'.format(data, time_len), time_step=1./time_len, tick_power=tick_power)
+                    measurements.util.plot.distribution_year(load_data(), file='/tmp/{}_-_distribution_year_{}_-.png'.format(data, time_len), time_step=1./time_len, tick_power=tick_power)
             if type == 'depth':
-                measurements.util.plot.distribution_depth(load_data(), file='/tmp/{}_distribution_depth.png'.format(data), z_max=z_max, use_log_scale=use_log_scale)
+                measurements.util.plot.distribution_depth(load_data(), file='/tmp/{}_-_distribution_depth.png_-'.format(data), z_max=z_max, use_log_scale=use_log_scale)
             if type[:5] == 'space':
                 type = type[6:]
                 lsms = []
@@ -58,9 +58,8 @@ if __name__ == "__main__":
                 if type == 'woa13' or type == '':
                     lsms.append(measurements.land_sea_mask.data.LandSeaMaskWOA13())
 
-#                 lsms = (measurements.land_sea_mask.data.LandSeaMaskWOA13(), measurements.land_sea_mask.data.LandSeaMaskWOA13R(), )
                 for lsm in lsms:
                     for t_dim in (12, 4, 1):
                         lsm.t_dim = t_dim
-                        measurements.util.plot.distribution_space(load_data(), lsm=lsm, file='/tmp/{}_distribution_space.png'.format(data), use_log_scale=use_log_scale)
+                        measurements.util.plot.distribution_space(load_data(), lsm=lsm, file='/tmp/{}_-_distribution_space_-.png'.format(data), use_log_scale=use_log_scale)
 

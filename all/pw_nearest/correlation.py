@@ -35,6 +35,7 @@ class CorrelationMatrix(measurements.all.pw.correlation.CorrelationMatrix):
         mask = measurements.all.pw_nearest.data.points_near_water_mask_concatenated(lsm=self.lsm, max_land_boxes=self.max_land_boxes)
         n = len(mask)
         m = mask.sum()
+        assert n >= m
         near_water_matrix = scipy.sparse.dok_matrix((n, m), dtype=np.int16)
         
         j = 0
@@ -59,11 +60,13 @@ class CorrelationMatrix(measurements.all.pw.correlation.CorrelationMatrix):
 
     ## sample matrix
 
-    def sample_quantity_matrix_calculate(self, format='csc', dtype=np.float32):
-        return self.project_matrix(self.all_correlation_matix_object.sample_quantity_matrix(), format=format, dtype=dtype)
+    def different_boxes_quantity_lower_triangle_matrix(self, min_abs_correlation=0, format='lil'):
+        quantity_matrix = self.all_correlation_matix_object.different_boxes_quantity_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format=format)
+        return self.project_matrix(quantity_matrix)
 
     ## correlation matrix
 
-    def correlation_matrix_calculate(self, format='csc', dtype=np.float32):
-        return self.project_matrix(self.all_correlation_matix_object.correlation_matrix(), format=format, dtype=dtype)
+    def correlation_matrix_calculate(self, min_abs_correlation=None, max_abs_correlation=None, format='csc', dtype=np.float32):
+        correlation_matrix = self.all_correlation_matix_object.correlation_matrix(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation)
+        return self.project_matrix(correlation_matrix, format=format, dtype=dtype)
 

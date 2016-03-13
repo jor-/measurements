@@ -83,8 +83,6 @@ class Measurements(util.multi_dict.MultiDict):
 
 
     def categorize_indices(self, separation_values, discard_year=False):
-
-
         if discard_year:
             logger.debug('Indices categorized by separation values %s and discard year.' % str(separation_values))
         else:
@@ -95,6 +93,11 @@ class Measurements(util.multi_dict.MultiDict):
         self.transform_keys(transform_function)
 
 
+    @staticmethod
+    def categorize_index_to_lsm(index, lsm, discard_year=False):
+        return Measurements.categorize_index(index, (1/lsm.t_dim, 360/lsm.x_dim, 180/lsm.y_dim, lsm.z), discard_year=discard_year)
+        
+    
     def categorize_indices_to_lsm(self, lsm, discard_year=False):
         self.categorize_indices((1/lsm.t_dim, 360/lsm.x_dim, 180/lsm.y_dim, lsm.z), discard_year=discard_year)
 
@@ -139,8 +142,8 @@ class Measurements(util.multi_dict.MultiDict):
         self.transform_indices_to_boxes(lsm.x_dim, lsm.y_dim, lsm.z_left)
 
 
-    def coordinates_to_map_indices(self, lsm):
-        self.transform_keys(lambda point: lsm.coordinate_to_map_index(*point))
+    def coordinates_to_map_indices(self, lsm, float_indices=True):
+        self.transform_keys(lambda point: lsm.coordinate_to_map_index(*point, float_indices=float_indices))
 
     def map_indices_to_coordinates(self, lsm):
         self.transform_keys(lambda index: lsm.map_index_to_coordinate(*index))
@@ -1189,11 +1192,11 @@ class MeasurementsCovariance(util.multi_dict.MultiDictPermutablePointPairs):
 
     ## transform keys
 
-    def coordinates_to_map_indices(self, lsm):
+    def coordinates_to_map_indices(self, lsm, float_indices=True):
         logger.debug('Transforming in {} coordinates to map indices of {}'.format(self, lsm))
 
         self._year_len = lsm.t_dim
-        self.transform_keys(lambda keys: (lsm.coordinate_to_map_index(*keys[0], discard_year=False), lsm.coordinate_to_map_index(*keys[1], discard_year=False)))
+        self.transform_keys(lambda keys: (lsm.coordinate_to_map_index(*keys[0], discard_year=False, float_indices=float_indices), lsm.coordinate_to_map_index(*keys[1], discard_year=False, float_indices=float_indices)))
 
 
     def map_indices_to_coordinates(self, lsm):

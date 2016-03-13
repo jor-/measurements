@@ -4,8 +4,6 @@ import numpy as np
 import datetime
 import warnings
 
-import ndop.model.data
-
 import util.io.fs
 import util.io.object
 import util.datetime
@@ -13,15 +11,12 @@ import util.datetime
 import logging
 logger = logging.getLogger(__name__)
 
-# from ndop.model.constants import LSM
 
 
 class Cruise():
 
     def __init__(self, file):
         from . import constants
-
-#         logger.debug('Loading cruise from {}.'.format(file))
 
         ## open netcdf file
         f = scipy.io.netcdf.netcdf_file(file, 'r')
@@ -98,49 +93,6 @@ class Cruise():
     def number_of_measurements(self):
         return self.po4.size
 
-#     @property
-#     def land_sea_mask(self):
-#         try:
-#             return self.__land_sea_mask
-#         except AttributeError:
-#             raise Exception('Land sea mask is not set.')
-#
-#     @land_sea_mask.setter
-#     def land_sea_mask(self, land_sea_mask):
-#         self.__land_sea_mask = land_sea_mask
-#         self.__spatial_indices = None
-#
-#     @property
-#     def spatial_indices(self):
-#         try:
-#             indices = self.__spatial_indices
-#         except AttributeError:
-#             indices = None
-#
-#         if indices == None:
-#             logger.debug('Calculating spatial indices')
-#
-#             land_sea_mask = self.land_sea_mask
-#             x = self.x
-#             y = self.y
-#             z = self.z
-#
-#             m = z.size
-#
-#             indices = np.empty((m, 3), dtype=np.uint16)
-#
-#             for i in range(m):
-#                 indices[i] = ndop.model.data.get_spatial_index(x, y, z[i], land_sea_mask)
-#
-#             self.__spatial_indices = indices
-#
-#         return indices
-#
-#     @spatial_indices.setter
-#     def spatial_indices(self, spatial_indices):
-#         self.__spatial_indices = spatial_indices
-
-
     @property
     def year(self):
         year = int(self.dt_float)
@@ -171,35 +123,12 @@ class CruiseCollection():
             cruises = self.__cruises
         except AttributeError:
             cruises = None
-
-#         if cruises == None:
-#             try:
-#                 self.load_cruises_from_pickle_file()
-#             except (OSError, IOError):
-#                 self.load_cruises_from_netcdf()
-#                 self.save_cruises_to_pickle_file()
-#
-#             cruises = self.cruises
-
+        
         return cruises
 
     @cruises.setter
     def cruises(self, cruises):
         self.__cruises = cruises
-
-
-#     def calculate_spatial_indices(self):
-#         cruises = self.cruises
-#
-#         logger.debug('Calculating spatial indices for %d cruises.' % len(cruises))
-#
-#         land_sea_mask = ndop.model.data.load_land_sea_mask()
-#
-#         for cruise in cruises:
-#             cruise.land_sea_mask = land_sea_mask
-#             cruise.spatial_indices
-#
-#         logger.debug('For %d cruises spatial indices calculted.' % len(cruises))
 
 
     def load_cruises_from_netcdf(self, data_dir):

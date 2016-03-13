@@ -10,9 +10,7 @@ logger = util.logging.logger
 
 
 
-
 class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolator):
-
 
     def __init__(self, data_points, data_values, t_len, wrap_around_amount=0, number_of_linear_interpolators=1, total_overlapping_linear_interpolators=0, parallel=False):
         from measurements.constants import EARTH_RADIUS
@@ -24,15 +22,9 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
 
         t_scaling = 2 * EARTH_RADIUS / t_len
 
-#         super().__init__(data_points, data_values, t_len, wrap_around_amount=wrap_around_amount, number_of_linear_interpolators=number_of_linear_interpolators, total_overlapping_linear_interpolators=total_overlapping_linear_interpolators, t_scaling=t_scaling, parallel=parallel)
-
         super().__init__(data_points, data_values, point_range_size=(t_len, None, None, None), wrap_around_amount=(wrap_around_amount, 0, 0, 0),  scaling_values=(t_scaling, None, None, None), number_of_linear_interpolators=number_of_linear_interpolators, total_overlapping_linear_interpolators=total_overlapping_linear_interpolators, parallel=parallel)
 
-#         ## set indices with depth shift
-#         self._data_indices = data_indices[self._data_indices]
-
         assert len(self._data_points) == len(self._data_values) == len(self._data_indices)
-
 
 
     def _modify_points(self, points, is_data_points):
@@ -52,7 +44,6 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
             assert lower_depth_bound >= lower_depth and upper_depth_bound <= upper_depth
 
             if lower_depth_bound > lower_depth:
-                # lower_depth_bound_indices = np.where(points[:,3] == lower_depth_bound)[0]
                 lower_depth_bound_indices = np.where(np.isclose(points[:,3], lower_depth_bound))[0]
                 lower_depth_bound_points = points[lower_depth_bound_indices]
                 lower_depth_bound_points[:,3] = lower_depth
@@ -62,7 +53,6 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
                 lower_depth_bound_points = np.array([])
                 logger.debug('No values appended for lower bound {}.'.format(lower_depth))
             if upper_depth_bound < upper_depth:
-                # upper_depth_bound_indices = np.where(points[:,3] == lower_depth_bound)[0]
                 upper_depth_bound_indices = np.where(np.isclose(points[:,3], lower_depth_bound))[0]
                 upper_depth_bound_points = points[upper_depth_bound_indices]
                 upper_depth_bound_points[:,3] = upper_depth
@@ -83,29 +73,25 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
 
 
 
-
 ## interpolate
 
-def periodic_with_coordinates(data, interpolation_points, lsm_base, interpolator_setup=(0.1, 1, 0.0, 0)):
+def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_values=None, interpolator_setup=(0.1,1,0,0)):
+    assert data.ndim == 2
     assert data.shape[1] == 5
+    assert interpolation_points.ndim == 2
+    assert interpolation_points.shape[1] == 4
 
     ## split in points and values
     data_points = data[:, :-1]
     data_values = data[:, -1]
 
     ## convert point to box indices
-    data_points = lsm_base.coordinates_to_map_indices(data_points)
-    interpolation_points = lsm_base.coordinates_to_map_indices(interpolation_points)
+    data_points = lsm_base.coordinates_to_map_indices(data_points, discard_year=True)
+    interpolation_points = lsm_base.coordinates_to_map_indices(interpolation_points, discard_year=True)
 
-    ## for y and z set interpolations points to min and max of data
-    for k in (2, 3):
-        data_points_min = data_points[:, k].min()
-        data_points_max = data_points[:, k].max()
-        for i in range(len(interpolation_points)):
-            if interpolation_points[i, k] < data_points_min:
-                interpolation_points[i, k] = data_points_min
-            if interpolation_points[i, k] > data_points_max:
-                interpolation_points[i, k] = data_points_max
+    ## scaling values
+    if scaling_values is None:
+        scaling_values=(lsm_base.x_dim/lsm_base.t_dim, None, None, None)
 
     ## prepare wrap_around_amount
     wrap_around_amount=interpolator_setup[0]
@@ -121,7 +107,7 @@ def periodic_with_coordinates(data, interpolation_points, lsm_base, interpolator
         wrap_around_amount = wrap_around_amount + (0,0)
 
     ## create interpolator
-    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=(lsm_base.t_dim, lsm_base.x_dim, lsm_base.y_dim, lsm_base.z_dim), scaling_values=(lsm_base.x_dim/lsm_base.t_dim, None, None, None), wrap_around_amount=wrap_around_amount, number_of_linear_interpolators=interpolator_setup[1], total_overlapping_linear_interpolators=interpolator_setup[2], parallel=bool(interpolator_setup[3]))
+    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=(lsm_base.t_dim, lsm_base.x_dim, lsm_base.y_dim, lsm_base.z_dim), scaling_values=scaling_values, wrap_around_amount=wrap_around_amount, number_of_linear_interpolators=interpolator_setup[1], total_overlapping_linear_interpolators=interpolator_setup[2], parallel=bool(interpolator_setup[3]))
 
     ## interpolating
     interpolation_data = interpolator.interpolate(interpolation_points)

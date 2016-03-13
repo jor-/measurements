@@ -1,37 +1,51 @@
 import measurements.po4.wod.data.interpolate
 
-import measurements.po4.constants as PO4_CONSTANTS
 import measurements.po4.wod.mean.constants as CONSTANTS
 
 
-class Interpolator(measurements.po4.wod.data.interpolate.Interpolator):
-    def __init__(self):
-        data_function = lambda m: m.means(minimum_measurements=PO4_CONSTANTS.MEAN_MIN_MEASUREMENTS)
-        super().__init__(data_function, CONSTANTS.MEAN_DIR, CONSTANTS.INTERPOLATED_MEAN_FILENAME)
+DEFAULT_INTERPOLATOR_SETUPS = {
+'concentration': {2: {'lsm_12_woa13r':(0.1,6,0.6,1)}, 3: {'lsm_12_woa13r':(0.2,3,0.6,1)}},
+}
 
 
-    def data_for_points(self):
-        return super().data_for_points(interpolator_setup=(0.1, 8, 0.4, 1))
+class InterpolatorDirect(measurements.po4.wod.data.interpolate.Interpolator):
 
-    def data_for_TMM(self, t_dim):
-        return super().data_for_TMM(t_dim=t_dim, interpolator_setup=(0.1, 8, 0.4, 0))
+    def __init__(self, min_values=CONSTANTS.MIN_MEASUREMENTS, sample_lsm=CONSTANTS.SAMPLE_LSM, scaling_values=None):
+        self.min_values = min_values
+        filename = CONSTANTS.INTERPOLATED_MEAN_DIRECT_FILENAME.format(min_values=min_values, sample_lsm=sample_lsm, scaling_values='{scaling_values}', points='{points}', interpolator_setup='{interpolator_setup}')
+        super().__init__(CONSTANTS.MEAN_DIR, filename, sample_lsm=sample_lsm, scaling_values=scaling_values)
+    
 
-    def data_for_WOA13(self, t_dim):
-        return super().data_for_WOA13(t_dim=t_dim, interpolator_setup=(0.1, 8, 0.4, 0))
+    @property
+    def data(self):
+        m = measurements.po4.wod.data.values.measurement_dict()
+        m.categorize_indices_to_lsm(self.sample_lsm, discard_year=False)
+        m.discard_year()
+        m.means(min_values=self.min_values, return_type='self')
+        return m.items()
 
-    def data_for_WOA13R(self, t_dim):
-        return super().data_for_WOA13R(t_dim=t_dim, interpolator_setup=(0.1, 8, 0.4, 0))
 
 
 
-def for_points():
-    return Interpolator().data_for_points()
+class InterpolatorConcentration(measurements.po4.wod.data.interpolate.Interpolator):
 
-def for_TMM(t_dim=48):
-    return Interpolator().data_for_TMM(t_dim=t_dim)
+    def __init__(self, min_values=CONSTANTS.MIN_MEASUREMENTS, sample_lsm=CONSTANTS.SAMPLE_LSM, scaling_values=None):
+        self.min_values = min_values
+        filename = CONSTANTS.INTERPOLATED_MEAN_CONCENTRATION_FILENAME.format(min_values=min_values, sample_lsm=sample_lsm, scaling_values='{scaling_values}', points='{points}', interpolator_setup='{interpolator_setup}')
+        try:
+            default_interpolator_setups = DEFAULT_INTERPOLATOR_SETUPS['concentration'][min_values]
+        except KeyError:
+            default_interpolator_setups = None
+        super().__init__(CONSTANTS.MEAN_DIR, filename, sample_lsm=sample_lsm, scaling_values=scaling_values, default_interpolator_setups=default_interpolator_setups)
+    
 
-def for_WOA13(t_dim=48):
-    return Interpolator().data_for_WOA13(t_dim=t_dim)
+    @property
+    def data(self):
+        m = measurements.po4.wod.data.values.measurement_dict()
+        m.categorize_indices_to_lsm(self.sample_lsm, discard_year=False)
+        m.means(min_values=1, return_type='self')
+        m.discard_year()
+        m.means(min_values=self.min_values, return_type='self')
+        return m.items()
 
-def for_WOA13R(t_dim=48):
-    return Interpolator().data_for_WOA13R(t_dim=t_dim)
+

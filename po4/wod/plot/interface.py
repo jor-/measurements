@@ -1,6 +1,8 @@
 import numpy as np
 import os.path
 
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d     # for projection='3d'
 
@@ -8,66 +10,91 @@ from measurements.po4.wod.correlogram import estimation, model
 
 import measurements.land_sea_mask.data
 import measurements.po4.wod.mean.values
+import measurements.po4.wod.mean.constants
 import measurements.po4.wod.deviation.values
+import measurements.po4.wod.deviation.constants
 
 import util.plot
 
 
 
-def data(calculation_kind, data_kind, lsm_kind, t_dim):
+def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
     assert calculation_kind in ('sample', 'interpolated')
-    assert data_kind in ('mean', 'deviation')
+    assert data_kind in ('mean', 'deviation', 'total_deviation', 'average_noise_deviation', 'concentration_deviation')
     assert lsm_kind in ('TMM', 'WOA13', 'WOA13R')
+    default_t_dim = 12
+    assert t_dim in (1, default_t_dim)
 
-    if data_kind == 'mean':
+
+    ## chose lsm
+    if lsm_kind == 'TMM':
+        sample_lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=default_t_dim)
+    elif lsm_kind == 'WOA13':
+        sample_lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13(t_dim=default_t_dim)
+    elif lsm_kind == 'WOA13R':
+        sample_lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=default_t_dim)
+
+    ## chose interpolator and min and max values
+    if 'mean' in data_kind:
         values = measurements.po4.wod.mean.values
+        constants = measurements.po4.wod.mean.constants
+        min_values = constants.MIN_MEASUREMENTS
 
         v_min = 0
         v_max = 2.5
 
         histogram_step_size = 0.1
         histogram_v_max = 10
+        depth_v_max = 2.5
+        
+        interpolator = values.InterpolatorConcentration(sample_lsm=sample_lsm, min_values=min_values)
 
-    elif data_kind == 'deviation':
+    elif 'deviation' in data_kind:
         values = measurements.po4.wod.deviation.values
+        constants = measurements.po4.wod.deviation.constants
+        min_values = constants.MIN_MEASUREMENTS
 
-        v_min = 0.05
-        if t_dim == 1:
-            v_max = 0.3
-        elif t_dim == 4:
-            v_max = 0.35
-        elif t_dim == 12:
-            v_max = 0.4
-        elif t_dim == 48:
-            v_max = 0.5
+        v_min = 0
+        # if t_dim == 1:
+        #     v_max = 0.3
+        # elif t_dim == 4:
+        #     v_max = 0.35
+        # elif t_dim == 12:
+        #     v_max = 0.4
+        # elif t_dim == 48:
+        #     v_max = 0.5
+        v_max = 0.5
 
         histogram_step_size = 0.05
         histogram_v_max = 3.5
+        depth_v_max = 0.3
+        
+        if data_kind == 'average_noise_deviation':
+            interpolator = values.InterpolatorAverageNoise(sample_lsm=sample_lsm, min_values=min_values)
+        elif data_kind == 'concentration_deviation':
+            interpolator = values.InterpolatorConcentration(sample_lsm=sample_lsm, min_values=min_values)
+        else:
+            interpolator = values.InterpolatorTotal(sample_lsm=sample_lsm, min_values=min_values)
 
+    ## chose date
     if calculation_kind == 'sample':
-        values = values.Interpolator()
-        if lsm_kind == 'TMM':
-            lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=t_dim)
-        elif lsm_kind == 'WOA13':
-            lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13(t_dim=t_dim)
-        elif lsm_kind == 'WOA13R':
-            lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=t_dim)
-        data = values.sample_data_for_lsm(lsm)
-
+        data = interpolator.sample_data_for_lsm(sample_lsm)
     elif calculation_kind == 'interpolated':
-        if lsm_kind == 'TMM':
-            data = values.for_TMM(t_dim=t_dim)
-        elif lsm_kind == 'WOA13':
-            data = values.for_WOA13(t_dim=t_dim)
-        elif lsm_kind == 'WOA13R':
-            data = values.for_WOA13R(t_dim=t_dim)
+        data = interpolator.interpolated_data_for_lsm(sample_lsm)
+    
+    data_depth_mean = np.nanmean(data, axis=(0,1,2))
+    
+    if t_dim == 1:
+        data = data.mean(axis=0)
 
-    file_prefix = '/tmp/po4_wod13_{}_{}_lsm_{}'.format(calculation_kind, data_kind, lsm_kind.lower())
+    ## prepare file names
+    file_prefix = os.path.join(dir, 'po4_-_wod13_-_{data_kind}_-_{calculation_kind}_-_{sample_lsm}_-_min_values_{min_values}_-'.format(data_kind=data_kind, calculation_kind=calculation_kind, sample_lsm=sample_lsm, min_values=min_values))
     file_data = file_prefix + '.png'
     file_histogram = file_prefix + '_{}_histogram.png'.format(t_dim)
+    file_depth_mean = file_prefix + '_depth_mean.png'.format()
 
-    util.plot.data(data, file_data, no_data_value=np.inf, v_min=v_min, v_max=v_max)
-    util.plot.histogram(data[~np.isnan(data)], file_histogram, step_size=histogram_step_size, x_min=v_min, x_max=histogram_v_max, use_log_scale=True)
+    ## plot
+    util.plot.line(sample_lsm.z_center, data_depth_mean, file_depth_mean, y_min=v_min, y_max=depth_v_max, line_color='b', line_width=3, xticks=np.arange(5)*2000)
 
 
 
@@ -91,33 +118,6 @@ def stationary_correlation(path='/tmp'):
             ## scatter plot
             file = os.path.join(path, 'correlation_for_index_{}.png'.format(i))
             util.plot.scatter(c[mask][:,i], c[mask][:,-1], file, point_size=c[mask][:,-2])
-
-
-    # ## plot correlation for changes in one dim
-    # for i in range(dims):
-    #     ## calculate mask where only index i is not zero
-    #     mask = base_mask.copy()
-    #     for j in range(dims):
-    #         if j != i:
-    #             mask = np.logical_and(mask, c[:,j] == 0)
-    #
-    #     ## scatter plot
-    #     file = os.path.join(path, 'correlation_for_index_{}.png'.format(i))
-    #     util.plot.scatter(c[mask][:,i], c[mask][:,-1], file, point_size=c[mask][:,-2])
-    #
-    #
-    # ## plot correlation for changes in two dim
-    # for i in range(dims):
-    #     for j in range(dims):
-    #         mask = base_mask.copy()
-    #         for k in range(dims):
-    #             if k != i and k != j:
-    #                 mask = np.logical_and(mask, c[:,k] == 0)
-    #
-    #             ## scatter plot
-    #             file = os.path.join(path, 'correlation_for_indices_{}.png'.format((i, j)))
-    #             util.plot.scatter(c[mask][:,(i,j)], c[mask][:,-1], file, point_size=c[mask][:,-2])
-    #
 
 
 
@@ -196,10 +196,3 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
         util.plot.trim(file)
 
 
-
-
-# def plot_interpolated_deviation_histogram(file='/tmp/po4_wod13_interpolated_deviation_histogram.png', step_size=0.01, x_min=None, x_max=None, use_log_scale=False):
-#     deviation = measurements.po4.wod.deviation.values.for_points()
-#     deviation[deviation < 0.05] = 0.051     # for rounding errors
-#
-#     plot_histogram(deviation, file, step_size=step_size, x_min=x_min, x_max=x_max, use_log_scale=use_log_scale)

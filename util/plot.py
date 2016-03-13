@@ -1,7 +1,6 @@
 import os.path
 
 import numpy as np
-import matplotlib.pyplot as plt
 
 import util.plot
 
@@ -56,21 +55,21 @@ def value_histograms(measurement_dict, lsm, file='/tmp/value_histogram_{}.png', 
 
 def _prepare_filename(file, lsm=None, insertion=None):
     file_prefix, file_ext  = os.path.splitext(file)
-    if insertion is not None:
-        file_prefix = file_prefix + '_' + insertion
     if lsm is not None:
         file_prefix = file_prefix + '_' + str(lsm)
+    if insertion is not None:
+        file_prefix = file_prefix + '_' + insertion
 
     return file_prefix + file_ext
 
 
-def _plot_map(data, lsm, file, layer=None, v_min=None, v_max=None, use_log_scale=False):
+def _plot_map(data, lsm, file, layer=None, v_min=None, v_max=None, use_log_scale=False, colorbar_kwargs={'fraction':0.021, 'pad':0.05, 'aspect':20, 'orientation':'vertical'}):
     data = lsm.insert_index_values_in_map(data, no_data_value=np.inf)
     if layer is not None:
         data = data[:, :, :, layer]
         data = data.reshape(data.shape + (1,))
     file = _prepare_filename(file, lsm)
-    util.plot.data(data, file, no_data_value=np.inf, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale)
+    util.plot.data(data, file, no_data_value=np.inf, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale, contours=False, colorbar=True, power_limit=0, colorbar_kwargs=colorbar_kwargs)
 
 def _plot_histogram(data, lsm, file, bins=None, step_size=None, v_min=None, v_max=None, use_log_scale=False, tick_power=None):
     file = _prepare_filename(file, lsm, 'histogram')
@@ -84,9 +83,23 @@ def _plot(data, lsm, file, bins=None, step_size=None, layer=None, v_min=None, v_
 
 
 def distribution_space(measurement_dict, lsm, file='/tmp/distribution_space.png', layer=None, use_log_scale=True, type='both'):
+    ## prepare data
     measurement_dict.transform_indices_to_lsm(lsm)
     data = measurement_dict.numbers()
-    _plot_map(data, lsm, file, layer=layer, v_min=0, use_log_scale=use_log_scale)
+    ## set v_min and v_max
+    if use_log_scale:
+        v_min = 1
+        v_max = 10**np.min([np.floor(np.log(np.nanmax(data))), 3])
+    else:
+        v_min = 1
+        v_max = None
+    ## colorbar ticks
+    colorbar_kwargs = {'fraction':0.021, 'pad':0.05, 'aspect':20, 'orientation':'vertical'}
+    data_max = data[:,-1].max()
+    if data_max < 10:
+        colorbar_kwargs['ticks'] = np.arange(1, data_max+1)
+    ## plot
+    _plot_map(data, lsm, file, layer=layer, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale, colorbar_kwargs=colorbar_kwargs)
     _plot_histogram(data[:,-1], lsm, file, step_size=1, v_min=1, v_max=200, use_log_scale=use_log_scale)
 
 def sample_mean(measurement_dict, lsm, file='/tmp/sample_mean.png', v_max=None, layer=None, type='both'):
