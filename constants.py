@@ -1,7 +1,7 @@
 import os.path
 
-import ndop.constants
-BASE_DIR = os.path.join(ndop.constants.BASE_DIR, 'measurements')
+BASE_DIR_ENV_NAME = 'MEASUREMENTS_DIR'
+BASE_DIR = util.io.env.load(BASE_DIR_ENV_NAME)
 
 ## earth
 EARTH_RADIUS = 6371 * 10**3

@@ -2,10 +2,11 @@ import numpy as np
 import bisect
 import logging
 
+import measurements.land_sea_mask.data
+
 import util.io.np
 import util.io.netcdf
 import util.io.fs
-# import measurements.util.interpolate
 import util.math.interpolate
 
 
@@ -23,11 +24,12 @@ def save():
     from .constants import VARIS_NETCDF_ANNUAL_FILE, VARIS_NETCDF_MONTHLY_FILE, VARIS_NETCDF_DATANAME, VARIS_FILE
     from .constants import MEANS_NETCDF_ANNUAL_FILE, MEANS_NETCDF_MONTHLY_FILE, MEANS_NETCDF_DATANAME, MEANS_FILE
     from .constants import ANNUAL_THRESHOLD, VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR, VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND
-    from ndop.model.constants import METOS_Z_LEFT
     from measurements.po4.constants import DEVIATION_MIN_MEASUREMENTS, DEVIATION_MIN_VALUE
 
 
     ## concatenate annual and montly WOA data
+    METOS_Z_LEFT = measurements.land_sea_mask.data.LandSeaMaskTMM().z_left
+    
     z_index_annual_threshold = bisect.bisect_right(METOS_Z_LEFT, ANNUAL_THRESHOLD)
     logging.debug('Taking annual data from z index {}.'.format(z_index_annual_threshold))
 

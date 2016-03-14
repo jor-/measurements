@@ -2,7 +2,6 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-import ndop.model.data
 import measurements.dop.pw.data
 import measurements.util.regrid
 import util.io.np

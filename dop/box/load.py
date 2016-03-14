@@ -3,7 +3,6 @@ import numpy as np
 import logging
 logger = logging.getLogger(__name__)
 
-# import ndop.model.data
 import measurements.land_sea_mask.data
 import measurements.dop.box.regrid
 
@@ -14,7 +13,6 @@ def npy_or_save(npy_file):
         data = np.load(npy_file)
     except (OSError, IOError):
         logger.debug('File {} does not exists. Calculating DOP data.'.format(npy_file))
-#         land_sea_mask = ndop.model.data.load_land_sea_mask()
         land_sea_mask = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=12)
         measurements.dop.box.regrid.save(land_sea_mask)
         data = np.load(npy_file)

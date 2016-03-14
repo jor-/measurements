@@ -5,7 +5,6 @@ logger = logging.getLogger(__name__)
 
 import measurements.dop.box.load
 import measurements.po4.woa.data13.load
-import ndop.model.data
 import util.io.np
 
 
