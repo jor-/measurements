@@ -1,4 +1,4 @@
-import os.path
+import util.io.env
 
 BASE_DIR_ENV_NAME = 'MEASUREMENTS_DIR'
 BASE_DIR = util.io.env.load(BASE_DIR_ENV_NAME)
