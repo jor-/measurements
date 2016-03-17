@@ -331,7 +331,7 @@ class CorrelationMatrix:
 
         logger.debug('Calculated differend boxes correlation lower triangle matrices with {} entries for minimal absolute correlation {} in format {}.'.format(correlation_matrix.nnz, min_abs_correlation, format))
 
-        assert np.all(np.abs(correlation_matrix.data) >= min_abs_correlation)
+        # assert format not in ('csr', 'csc', 'coo') or np.all(np.abs(correlation_matrix.data) >= min_abs_correlation)
         return correlation_matrix
 
 
