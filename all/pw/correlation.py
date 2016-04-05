@@ -18,7 +18,7 @@ logger = util.logging.logger
 
 class CorrelationMatrix:
     
-    def __init__(self, min_measurements, max_year_diff=float('inf'), cholesky_ordering_method='default', positive_definite_approximation_reorder_after_each_step=True, positive_definite_approximation_min_diag_value=CONSTANTS.CORRELATION_MIN_DIAG_VALUE_POSITIVE_DEFINITE_APPROXIMATION, sample_lsm=CONSTANTS.SAMPLE_LSM):
+    def __init__(self, min_measurements, max_year_diff=float('inf'), cholesky_ordering_method='default', positive_definite_approximation_reorder_after_each_step=True, positive_definite_approximation_min_diag_value=CONSTANTS.CORRELATION_MIN_DIAG_VALUE_POSITIVE_DEFINITE_APPROXIMATION, sample_lsm=CONSTANTS.SAMPLE_LSM, dtype=np.float32):
         
         assert positive_definite_approximation_min_diag_value > 0
 
@@ -43,6 +43,7 @@ class CorrelationMatrix:
         self.npy_cache = util.cache.HDD_NPY_Cache(CORRELATION_DIR, use_memory_cache=True)
         
         self.sample_lsm = sample_lsm
+        self.dtype = dtype
 
 
     ## cache
@@ -74,10 +75,6 @@ class CorrelationMatrix:
     @property
     def index_offsets(self):
         return self.memory_cache[('index_offsets', lambda : (0,) + tuple(map(len, self.points))[:-1])]
-
-    @property
-    def dtype(self):
-        return np.float32
 
     @property
     def format(self):
@@ -157,7 +154,7 @@ class CorrelationMatrix:
     ## same box correlation
     
     def same_box_correlation_matrix_lower_triangle_calculate(self, min_abs_correlation=0, format='csc', dtype=np.float32):
-        logger.debug('Calculating same box correlation matrix lower triangle with minimal absolute correlation {}.'.format(min_abs_correlation))
+        logger.debug('Calculating same box correlation matrix lower triangle with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(min_abs_correlation, format, dtype))
         
         ## calculate
         same_box_correlation_matrix_lower_triangle = self.same_box_sample_covariance_matrix_lower_triangle
@@ -175,9 +172,11 @@ class CorrelationMatrix:
     def same_box_correlation_matrix_lower_triangle(self, min_abs_correlation=None):
         if min_abs_correlation == None:
             min_abs_correlation = self.min_abs_correlation
-        filename = CONSTANTS.SAME_BOX_CORRELATION_LOWER_TRIANGLE_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, sample_lsm=self.sample_lsm, type=self.format)
-        lower_triangle =  self.object_cache[(filename, lambda: self.same_box_correlation_matrix_lower_triangle_calculate(min_abs_correlation=min_abs_correlation, format=self.format, dtype=self.dtype))]
-        logger.debug('Got same box correlation matrix lower triangle with {} entries for minimal absolute correlation {}.'.format(lower_triangle.nnz, min_abs_correlation))
+        format = self.format
+        dtype = self.dtype
+        filename = CONSTANTS.SAME_BOX_CORRELATION_LOWER_TRIANGLE_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, sample_lsm=self.sample_lsm, matrix_type=format, dtype=dtype)
+        lower_triangle = self.object_cache[(filename, lambda: self.same_box_correlation_matrix_lower_triangle_calculate(min_abs_correlation=min_abs_correlation, format=format, dtype=dtype))]
+        logger.debug('Got same box correlation matrix lower triangle with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(lower_triangle.nnz, min_abs_correlation, format, dtype))
         assert np.all(np.abs(lower_triangle.data) >= min_abs_correlation)
         return lower_triangle
 
@@ -185,28 +184,28 @@ class CorrelationMatrix:
 
     ## different boxes correlation and quantity matrix
 
-
     def different_boxes_quantity_lower_triangle_matrix_calculate(self, min_abs_correlation=0, format='csc'):
-        logger.debug('Calculating different boxes quantity lower triangle matrix with minimal absolute correlation {} and format {}.'.format(min_abs_correlation, format))
+        logger.debug('Calculating different boxes quantity lower triangle matrix with minimal absolute correlation {} in matrix format {}.'.format(min_abs_correlation, format))
+
+        ## get max quantity
+        max_quantity = 0
+        for k in range(self.m):
+            sample_covariance_dict = self.different_boxes_sample_covariance_dicts[k]
+            for key, value_list in sample_covariance_dict.iterator_keys_and_value_lists():
+                assert len(key) == 2
+                assert len(value_list) == 1
+                values = value_list[0]
+                assert len(values) == 2
+                quantity, covariance = values
+                if quantity > max_quantity:
+                    max_quantity = quantity
         
+        ## get matrix dtype
+        dtype = util.math.util.min_int_dtype(max_quantity, unsigned=True)
         
         if format == 'lil':
-            ## get max quantity
-            max_quantity = 0
-            for k in range(self.m):
-                sample_covariance_dict = self.different_boxes_sample_covariance_dicts[k]
-                for key, value_list in sample_covariance_dict.iterator_keys_and_value_lists():
-                    assert len(key) == 2
-                    assert len(value_list) == 1
-                    values = value_list[0]
-                    assert len(values) == 2
-                    quantity, covariance = values
-                    if quantity > max_quantity:
-                        max_quantity = quantity
-            
             ## create matrix
-            quantity_matrix_dtype = util.math.util.min_int_dtype(max_quantity, unsigned=True)
-            quantity_matrix = scipy.sparse.lil_matrix(self.shape, dtype=quantity_matrix_dtype)
+            quantity_matrix = scipy.sparse.lil_matrix(self.shape, dtype=dtype)
             
             ## get deviation
             deviations = self.sample_deviations
@@ -252,7 +251,7 @@ class CorrelationMatrix:
             quantity_matrix = self.different_boxes_quantity_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format='lil')
             logger.debug('Converting matrix to format {} and dtype {}.'.format(format, dtype))
             if format == 'csc':
-                quantity_matrix = quantity_matrix.tocsr()
+                quantity_matrix = self.different_boxes_quantity_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format='csr')
             quantity_matrix = quantity_matrix.asformat(format).astype(dtype)
 
         logger.debug('Calculated differend boxes quantity lower triangle matrices with each {} entries for minimal absolute correlation {}.'.format(correlation_matrix.nnz, min_abs_correlation))
@@ -265,18 +264,19 @@ class CorrelationMatrix:
             min_abs_correlation = self.min_abs_correlation
         
         ## prepare file names
-        filename = CONSTANTS.DIFFERENT_BOXES_QUANTITY_LOWER_TRIANGLE_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, type=format)
+        filename = CONSTANTS.DIFFERENT_BOXES_QUANTITY_LOWER_TRIANGLE_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, matrix_type=format)
         
         ## get value
         quantity_matrix = self.object_cache.get_value(filename, lambda: self.different_boxes_quantity_lower_triangle_matrix_calculate(min_abs_correlation=min_abs_correlation, format=format))
         
         ## return
-        logger.debug('Got differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {} with format {}.'.format(quantity_matrix.nnz, min_abs_correlation, format))
+        logger.debug('Got differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {}.'.format(quantity_matrix.nnz, min_abs_correlation, format))
         return quantity_matrix
     
     
+    
     def different_boxes_correlation_lower_triangle_matrix_calculate(self, min_abs_correlation=0, format='csc', dtype=np.float32):
-        logger.debug('Calculating different boxes correlation lower triangle matrix with minimal absolute correlation {} in format {}.'.format(min_abs_correlation, format))
+        logger.debug('Calculating different boxes correlation lower triangle matrix with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(min_abs_correlation, format, dtype))
         
         if format == 'lil':
             ## create matrix
@@ -323,32 +323,34 @@ class CorrelationMatrix:
                                 correlation_matrix[point_index_max, point_index_min] = correlation
 
         else:
-            correlation_matrix = self.different_boxes_correlation_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format='lil')
+            correlation_matrix = self.different_boxes_correlation_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format='lil', dtype=dtype)
             logger.debug('Converting matrix to format {} and dtype {}.'.format(format, dtype))
             if format == 'csc':
-                correlation_matrix = correlation_matrix.tocsr()
+                correlation_matrix = self.different_boxes_correlation_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format='csr', dtype=dtype)
             correlation_matrix = correlation_matrix.asformat(format).astype(dtype)
 
-        logger.debug('Calculated differend boxes correlation lower triangle matrices with {} entries for minimal absolute correlation {} in format {}.'.format(correlation_matrix.nnz, min_abs_correlation, format))
-
+        logger.debug('Calculated differend boxes correlation lower triangle matrices with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, min_abs_correlation, format, dtype))
         # assert format not in ('csr', 'csc', 'coo') or np.all(np.abs(correlation_matrix.data) >= min_abs_correlation)
         return correlation_matrix
 
 
-    def different_boxes_correlation_lower_triangle_matrix(self, min_abs_correlation=None, format=None):
-        if min_abs_correlation == None:
+    def different_boxes_correlation_lower_triangle_matrix(self, min_abs_correlation=None, format=None, dtype=None):
+        ## if no value passed, use default value
+        if min_abs_correlation is None:
             min_abs_correlation = self.min_abs_correlation
         if format is None:
             format = self.format
+        if dtype is None:
+            dtype = self.dtype
         
         ## prepare file names
-        filename = CONSTANTS.DIFFERENT_BOXES_CORRELATION_LOWER_TRIANGLE_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, type=format)
+        filename = CONSTANTS.DIFFERENT_BOXES_CORRELATION_LOWER_TRIANGLE_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, matrix_type=format, dtype=dtype)
         
         ## get value
-        correlation_matrix = self.object_cache.get_value(filename, lambda: self.different_boxes_correlation_lower_triangle_matrix_calculate(min_abs_correlation=min_abs_correlation, format=format, dtype=self.dtype))
+        correlation_matrix = self.object_cache.get_value(filename, lambda: self.different_boxes_correlation_lower_triangle_matrix_calculate(min_abs_correlation=min_abs_correlation, format=format, dtype=dtype))
         
         ## return
-        logger.debug('Got differend boxes correlation lower triangle matrix with {} entries for minimal absolute correlation {} in format {}.'.format(correlation_matrix.nnz, min_abs_correlation, format))
+        logger.debug('Got differend boxes correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, min_abs_correlation, format, dtype))
         return correlation_matrix
 
 
@@ -356,7 +358,7 @@ class CorrelationMatrix:
     ## correlation matrix
 
     def correlation_matrix_calculate(self, min_abs_correlation=0, max_abs_correlation=1, format='csc', dtype=np.float32):
-        logger.debug('Calculating correlation matrix for minimal absolute correlation {} and maximal absolute correlation {} in format {}.'.format(min_abs_correlation, max_abs_correlation, format))
+        logger.debug('Calculating correlation matrix for minimal absolute correlation {} and maximal absolute correlation {} in matrix format {} with dtype {}.'.format(min_abs_correlation, max_abs_correlation, format, dtype))
         
         ## add same box and different boxes correlations lower triangle
         same_box_correlation_matrix_lower_triangle = self.same_box_correlation_matrix_lower_triangle(min_abs_correlation=min_abs_correlation)
@@ -383,14 +385,21 @@ class CorrelationMatrix:
 
 
     def correlation_matrix(self, min_abs_correlation=None, max_abs_correlation=None, use_memory_cache=True, format=None):
-        if min_abs_correlation == None:
+        ## if no value passed, use default value
+        if min_abs_correlation is None:
             min_abs_correlation = self.min_abs_correlation
-        if max_abs_correlation == None:
+        if max_abs_correlation is None:
             max_abs_correlation = self.max_abs_correlation
         if format is None:
             format = self.format
-        filename = CONSTANTS.CORRELATION_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, type=format)
-        correlation_matrix = self.object_cache.get_value(filename, lambda: self.correlation_matrix_calculate(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, format=format, dtype=self.dtype), use_memory_cache=use_memory_cache)
+        if dtype is None:
+            dtype = self.dtype
+        
+        ## calculate
+        filename = CONSTANTS.CORRELATION_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, matrix_type=format, dtype=self.dtype)
+        correlation_matrix = self.object_cache.get_value(filename, lambda: self.correlation_matrix_calculate(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, format=format, dtype=dtype), use_memory_cache=use_memory_cache)
+        
+        ## return
         logger.debug('Got correlation matrix with {} entries for minimal absolute correlation {} and maximal absolute correlation {}.'.format(correlation_matrix.nnz, min_abs_correlation, max_abs_correlation))
         assert np.all(np.abs(correlation_matrix.data) >= min_abs_correlation)
         assert np.all(np.abs(correlation_matrix.data) <= 1)
@@ -403,7 +412,7 @@ class CorrelationMatrix:
     def correlation_matrix_positive_definite_and_reduction_factors_calculate(self):
         import util.math.sparse.decompose.with_cholmod
         from measurements.all.pw.constants import CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME
-        reduction_factors_file = self.npy_cache.get_file(CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value))
+        reduction_factors_file = self.npy_cache.get_file(CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value, dtype=self.dtype))
         correlation_matrix, reduction_factors = util.math.sparse.decompose.with_cholmod.approximate_positive_definite(self.correlation_matrix(use_memory_cache=False), min_abs_value=self.min_abs_correlation, min_diag_value=self.min_diag_value, ordering_method=self.ordering_method, reorder_after_each_step=self.reordering, use_long=True, reduction_factors_file=reduction_factors_file)
         return correlation_matrix.asformat(self.format).astype(self.dtype), reduction_factors.astype(self.dtype)
 
@@ -422,10 +431,10 @@ class CorrelationMatrix:
     def correlation_matrix_positive_definite_and_reduction_factors(self):
         from measurements.all.pw.constants import CORRELATION_MATRIX_POSITIVE_DEFINITE_FILENAME, CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME
 
-        filename = CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value)
+        filename = CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value, dtype=self.dtype)
         reduction_factors = self.npy_cache[(filename, self.correlation_matrix_positive_definite_reduction_factors_calculate)]
 
-        filename = CORRELATION_MATRIX_POSITIVE_DEFINITE_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value, type=self.format)
+        filename = CORRELATION_MATRIX_POSITIVE_DEFINITE_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value, matrix_type=self.format, dtype=self.dtype)
         correlation_matrix = self.object_cache[(filename, self.correlation_matrix_positive_definite_calculate)]
 
         return correlation_matrix, reduction_factors
@@ -451,7 +460,7 @@ class CorrelationMatrix:
     @property
     def correlation_matrix_cholesky_decomposition(self):
         from measurements.all.pw.constants import CORRELATION_MATRIX_CHOLESKY_FACTORS_FILENAME
-        filename = CORRELATION_MATRIX_CHOLESKY_FACTORS_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value, type=self.format)
+        filename = CORRELATION_MATRIX_CHOLESKY_FACTORS_FILENAME.format(min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, ordering_method=self.ordering_method, reordering=self.reordering, min_diag_value=self.min_diag_value, matrix_type=self.format, dtype=self.dtype)
         P, L = self.object_cache[(filename, self.correlation_matrix_cholesky_decomposition_calculate)]
         return P, L
 
