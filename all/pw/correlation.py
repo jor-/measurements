@@ -169,13 +169,21 @@ class CorrelationMatrix:
         ## return
         return same_box_correlation_matrix_lower_triangle.asformat(format).astype(dtype)
 
-    def same_box_correlation_matrix_lower_triangle(self, min_abs_correlation=None):
-        if min_abs_correlation == None:
+
+    def same_box_correlation_matrix_lower_triangle(self, min_abs_correlation=None, format=None, dtype=None):
+        ## if no value passed, use default value
+        if min_abs_correlation is None:
             min_abs_correlation = self.min_abs_correlation
-        format = self.format
-        dtype = self.dtype
+        if format is None:
+            format = self.format
+        if dtype is None:
+            dtype = self.dtype
+        
+        ## calculate
         filename = CONSTANTS.SAME_BOX_CORRELATION_LOWER_TRIANGLE_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, sample_lsm=self.sample_lsm, matrix_type=format, dtype=dtype)
         lower_triangle = self.object_cache[(filename, lambda: self.same_box_correlation_matrix_lower_triangle_calculate(min_abs_correlation=min_abs_correlation, format=format, dtype=dtype))]
+        
+        ## return
         logger.debug('Got same box correlation matrix lower triangle with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(lower_triangle.nnz, min_abs_correlation, format, dtype))
         assert np.all(np.abs(lower_triangle.data) >= min_abs_correlation)
         return lower_triangle
@@ -384,7 +392,7 @@ class CorrelationMatrix:
         return correlation_matrix.asformat(format).astype(dtype)
 
 
-    def correlation_matrix(self, min_abs_correlation=None, max_abs_correlation=None, use_memory_cache=True, format=None):
+    def correlation_matrix(self, min_abs_correlation=None, max_abs_correlation=None, use_memory_cache=True, format=None, dtype=None):
         ## if no value passed, use default value
         if min_abs_correlation is None:
             min_abs_correlation = self.min_abs_correlation
@@ -396,7 +404,7 @@ class CorrelationMatrix:
             dtype = self.dtype
         
         ## calculate
-        filename = CONSTANTS.CORRELATION_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, matrix_type=format, dtype=self.dtype)
+        filename = CONSTANTS.CORRELATION_MATRIX_FILENAME.format(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements, max_year_diff=self.max_year_diff, matrix_type=format, dtype=dtype)
         correlation_matrix = self.object_cache.get_value(filename, lambda: self.correlation_matrix_calculate(min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, format=format, dtype=dtype), use_memory_cache=use_memory_cache)
         
         ## return
