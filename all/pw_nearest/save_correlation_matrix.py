@@ -3,6 +3,8 @@ if __name__ == "__main__":
     import multiprocessing
     import socket
     
+    import numpy as np
+    
     import measurements.all.pw_nearest.correlation
     import measurements.util.correlation
     
