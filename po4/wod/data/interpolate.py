@@ -75,7 +75,9 @@ class Interpolator:
         return interpolated_map
 
 
-    def interpolated_data_for_lsm(self, lsm, interpolator_setup=None):
+    def interpolated_data_for_lsm(self, lsm=None, interpolator_setup=None):
+        if lsm is None:
+            lsm = self.sample_lsm
         interpolator_setup = self.get_interpolator_setup(interpolator_setup)
         filename = self.interpolated_data_filename.format(points=lsm, interpolator_setup=self._tuple_to_str(interpolator_setup), scaling_values=self._tuple_to_str(self.scaling_values))
         function = lambda :self.interpolated_data_for_lsm_calculate(lsm, interpolator_setup=interpolator_setup)
