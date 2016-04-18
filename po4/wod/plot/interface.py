@@ -81,8 +81,10 @@ def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
         data = interpolator.sample_data_for_lsm(sample_lsm)
     elif calculation_kind == 'interpolated':
         data = interpolator.interpolated_data_for_lsm(sample_lsm)
+        volume_map = sample_lsm.volume_map
+        data_depth_mean = np.nansum(data * volume_map, axis=(0,1,2)) / np.nansum(volume_map, axis=(0,1,2))
     
-    data_depth_mean = np.nanmean(data, axis=(0,1,2))
+    contours = calculation_kind == 'interpolated'
     
     if t_dim == 1:
         data = data.mean(axis=0)
@@ -94,7 +96,10 @@ def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
     file_depth_mean = file_prefix + '_depth_mean.png'.format()
 
     ## plot
-    util.plot.line(sample_lsm.z_center, data_depth_mean, file_depth_mean, y_min=v_min, y_max=depth_v_max, line_color='b', line_width=3, xticks=np.arange(5)*2000)
+    util.plot.data(data, file_data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours)
+    util.plot.histogram(data[~np.isnan(data)], file_histogram, step_size=histogram_step_size, x_min=v_min, x_max=histogram_v_max, use_log_scale=True)
+    if calculation_kind == 'interpolated':
+        util.plot.line(sample_lsm.z_center, data_depth_mean, file_depth_mean, y_min=v_min, y_max=depth_v_max, line_color='b', line_width=3, xticks=np.arange(5)*2000)
 
 
 

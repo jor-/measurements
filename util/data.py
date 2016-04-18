@@ -357,6 +357,30 @@ class Measurements(util.multi_dict.MultiDict):
         return self.filter_same_points_with_same_function(filter_same_point_function, min_values=min_values)
 
 
+    ## lsm related calulations
+
+    def mean_weighted_by_box_volume(self, lsm):
+        logger.debug('Calculate mean of values weighted by box volumes of land-sea-mask {}.'.format(lsm))
+        ## copy
+        m = self.copy()
+        ## convert to lsm map indices
+        m.categorize_indices_to_lsm(lsm)
+        m.coordinates_to_map_indices(lsm)
+        ## get indices and values
+        items = m.items()
+        indices = items[:, :-1]
+        values = items[:, -1]
+        ## copy volumes
+        volumes = lsm.volume_of_boxes_of_map_indices(indices)
+        ## calculate mean
+        mean_weighted = (values * volumes).sum() / volumes.sum()
+        ## return
+        logger.debug('Mean of values weighted by box volumes of land-sea-mask {} is {}.'.format(lsm,mean_weighted))
+        return mean_weighted
+
+
+
+
 
     ## total correlogram and correlation (autocorrelation)
 

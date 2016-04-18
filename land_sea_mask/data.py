@@ -2,6 +2,7 @@ import bisect
 import os
 import numpy as np
 
+import measurements.constants
 import measurements.land_sea_mask.depth
 
 import util.cache
@@ -122,7 +123,7 @@ class LandSeaMask():
         elif len(key) == 3:
             return self._lsm[key[1:]]
         elif len(key) == 4:
-            return self._lsm[key[1:4]] > key[4]
+            return self._lsm[key[1:3]] > key[3]
         else:
             raise ValueError('Length of key has to be in (2, 3, 4), but key is {}.'.format(key))
 
@@ -142,8 +143,7 @@ class LandSeaMask():
     ## indices
 
     def sea_indices_calculate(self):
-        masked_map = self.masked_map(dtype=np.float16)
-        sea_indices = np.array(np.where(np.logical_not(np.isnan(masked_map)))).transpose()
+        sea_indices = np.array(np.where(self.bool_mask)).transpose()
         logger.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
         assert sea_indices.ndim == 2
         return sea_indices
@@ -184,6 +184,148 @@ class LandSeaMask():
         for i in range(n):
             results[i] = self.is_point_near_water(points[i], max_land_boxes=max_land_boxes)
         return results
+
+
+    def box_bounds_of_map_index(self, map_index):
+        map_index = np.asarray(map_index)
+        t_centered = self.t_centered and len(map_index) >= 4
+        
+        map_index = map_index + 0.5
+        if not t_centered:
+            map_index[0] = map_index[0] -  0.5
+        
+        lower_bound = np.floor(map_index)
+        lower_bound = lower_bound - 0.5
+        if not t_centered:
+            lower_bound[0] = lower_bound[0] +  0.5
+        
+        box_bounds = np.array([lower_bound, lower_bound + 1]) 
+        box_bounds = box_bounds.transpose()
+        
+        assert len(box_bounds) == len(map_index)     
+        assert box_bounds.shape[1] == 2
+        assert np.all(box_bounds[:,1] - box_bounds[:,0] == 1)
+        return box_bounds
+
+
+    def box_bounds_of_map_indices(self, map_indices):
+        ## prepare input
+        result_ndim = map_indices.ndim
+        if map_indices.ndim == 1:
+            map_indices = map_indices[np.newaxis]
+
+        ## calculate
+        n = len(map_indices)
+        logger.debug('Transforming {} map indices to box bounds for {}.'.format(n, self))
+
+        box_bounds = np.empty(map_indices.shape + (2,))
+        for i in range(n):
+            box_bounds[i] = self.box_bounds_of_map_index(map_indices[i])
+
+        ## return
+        if result_ndim == 1:
+            box_bounds = box_bounds[0]
+
+        logger.debug('Transforming map indices to box bounds done.')
+        return box_bounds
+    
+    ## volume
+    
+    @staticmethod
+    def volume_of_coordinate_box(bounds):
+        bounds = np.asanyarray(bounds)
+        assert bounds.ndim == 2
+        assert bounds.shape[0] >= 3
+        assert bounds.shape[1] == 2
+        # assert bounds.shape == (3, 2)
+        
+        bounds = bounds[-3:]
+        assert np.all(bounds[1] >= -90)
+        assert np.all(bounds[1] <= 90)
+        assert np.all(bounds[2] >= 0)
+        
+        alpha = bounds[0]
+        beta = bounds[1]
+        r = measurements.constants.EARTH_RADIUS - bounds[2]
+        r = r[::-1]
+        
+        s = np.pi / (2 * 90)
+        v = 1/3 * s * (alpha[1] - alpha[0]) *  (r[1]**3 - r[0]**3) * (np.sin(s * beta[1]) - np.sin(s * beta[0]))
+        assert v >= 0
+        return v
+    
+    
+    @staticmethod
+    def volume_of_coordinate_boxes(bounds):
+        ## prepare input
+        bounds = np.asanyarray(bounds)
+        
+        result_ndim = bounds.ndim
+        if bounds.ndim == 2:
+            bounds = bounds[np.newaxis]
+        
+        assert bounds.ndim == 3
+        assert bounds.shape[1] >= 3
+        assert bounds.shape[2] == 2
+        
+        ## calculate
+        n = len(bounds)
+        logger.debug('Calculating volume of {} coordinate boxes.'.format(n))
+        
+        box_volumes = np.empty(n)
+        for i in range(n):
+            box_volumes[i] = LandSeaMask.volume_of_coordinate_box(bounds[i])
+
+        ## return
+        if result_ndim == 1:
+            box_volumes = box_volumes[0]
+
+        logger.debug('Volume of coordinate boxes are calculated.')
+        return box_volumes
+    
+    
+    def volume_of_boxes_of_map_indices(self, map_indices):
+        logger.debug('Calculating volume of boxes of {} map indices.'.format(len(map_indices)))
+        
+        ## calculate box bounds as map indices
+        box_bounds = self.box_bounds_of_map_indices(map_indices)
+        assert box_bounds.shape[2] == 2
+        assert np.all(box_bounds[:,:,1] > box_bounds[:,:,0])
+
+        ## calculate box bounds as coordinates
+        for i in range(box_bounds.shape[2]):
+           box_bounds[:,:,i] = self.map_indices_to_coordinates(box_bounds[:,:,i], use_modulo_for_x=False)
+        assert np.all(box_bounds[:,:,1] > box_bounds[:,:,0])
+        
+        ## calculate volumes
+        volumes = self.volume_of_coordinate_boxes(box_bounds)
+        
+        ## return
+        return volumes
+    
+    
+    @property
+    def volume_map(self):
+        logger.debug('Calculating volume map.')
+        
+        ## calculate sea map indices
+        sea_indices = self.sea_indices
+        
+        ## calculate volume map
+        volumes = self.volume_of_boxes_of_map_indices(sea_indices)
+        volumes_with_indices = np.concatenate([sea_indices, volumes[:,np.newaxis]], axis=1)
+        volume_map = self.insert_index_values_in_map(volumes_with_indices, no_data_value=np.inf)
+        
+        ## return
+        return volume_map
+    
+    
+    @property
+    def normalized_volume_weights_map(self):
+        volume_map = self.volume_map
+        normalized_volume_map = volume_map / np.nansum(volume_map)
+        assert np.isclose(np.nansum(normalized_volume_map), 1)
+        return normalized_volume_map
 
     
 
@@ -268,7 +410,7 @@ class LandSeaMask():
 
 
 
-    def map_index_to_coordinate(self, ti, xi, yi, zi):
+    def map_index_to_coordinate(self, ti, xi, yi, zi, use_modulo_for_x=True):
         ## t (left or center of the box, wrap around)
         try:
             t_dim = self.t_dim_with_value_check
@@ -280,7 +422,10 @@ class LandSeaMask():
             t = ti / self.t_dim_with_value_check
 
         ## x (center of the box, wrap around)
-        x = ((xi + 0.5) % self.x_dim) / self.x_dim * 360
+        x = xi + 0.5
+        if use_modulo_for_x:
+            x = x % self.x_dim
+        x = x / self.x_dim * 360
 
         ## y (center of the box, no wrap around)
         y = (yi + 0.5) / self.y_dim * 180 - 90
@@ -306,31 +451,35 @@ class LandSeaMask():
                 z = 2 * zi_fraction * (c[zi_floor + 1] - r[zi_floor]) + r[zi_floor]
             assert z >= c[zi_floor] and z <= c[zi_floor+1]
         
-        ## return
+        ## concatenate coordinates
         if t_dim is not None:
-            return (t, x, y, z)
+            coordinates = (t, x, y, z)
         else:
-            return (x, y, z)
+            coordinates = (x, y, z)
+        
+        ## return
+        assert not use_modulo_for_x or (coordinates[-3] >= 0 and coordinates[-3] <= 360)
+        assert coordinates[-2] >= -90
+        assert coordinates[-2] <= 90
+        assert coordinates[-1] >= 0
+        assert coordinates[-1] <= measurements.constants.MAX_SEA_DEPTH
+        return coordinates
             
 
 
-    def map_indices_to_coordinates(self, points):
+    def map_indices_to_coordinates(self, points, use_modulo_for_x=True):
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
-        logger.debug('Transforming {} map indices from {} to coordinates'.format(len(points), self))
+        logger.debug('Transforming {} map indices from {} to coordinates with use_modulo_for_x {}'.format(len(points), self, use_modulo_for_x))
 
         n = len(points)
         new_points = np.empty((n, self.ndim))
         for i in range(n):
-            new_points[i] = self.map_index_to_coordinate(*points[i])
+            new_points[i] = self.map_index_to_coordinate(*points[i], use_modulo_for_x=use_modulo_for_x)
 
         if result_ndim == 1:
             new_points = new_points[0]
-
-        assert new_points[:,1].max() <= 360 and new_points[:,1].min() >= 0 or new_points[:,1].max() <= 180 and new_points[:,1].min() >= -180
-        assert new_points[:,2].max() <= 90 and new_points[:,2].min() >= -90
-        assert new_points[:,3].min() >= 0
 
         logger.debug('Transforming from map indices to coordinates done.')
         return new_points
@@ -354,7 +503,8 @@ class LandSeaMask():
         self.apply_mask(masked_map, land_value=land_value)
         return masked_map
 
-
+    
+    @property
     def bool_mask(self):
         return self.masked_map(dtype=np.bool, default_value=True, land_value=False)
 

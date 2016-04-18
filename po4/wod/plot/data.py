@@ -10,7 +10,7 @@ if __name__ == "__main__":
 
     t_dims = (1, 4, 12, 48)
     lsms = ('TMM', 'WOA13R', 'WOA13')
-    parser.add_argument('data', choices=('mean', 'deviation'))
+    parser.add_argument('data', choices=('mean', 'total_deviation', 'concentration_deviation', 'average_noise_deviation'))
     parser.add_argument('calculation', choices=('sample', 'interpolated'))
     parser.add_argument('--lsm', choices=('all', )+lsms, default='all')
     parser.add_argument('--t_dim', choices=(0,)+t_dims, type=int, default=0)
