@@ -18,6 +18,7 @@ if __name__ == "__main__":
     parser.add_argument('-D', '--min_diag_value', type=float, default=10**-2)
     parser.add_argument('-r', '--reorder', action='store_true')
     parser.add_argument('-s', '--small_floats', action='store_true')
+    parser.add_argument('-o', '--ordering_method', default='default')
     parser.add_argument('-d', '--debug', action='store_true', help='Print debug infos.')
     parser.add_argument('-l', '--max_land_boxes', type=int, default=0)
     args = parser.parse_args()
@@ -34,5 +35,5 @@ if __name__ == "__main__":
         else:
             dtype = np.float32
 
-        correlation_model = measurements.all.pw_nearest.correlation.CorrelationMatrix(min_measurements=args.min_measurements, max_year_diff=args.max_year_diff, max_land_boxes=args.max_land_boxes, positive_definite_approximation_reorder_after_each_step=args.reorder, positive_definite_approximation_min_diag_value=args.min_diag_value, dtype=dtype)
+        correlation_model = measurements.all.pw_nearest.correlation.CorrelationMatrix(min_measurements=args.min_measurements, max_year_diff=args.max_year_diff, max_land_boxes=args.max_land_boxes, cholesky_ordering_method=args.ordering_method, positive_definite_approximation_reorder_after_each_step=args.reorder, positive_definite_approximation_min_diag_value=args.min_diag_value, dtype=dtype)
         correlation_model.correlation_matrix_cholesky_decomposition
