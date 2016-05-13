@@ -327,57 +327,58 @@ class CorrelationMatrix:
         dtype = np.dtype(dtype)
         logger.debug('Calculating different boxes correlation lower triangle matrix with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(min_abs_correlation, format, dtype))
         
-        if format == 'lil':
-            ## create matrix
-            correlation_matrix = scipy.sparse.lil_matrix(self.shape, dtype=dtype)
-            
-            ## get deviation
-            deviations = self.sample_deviations
-            
-            ## iterate over tracer
-            for k in range(self.m):
-                index_offset = self.index_offsets[k]
-                points = self.points[k]
-                point_index_dict = self.point_index_dicts[k]
-                point_index_year_discarded_dict = self.point_index_year_discarded_dicts[k]
-                sample_covariance_dict = self.different_boxes_sample_covariance_dicts[k]
-            
-                ## iterate over sample covariances
-                for key, value_list in sample_covariance_dict.iterator_keys_and_value_lists():
-                    assert len(key) == 2
-                    assert len(value_list) == 1
-                    values = value_list[0]
-                    assert len(values) == 2
-                    quantity, covariance = values
-                    key_array = np.array(key)
-                    key_diff = key_array[1] - key_array[0]
-                    logger.debug('For different box correlation matrix entires with key {} inserting covariance {} (quantity {}).'.format(key, covariance, quantity))
-                    
-                    ## iterate over all index pairs with sample covariance
-                    for point_index_i in point_index_year_discarded_dict[key[0]]:
-                        point_i = points[point_index_i]
-                        point_i_transformed = self.sample_lsm.coordinate_to_map_index(*point_i, discard_year=False, float_indices=False)
-                        point_j_transformed = tuple(point_i_transformed + key_diff)
-                        for point_index_j in point_index_dict[point_j_transformed]:
-                            
-                            ## calculate correlation
-                            correlation = covariance / (deviations[point_index_i] * deviations[point_index_j])
-                            
-                            ## insert correlation
-                            if np.abs(correlation) >= min_abs_correlation:
-                                point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
-                                assert point_index_min < point_index_max and point_index_min in (point_index_i, point_index_j) and point_index_max in (point_index_i, point_index_j)
-                                point_index_min = point_index_min + index_offset
-                                point_index_max = point_index_max + index_offset
-                                correlation_matrix[point_index_max, point_index_min] = correlation
+        ## create matrix
+        correlation_matrix = scipy.sparse.lil_matrix(self.shape, dtype=dtype)
+        
+        ## get deviation
+        deviations = self.sample_deviations
+        
+        ## iterate over tracer
+        for k in range(self.m):
+            index_offset = self.index_offsets[k]
+            points = self.points[k]
+            point_index_dict = self.point_index_dicts[k]
+            point_index_year_discarded_dict = self.point_index_year_discarded_dicts[k]
+            sample_covariance_dict = self.different_boxes_sample_covariance_dicts[k]
+        
+            ## iterate over sample covariances
+            for key, value_list in sample_covariance_dict.iterator_keys_and_value_lists():
+                assert len(key) == 2
+                assert len(value_list) == 1
+                values = value_list[0]
+                assert len(values) == 2
+                quantity, covariance = values
+                key_array = np.array(key)
+                key_diff = key_array[1] - key_array[0]
+                logger.debug('For different box correlation matrix entires with key {} inserting covariance {} (quantity {}).'.format(key, covariance, quantity))
+                
+                ## iterate over all index pairs with sample covariance
+                for point_index_i in point_index_year_discarded_dict[key[0]]:
+                    point_i = points[point_index_i]
+                    point_i_transformed = self.sample_lsm.coordinate_to_map_index(*point_i, discard_year=False, float_indices=False)
+                    point_j_transformed = tuple(point_i_transformed + key_diff)
+                    for point_index_j in point_index_dict[point_j_transformed]:
+                        
+                        ## calculate correlation
+                        correlation = covariance / (deviations[point_index_i] * deviations[point_index_j])
+                        
+                        ## insert correlation
+                        if np.abs(correlation) >= min_abs_correlation:
+                            point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
+                            assert point_index_min < point_index_max and point_index_min in (point_index_i, point_index_j) and point_index_max in (point_index_i, point_index_j)
+                            point_index_min = point_index_min + index_offset
+                            point_index_max = point_index_max + index_offset
+                            correlation_matrix[point_index_max, point_index_min] = correlation
 
-        else:
-            correlation_matrix = self.different_boxes_correlation_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format='lil', dtype=dtype)
-            logger.debug('Converting matrix to format {} and dtype {}.'.format(format, dtype))
-            if format == 'csc':
-                correlation_matrix = self.different_boxes_correlation_lower_triangle_matrix(min_abs_correlation=min_abs_correlation, format='csr', dtype=dtype)
-            correlation_matrix = correlation_matrix.asformat(format).astype(dtype)
+        ## convert to wanted format
+        logger.debug('Converting correlation matrix to format {}.'.format(format))
+        if format == 'csc':
+            correlation_matrix = correlation_matrix.asformat('csr')
+            logger.debug('Correlation matrix converted to format csr.')
+        correlation_matrix = correlation_matrix.asformat(format)
+        logger.debug('Correlation matrix converted to format {}.'.format(format))
 
+        ## return
         logger.debug('Calculated differend boxes correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, min_abs_correlation, format, dtype))
         # assert format not in ('csr', 'csc', 'coo') or np.all(np.abs(correlation_matrix.data) >= min_abs_correlation)
         return correlation_matrix
@@ -431,8 +432,8 @@ class CorrelationMatrix:
         correlation_matrix = correlation_matrix + diagonal
         
         ## return
-        assert np.all(np.isclose(correlation_matrix.diagonal(), 1))        
-        assert np.isclose(np.abs(correlation_matrix.data).min(), min_abs_correlation) or np.abs(correlation_matrix.data).min() >= min_abs_correlation
+        # assert np.all(np.isclose(correlation_matrix.diagonal(), 1))
+        # assert np.isclose(np.abs(correlation_matrix.data).min(), min_abs_correlation) or np.abs(correlation_matrix.data).min() >= min_abs_correlation
         return correlation_matrix.asformat(format).astype(dtype)
 
 
@@ -455,8 +456,8 @@ class CorrelationMatrix:
         
         ## return
         logger.debug('Got correlation matrix with {} entries for minimal absolute correlation {} and maximal absolute correlation {}.'.format(correlation_matrix.nnz, min_abs_correlation, max_abs_correlation))
-        assert np.all(np.abs(correlation_matrix.data) >= min_abs_correlation)
-        assert np.all(np.abs(correlation_matrix.data) <= 1)
+        # assert np.isclose(np.abs(correlation_matrix.data).min(), min_abs_correlation) or np.abs(correlation_matrix.data).min() >= min_abs_correlation
+        # assert np.isclose(np.abs(correlation_matrix.data).max(), 1) or np.abs(correlation_matrix.data).max() <= 1
         return correlation_matrix
 
 
