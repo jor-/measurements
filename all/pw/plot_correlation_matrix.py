@@ -10,6 +10,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--min_values', type=int)
     parser.add_argument('-y', '--max_year_diff', type=int, default=-1)
     parser.add_argument('-p', '--path', default='/tmp')
+    parser.add_argument('-l', '--lower_triangle', action='store_true')
     parser.add_argument('-d', '--debug', action='store_true', help='Print debug infos.')
     args = parser.parse_args()
 
@@ -17,4 +18,7 @@ if __name__ == "__main__":
         if args.max_year_diff < 0:
             args.max_year_diff = float('inf')
 
-        measurements.all.pw.plot.correlation_matrix_sparse_pattern(args.min_values, max_year_diff=args.max_year_diff, path=args.path)
+        if args.lower_triangle:
+            measurements.all.pw.plot.different_boxes_correlation_lower_triangle_matrix_sparse_pattern(args.min_values, max_year_diff=args.max_year_diff, path=args.path)
+        else:
+            measurements.all.pw.plot.correlation_matrix_sparse_pattern(args.min_values, max_year_diff=args.max_year_diff, path=args.path)
