@@ -1,28 +1,28 @@
-import scipy.io
-import numpy as np
-
 import datetime
 import warnings
+
+import numpy as np
+import scipy.io
+
+import measurements.po4.wod.constants
 
 import util.io.fs
 import util.io.object
 import util.datetime
 
-import logging
-logger = logging.getLogger(__name__)
+import util.logging
+logger = util.logging.logger
 
 
 
 class Cruise():
 
     def __init__(self, file):
-        from . import constants
-
         ## open netcdf file
         f = scipy.io.netcdf.netcdf_file(file, 'r')
 
         ## read time and data
-        day_offset = float(f.variables[constants.DAY_OFFSET].data)
+        day_offset = float(f.variables[measurements.po4.wod.constants.DAY_OFFSET].data)
         hours_offset = (day_offset % 1) * 24
         minutes_offset = (hours_offset % 1) * 60
         seconds_offset = (minutes_offset % 1) * 60
@@ -33,26 +33,26 @@ class Cruise():
         seconds_offset = int(seconds_offset)
 
         dt_offset = datetime.timedelta(days=day_offset, hours=hours_offset, minutes=minutes_offset, seconds=seconds_offset)
-        dt = constants.BASE_DATE + dt_offset
+        dt = measurements.po4.wod.constants.BASE_DATE + dt_offset
         dt_float = util.datetime.datetime_to_float(dt)
 
         self.dt_float = dt_float
 
         ## read coordinates and valid measurements
         try:
-            self.x = float(f.variables[constants.LON].data)
+            self.x = float(f.variables[measurements.po4.wod.constants.LON].data)
             if self.x == 180:
                 self.x = -180
-            self.y = float(f.variables[constants.LAT].data)
+            self.y = float(f.variables[measurements.po4.wod.constants.LAT].data)
             if self.y == -90 or self.y == 90:
                 self.x = 0
 
-            z = f.variables[constants.DEPTH].data
-            po4 = f.variables[constants.PO4].data
+            z = f.variables[measurements.po4.wod.constants.DEPTH].data
+            po4 = f.variables[measurements.po4.wod.constants.PO4].data
 
-            z_flag = f.variables[constants.DEPTH_FLAG].data
-            po4_flag = f.variables[constants.PO4_FLAG].data
-            po4_profile_flag = f.variables[constants.PO4_PROFILE_FLAG].data
+            z_flag = f.variables[measurements.po4.wod.constants.DEPTH_FLAG].data
+            po4_flag = f.variables[measurements.po4.wod.constants.PO4_FLAG].data
+            po4_profile_flag = f.variables[measurements.po4.wod.constants.PO4_PROFILE_FLAG].data
         except KeyError as e:
             missing_key = e.args[0]
             warnings.warn('Date with name {} is missing in file {}!'.format(missing_key, file))
@@ -65,7 +65,7 @@ class Cruise():
             z = z[valid_mask]
             po4 = po4[valid_mask]
 
-            valid_mask = po4 != constants.MISSING_VALUE
+            valid_mask = po4 != measurements.po4.wod.constants.MISSING_VALUE
             z = z[valid_mask]
             po4 = po4[valid_mask]
 
@@ -89,6 +89,7 @@ class Cruise():
 
         logger.debug('Cruise from {} loaded.'.format(file))
 
+
     @property
     def number_of_measurements(self):
         return self.po4.size
@@ -106,7 +107,6 @@ class Cruise():
     def is_year_fraction_in(self, lower_bound=float('-inf'), upper_bound=float('inf')):
         year_fraction = self.year_fraction
         return year_fraction >= lower_bound and year_fraction < upper_bound
-
 
 
 
@@ -136,7 +136,7 @@ class CruiseCollection():
 
         ## lookup files
         logger.debug('Looking up files in %s.' % data_dir)
-        files = util.io.fs.get_files(data_dir)
+        files = util.io.fs.get_files(data_dir, use_absolute_filenames=True)
         logger.debug('%d files found.' % len(files))
 
         ## load cruises
@@ -151,7 +151,6 @@ class CruiseCollection():
 
         ## return cruises
         self.cruises = cruises
-
 
 
     def save_cruises_to_pickle_file(self, file):

@@ -1,9 +1,14 @@
 import calendar
 import datetime
+import os.path
+
 import numpy as np
 
+import measurements.universal.data
+import measurements.universal.constants
+import measurements.constants
+import measurements.dop.constants
 import measurements.dop.pw.constants
-import measurements.util.data
 
 import util.math.sort
 import util.cache
@@ -11,6 +16,7 @@ import util.logging
 logger = util.logging.logger
 
 
+## data load functions
 
 def prepare_ladolfi_data(measurement_file, start_date, end_date, valid_data_flag):
 
@@ -62,26 +68,16 @@ def prepare_ladolfi_data(measurement_file, start_date, end_date, valid_data_flag
     return data
 
 
-
+@util.cache.file_based.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.LADOLFI_2002_DIR, measurements.dop.pw.constants.DATA_FILENAME))
 def load_ladolfi_2002():
-    from measurements.dop.pw.constants import DATA_FILENAME, LADOLFI_2002_DIR, LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_START_DATE, LADOLFI_2002_END_DATE, LADOLFI_2002_VALID_DATA_FLAG
-
-    cache = util.cache.HDD_NPY_Cache(LADOLFI_2002_DIR)
-    calculation_function = lambda : prepare_ladolfi_data(LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_START_DATE, LADOLFI_2002_END_DATE, LADOLFI_2002_VALID_DATA_FLAG)
-
-    return cache.get_value(DATA_FILENAME, calculation_function)
+    from measurements.dop.pw.constants import LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_START_DATE, LADOLFI_2002_END_DATE, LADOLFI_2002_VALID_DATA_FLAG
+    return prepare_ladolfi_data(LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_START_DATE, LADOLFI_2002_END_DATE, LADOLFI_2002_VALID_DATA_FLAG)
 
 
-
-
+@util.cache.file_based.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.LADOLFI_2004_DIR, measurements.dop.pw.constants.DATA_FILENAME))
 def load_ladolfi_2004():
-    from measurements.dop.pw.constants import DATA_FILENAME, LADOLFI_2004_DIR, LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_START_DATE, LADOLFI_2004_END_DATE, LADOLFI_2004_VALID_DATA_FLAG
-
-    cache = util.cache.HDD_NPY_Cache(LADOLFI_2004_DIR)
-    calculation_function = lambda : prepare_ladolfi_data(LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_START_DATE, LADOLFI_2004_END_DATE, LADOLFI_2004_VALID_DATA_FLAG)
-
-    return cache.get_value(DATA_FILENAME, calculation_function)
-
+    from measurements.dop.pw.constants import LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_START_DATE, LADOLFI_2004_END_DATE, LADOLFI_2004_VALID_DATA_FLAG
+    return prepare_ladolfi_data(LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_START_DATE, LADOLFI_2004_END_DATE, LADOLFI_2004_VALID_DATA_FLAG)
 
 
 
@@ -143,56 +139,133 @@ def prepare_yoshimura_data(measurement_file):
     return data
 
 
-
-
+@util.cache.file_based.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.YOSHIMURA_2007_DIR, measurements.dop.pw.constants.DATA_FILENAME))
 def load_yoshimura_2007():
-    from measurements.dop.pw.constants import DATA_FILENAME, YOSHIMURA_2007_DIR, YOSHIMURA_2007_MEASUREMENT_FILE
-
-    cache = util.cache.HDD_NPY_Cache(YOSHIMURA_2007_DIR)
-    calculation_function = lambda : prepare_yoshimura_data(YOSHIMURA_2007_MEASUREMENT_FILE)
-
-    return cache.get_value(DATA_FILENAME, calculation_function)
+    from measurements.dop.pw.constants import YOSHIMURA_2007_MEASUREMENT_FILE
+    return prepare_yoshimura_data(YOSHIMURA_2007_MEASUREMENT_FILE)
 
 
 
-def data():
-    data = np.concatenate((load_ladolfi_2002(), load_ladolfi_2004(), load_yoshimura_2007()))
-    return data
+
+## measurement classes
+
+class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicFillAverageCache):
+    
+    def __init__(self, data_set_name, load_data_function, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        
+        tracer = 'dop'        
+        data_set_name = data_set_name       
+        
+        sample_lsm = measurements.dop.pw.constants.SAMPLE_LSM
+        min_deviation = measurements.dop.constants.DEVIATION_MIN_VALUE
+        
+        super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_deviation=min_deviation, min_measurements_correlations=min_measurements_correlations, standard_deviation_concentration_noise_ratio=measurements.dop.pw.constants.DEVIATION_CONCENTRATION_NOISE_RATIO)
+        
+        self._load_data_function = load_data_function
+    
+    
+    def __str__(self):
+        string = super().__str__()
+        if self.min_measurements_correlations < float('inf'):
+            string = string + '({min_measurements_correlations})'.format(min_measurements_correlations=self.min_measurements_correlations)
+        return string
 
 
-def points_and_results():
-    values = np.concatenate((load_ladolfi_2002(), load_ladolfi_2004(), load_yoshimura_2007()))
+    @property
+    def points_and_results(self):
+        values = self._load_data_function()
+        sorted_indices = util.math.sort.lex_sorted_indices(values)
+        values = values[sorted_indices]
+        return values
 
-    ## sort measurements
-    sorted_indices = util.math.sort.lex_sorted_indices(values)
-    assert sorted_indices.ndim == 1
-    values = values[sorted_indices]
+    @property
+    @util.cache.memory_based.decorator()
+    @util.cache.file_based.decorator()
+    def points(self):
+        return self.points_and_results[:, :-1]
 
-    ## split measurements
-    points = values[:, :-1]
-    results = values[:, -1]
-
-    return (points, results)
-
-
-def points():
-    cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
-    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_POINTS_FILENAME, lambda :points_and_results()[0])
-
-def results():
-    cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
-    return cache.get_value(measurements.dop.pw.constants.MEASUREMENTS_RESULTS_FILENAME, lambda :points_and_results()[1])
-
-
-def points_near_water_mask(lsm, max_land_boxes=0):
-    cache = util.cache.HDD_NPY_Cache(measurements.dop.pw.constants.DATA_DIR)
-    filename = measurements.dop.pw.constants.MEASUREMENTS_POINTS_ARE_NEAR_WATER_FILENAME.format(lsm=lsm, max_land_boxes=max_land_boxes)
-    return cache.get_value(filename, lambda: lsm.points_near_water_mask(points(), max_land_boxes=max_land_boxes))
+    @property
+    @util.cache.memory_based.decorator()
+    @util.cache.file_based.decorator()
+    def values(self):
+        return self.points_and_results[:, -1]
 
 
 
-def measurement_dict():
-    (points, values) = points_and_results()
-    measurement_data = measurements.util.data.Measurements()
-    measurement_data.append_values(points, values)
-    return measurement_data
+class MeasurementsLadolfi2002(MeasurementsBase):
+    
+    def __init__(self, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        super().__init__('ladolfi_2002', load_ladolfi_2002, min_measurements_correlations=min_measurements_correlations)
+
+
+class MeasurementsNearWaterLadolfi2002(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
+    
+    def __init__(self, water_lsm=None, max_box_distance_to_water=0, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        measurements = MeasurementsLadolfi2002(min_measurements_correlations=min_measurements_correlations)
+        super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+
+
+
+class MeasurementsLadolfi2004(MeasurementsBase):
+    
+    def __init__(self, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        super().__init__('ladolfi_2004', load_ladolfi_2004, min_measurements_correlations=min_measurements_correlations)
+
+
+class MeasurementsNearWaterLadolfi2004(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
+    
+    def __init__(self, water_lsm=None, max_box_distance_to_water=0, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        measurements = MeasurementsLadolfi2004(min_measurements_correlations=min_measurements_correlations)
+        super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+
+
+
+class MeasurementsYoshimura2007(MeasurementsBase):
+    
+    def __init__(self, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        super().__init__('yoshimura_2007', load_yoshimura_2007, min_measurements_correlations=min_measurements_correlations)
+
+
+class MeasurementsNearWaterYoshimura2007(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
+    
+    def __init__(self, water_lsm=None, max_box_distance_to_water=0, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        measurements = MeasurementsYoshimura2007(min_measurements_correlations=min_measurements_correlations)
+        super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+
+
+
+class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicFillAverageCache):
+    
+    def __init__(self, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        
+        tracer = 'dop'
+        data_set_name = 'pw'
+        
+        sample_lsm = measurements.dop.pw.constants.SAMPLE_LSM
+        min_deviation = measurements.dop.constants.DEVIATION_MIN_VALUE
+        
+        super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_deviation=min_deviation, min_measurements_correlations=min_measurements_correlations, standard_deviation_concentration_noise_ratio=measurements.dop.pw.constants.DEVIATION_CONCENTRATION_NOISE_RATIO)
+    
+
+    @property
+    @util.cache.memory_based.decorator()
+    @util.cache.file_based.decorator()
+    def points(self):
+        return points()
+
+    @property
+    @util.cache.memory_based.decorator()
+    @util.cache.file_based.decorator()
+    def values(self):
+        return results()
+
+
+
+
+
+class MeasurementsNearWater(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
+    
+    def __init__(self, water_lsm=None, max_box_distance_to_water=0, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        measurements = Measurements(min_measurements_correlations=min_measurements_correlations)
+        super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+

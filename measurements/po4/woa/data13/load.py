@@ -13,7 +13,7 @@ def woa_data(data_name, divide_annual_values):
     from .constants import ANNUAL_FILE, MONTHLY_FILES
 
     def data_from_file(file, data_name):
-        return util.io.netcdf.load_with_netcdf4(file, data_name).swapaxes(1,3)
+        return util.io.netcdf.load(file, data_name).swapaxes(1,3)
         assert data.ndim == 4
         assert data.shape[:3] == (1, 360, 180)
 
@@ -37,7 +37,7 @@ def woa_data(data_name, divide_annual_values):
 
 def depth_values():
     from .constants import ANNUAL_FILE, DEPTH_DATANAME
-    return util.io.netcdf.load_with_netcdf4(ANNUAL_FILE, DEPTH_DATANAME)
+    return util.io.netcdf.load(ANNUAL_FILE, DEPTH_DATANAME)
 
 
 def measurement_data():

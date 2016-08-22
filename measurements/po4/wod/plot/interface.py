@@ -8,7 +8,7 @@ import mpl_toolkits.mplot3d     # for projection='3d'
 
 from measurements.po4.wod.correlogram import estimation, model
 
-import measurements.land_sea_mask.data
+import measurements.land_sea_mask.lsm
 import measurements.po4.wod.mean.values
 import measurements.po4.wod.mean.constants
 import measurements.po4.wod.deviation.values
@@ -28,11 +28,11 @@ def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
 
     ## chose lsm
     if lsm_kind == 'TMM':
-        sample_lsm = measurements.land_sea_mask.data.LandSeaMaskTMM(t_dim=default_t_dim)
+        sample_lsm = measurements.land_sea_mask.lsm.LandSeaMaskTMM(t_dim=default_t_dim)
     elif lsm_kind == 'WOA13':
-        sample_lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13(t_dim=default_t_dim)
+        sample_lsm = measurements.land_sea_mask.lsm.LandSeaMaskWOA13(t_dim=default_t_dim)
     elif lsm_kind == 'WOA13R':
-        sample_lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=default_t_dim)
+        sample_lsm = measurements.land_sea_mask.lsm.LandSeaMaskWOA13R(t_dim=default_t_dim)
 
     ## chose interpolator and min and max values
     if 'mean' in data_kind:

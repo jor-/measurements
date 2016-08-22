@@ -12,17 +12,17 @@ logger = util.logging.logger
 
 class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolator):
 
-    def __init__(self, data_points, data_values, t_len, wrap_around_amount=0, number_of_linear_interpolators=1, total_overlapping_linear_interpolators=0, parallel=False):
+    def __init__(self, data_points, data_values, t_len, wrap_around_amount=0, number_of_linear_interpolators=1, single_overlapping_amount_linear_interpolators=0, parallel=False):
         from measurements.constants import EARTH_RADIUS
 
-        logger.debug('Initiating time periodic earth interpolator with {} data points, time len {}, wrap around amount {} and {} linear interpolators with total overlapping of {}.'.format(len(data_points), t_len, wrap_around_amount, number_of_linear_interpolators, total_overlapping_linear_interpolators))
+        logger.debug('Initiating time periodic earth interpolator with {} data points, time len {}, wrap around amount {} and {} linear interpolators with single overlapping amount of {}.'.format(len(data_points), t_len, wrap_around_amount, number_of_linear_interpolators, single_overlapping_amount_linear_interpolators))
 
         ## call super constructor
         self.order = number_of_linear_interpolators
 
         t_scaling = 2 * EARTH_RADIUS / t_len
 
-        super().__init__(data_points, data_values, point_range_size=(t_len, None, None, None), wrap_around_amount=(wrap_around_amount, 0, 0, 0),  scaling_values=(t_scaling, None, None, None), number_of_linear_interpolators=number_of_linear_interpolators, total_overlapping_linear_interpolators=total_overlapping_linear_interpolators, parallel=parallel)
+        super().__init__(data_points, data_values, point_range_size=(t_len, None, None, None), wrap_around_amount=(wrap_around_amount, 0, 0, 0),  scaling_values=(t_scaling, None, None, None), number_of_linear_interpolators=number_of_linear_interpolators, single_overlapping_amount_linear_interpolators=single_overlapping_amount_linear_interpolators, parallel=parallel)
 
         assert len(self._data_points) == len(self._data_values) == len(self._data_indices)
 
@@ -86,8 +86,8 @@ def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_valu
     data_values = data[:, -1]
 
     ## convert point to box indices
-    data_points = lsm_base.coordinates_to_map_indices(data_points, discard_year=True)
-    interpolation_points = lsm_base.coordinates_to_map_indices(interpolation_points, discard_year=True)
+    data_points = lsm_base.coordinates_to_map_indices(data_points, discard_year=True, int_indices=False)
+    interpolation_points = lsm_base.coordinates_to_map_indices(interpolation_points, discard_year=True, int_indices=False)
 
     ## scaling values
     if scaling_values is None:
@@ -107,7 +107,7 @@ def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_valu
         wrap_around_amount = wrap_around_amount + (0,0)
 
     ## create interpolator
-    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=(lsm_base.t_dim, lsm_base.x_dim, lsm_base.y_dim, lsm_base.z_dim), scaling_values=scaling_values, wrap_around_amount=wrap_around_amount, number_of_linear_interpolators=interpolator_setup[1], total_overlapping_linear_interpolators=interpolator_setup[2], parallel=bool(interpolator_setup[3]))
+    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=(lsm_base.t_dim, lsm_base.x_dim, lsm_base.y_dim, lsm_base.z_dim), scaling_values=scaling_values, wrap_around_amount=wrap_around_amount, number_of_linear_interpolators=interpolator_setup[1], single_overlapping_amount_linear_interpolators=interpolator_setup[2], parallel=bool(interpolator_setup[3]))
 
     ## interpolating
     interpolation_data = interpolator.interpolate(interpolation_points)

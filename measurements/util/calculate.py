@@ -6,7 +6,6 @@ def average_over_time(data):
     return averaged_data
 
 
-
 def wrap_around_index(index, index_range):
     if index_range is not None:
         index_range_diff = index_range[1] - index_range[0]
@@ -17,12 +16,10 @@ def wrap_around_index(index, index_range):
     return index
 
 
-
 def normalize_points(points, ranges):
     points = np.asanyarray(points)
     ranges = np.asanyarray(ranges)
     return (points - range[:,0]) / (range[:,1] - range[:,0])
-
 
 
 def get_min_distance(point_1, point_2, t_range=None, x_range=None):
@@ -41,23 +38,3 @@ def get_min_distance(point_1, point_2, t_range=None, x_range=None):
 
     return distance
 
-#
-# def lex_sorted_indices(points, first_index_first=True):
-#     n = points.shape[1]
-#     if first_index_first:
-#         axes = range(n)
-#     else:
-#         axes = range(n-1, -1, -1)
-#
-#     return lex_sorted_indices_by_axes(points, axes)
-#
-#
-# def lex_sorted_indices_by_axes(points, axes):
-#     ## sort measurements
-#     lex_list = []
-#     for i in range(len(axes)-1, -1, -1):
-#         lex_list.append(points[:, axes[i]])
-#     sorted_indices = np.lexsort(lex_list)
-#
-#     return sorted_indices
-#

@@ -4,10 +4,9 @@ import datetime
 from measurements.constants import BASE_DIR
 
 
-DATA_DIR = os.path.join(BASE_DIR, 'dop', 'data')
-CORRELATION_DIR = os.path.join(BASE_DIR, 'dop', 'correlation')
-
 ## data information
+DATA_DIR = os.path.join(BASE_DIR, 'dop', 'data')
+
 LADOLFI_2002_DIR = os.path.join(DATA_DIR, 'Ladolfi2002')
 LADOLFI_2002_MEASUREMENT_FILE = os.path.join(LADOLFI_2002_DIR, 'CD139_DOP_prepared.txt')
 LADOLFI_2002_START_DATE = datetime.date(2002, 3, 1)
@@ -25,9 +24,7 @@ YOSHIMURA_2007_MEASUREMENT_FILE = os.path.join(YOSHIMURA_2007_DIR, 'Yoshimura200
 
 DATA_FILENAME = 'data.npy'
 
-## data cache
-from measurements.constants import MEASUREMENTS_POINTS_FILENAME, MEASUREMENTS_RESULTS_FILENAME, MEASUREMENTS_POINTS_ARE_NEAR_WATER_FILENAME
-
+## sample lsm
 from measurements.po4.wod.constants import SAMPLE_LSM
 
 ## deviation

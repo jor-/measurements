@@ -1,9 +1,9 @@
 import bisect
 import logging
+
 import numpy as np
 
 import util.math.interpolate
-
 
 
 ## convert point to box index (helper functions)
@@ -44,7 +44,6 @@ def get_spatial_float_index(x, y, z, land_sea_mask, z_values_left, x_range=[0, 3
     return (x_index_float, y_index_float, z_index_float)
 
 
-
 def get_temporal_float_index(t, t_dim, t_range=[0, 1]):
     logging.debug('Getting temporal float index for {}.'.format(t))
 
@@ -58,7 +57,6 @@ def get_temporal_float_index(t, t_dim, t_range=[0, 1]):
     logging.debug('Temporal float index for {} is {}.'.format(t, t_index_float))
 
     return t_index_float
-
 
 
 def is_water(spatial_indices, land_sea_mask):
@@ -89,57 +87,6 @@ def is_water(spatial_indices, land_sea_mask):
     return is_water
 
 
-
-# def get_adjacent_water_indices(t, x, y, z, t_dim, land_sea_mask):
-#     logging.debug('Getting adjacent water indices for value {}.'.format((t, x, y, z)))
-#
-#     spatial_float_indices = get_spatial_float_index(x, y, z, land_sea_mask)
-#
-#     ## compute floored and ceiled spatial indices
-#     spatial_indices = ()
-#
-#     for index in spatial_float_indices:
-#         index_floored = math.floor(index)
-#         index_ceiled = math.ceil(index)
-#
-#         if index_floored != index_ceiled:
-#             spatial_indices += ((index_floored, index_ceiled),)
-#         else:
-#             spatial_indices += ((index_floored,),)
-#
-#     ## combine spatial indices with cartesian product
-#     spatial_indices_combined = np.array(tuple(itertools.product(*spatial_indices)))
-#
-#     ## get only water indices
-#     spatial_water_indices = spatial_indices_combined[is_water(spatial_indices_combined, land_sea_mask)]
-#     number_of_spatial_water_indices = spatial_water_indices.shape[0]
-#
-#     logging.debug('Found {} spatial water indices.'.format(number_of_spatial_water_indices))
-#
-#
-#     ## combine water indices with temporal indices
-#     t_index_float =  get_temporal_float_index(t, t_dim)
-#     t_index_floored = math.floor(t_index_float)
-#     t_index_ceiled = math.ceil(t_index_float)
-#     if t_index_floored != t_index_ceiled:
-#         t_indices = (t_index_floored, t_index_ceiled)
-#     else:
-#         t_indices = (t_index_floored, )
-#
-#     water_indices = np.empty((0, 4))
-#
-#     for t_index in t_indices:
-#         t_index_array = np.ones((number_of_spatial_water_indices, 1)) * t_index
-#         water_indices = np.concatenate((water_indices, np.concatenate((t_index_array, spatial_water_indices), axis=1)))
-#
-#     logging.debug('Returning {} water indices.'.format(water_indices.shape[0]))
-#
-#     return water_indices
-
-
-
-
-
 def get_all_water_boxes(land_sea_mask):
     logging.debug('Getting all water boxes.')
 
@@ -164,7 +111,6 @@ def get_all_water_boxes(land_sea_mask):
     return water_boxes
 
 
-
 def get_nearest_water_box(land_sea_mask, x_index, y_index, z_index):
     logging.debug('Getting nearest water box for index {}.'.format((x_index, y_index, z_index)))
 
@@ -176,7 +122,6 @@ def get_nearest_water_box(land_sea_mask, x_index, y_index, z_index):
     assert land_sea_mask[nearest_water_box[0], nearest_water_box[1]] >= nearest_water_box[2]
 
     return nearest_water_box
-
 
 
 def get_nearest_spatial_water_index(x, y, z, land_sea_mask, z_values_left, x_range=[0, 360], y_range=[-90, 90]):
@@ -199,7 +144,6 @@ def get_nearest_spatial_water_index(x, y, z, land_sea_mask, z_values_left, x_ran
     return (x_index, y_index, z_index)
 
 
-
 def get_nearest_temporal_index(t, t_dim, t_range=[0, 1]):
     t_index_float = get_temporal_float_index(t, t_dim, t_range=t_range)
     t_index = np.floor(t_index_float)
@@ -207,7 +151,6 @@ def get_nearest_temporal_index(t, t_dim, t_range=[0, 1]):
     logging.debug('Nearest temporal index for {} is {}.'.format(t, t_index))
 
     return t_index
-
 
 
 def get_nearest_water_index(t, x, y, z, land_sea_mask, z_values_left, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
@@ -219,7 +162,6 @@ def get_nearest_water_index(t, x, y, z, land_sea_mask, z_values_left, t_range=[0
     return (t_index, x_index, y_index, z_index)
 
 
-
 def convert_point_to_box_index(t, x, y, z, land_sea_mask, z_values_left, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
     return get_nearest_water_index(t, x, y, z, land_sea_mask, z_values_left, t_range=t_range, x_range=x_range, y_range=y_range)
 
@@ -228,7 +170,6 @@ def convert_point_to_box_index(t, x, y, z, land_sea_mask, z_values_left, t_range
 
 ## regird
 
-# def measurements_to_land_sea_mask(measurement_data, land_sea_mask, z_values_left, t_dim=12, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
 def measurements_to_land_sea_mask(measurement_data, land_sea_mask, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
     assert measurement_data.ndim == 2
     assert measurement_data.shape[1] in [5, 7]

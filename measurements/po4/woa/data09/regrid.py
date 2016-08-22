@@ -2,7 +2,7 @@ import numpy as np
 import bisect
 import logging
 
-import measurements.land_sea_mask.data
+import measurements.land_sea_mask.lsm
 
 import util.io.np
 import util.io.netcdf
@@ -13,7 +13,7 @@ import util.math.interpolate
 def load_from_netcdf(netcdf_file, netcdf_dataname):
     logging.debug('Loading data from {}.'.format(netcdf_file))
 
-    data = util.io.netcdf.load_with_scipy(netcdf_file, netcdf_dataname)
+    data = util.io.netcdf.load(netcdf_file, netcdf_dataname)
     data = np.swapaxes(data, 1, 3)  # netcdf shape: (12, 15, 64, 128)
 
     return data
@@ -28,7 +28,7 @@ def save():
 
 
     ## concatenate annual and montly WOA data
-    METOS_Z_LEFT = measurements.land_sea_mask.data.LandSeaMaskTMM().z_left
+    METOS_Z_LEFT = measurements.land_sea_mask.lsm.LandSeaMaskTMM().z_left
     
     z_index_annual_threshold = bisect.bisect_right(METOS_Z_LEFT, ANNUAL_THRESHOLD)
     logging.debug('Taking annual data from z index {}.'.format(z_index_annual_threshold))
@@ -75,8 +75,7 @@ def save():
 
     logging.debug('Interpolating variance for {} points.'.format(interpolation_points.shape[0]))
 
-#     interpolator = measurements.util.interpolate.Time_Periodic_Non_Cartesian_Interpolator(data_points, data_values, t_len=nobs.shape[0], x_len=nobs.shape[1], t_scale=False, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, total_overlapping_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR)
-    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=vari.shape, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, total_overlapping_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR)
+    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=vari.shape, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, single_overlapping_amount_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR/VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR)
 
     vari[interpolation_points_indices] = interpolator.interpolate(interpolation_points)
 

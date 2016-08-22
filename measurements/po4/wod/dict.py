@@ -1,12 +1,10 @@
 import os.path
 
-import measurements.util.data
-
-from .constants import DATA_DIR, MEASUREMENTS_DICT_UNSORTED_FILENAME, MEASUREMENTS_DICT_SORTED_FILENAME
-
+import measurements.universal.dict
+import measurements.po4.wod.constants
 
 
-class Measurements(measurements.util.data.Measurements):
+class MeasurementsDict(measurements.universal.dict.MeasurementsDict):
 
     def __init__(self, sorted=False):
         super().__init__(sorted=sorted)
@@ -27,32 +25,31 @@ class Measurements(measurements.util.data.Measurements):
                 self.add_result(index, results[i])
 
 
-    def save(self, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_UNSORTED_FILENAME)):
+    def save(self, file=measurements.po4.wod.constants.MEASUREMENTS_DICT_UNSORTED_FILE):
         super().save(file)
 
-
     @classmethod
-    def load(cls, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_UNSORTED_FILENAME)):
+    def load(cls, file=measurements.po4.wod.constants.MEASUREMENTS_DICT_UNSORTED_FILE):
         return super().load(file)
 
 
 
-class MeasurementsUnsorted(Measurements):
+class MeasurementsUnsortedDict(MeasurementsDict):
 
     def __init__(self):
         super().__init__(sorted=False)
 
 
 
-class MeasurementsSorted(Measurements):
+class MeasurementsSortedDict(MeasurementsDict):
 
     def __init__(self):
         super().__init__(sorted=False)
 
-    def save(self, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_SORTED_FILENAME)):
+    def save(self, file=measurements.po4.wod.constants.MEASUREMENTS_DICT_SORTED_FILE):
         super().save(file)
 
     @classmethod
-    def load(cls, file=os.path.join(DATA_DIR, MEASUREMENTS_DICT_SORTED_FILENAME)):
+    def load(cls, file=measurements.po4.wod.constants.MEASUREMENTS_DICT_SORTED_FILE):
         return super().load(file)
 

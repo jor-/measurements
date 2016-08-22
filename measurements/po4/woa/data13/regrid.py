@@ -4,7 +4,6 @@ import numpy as np
 
 import measurements.po4.woa.data13.load
 import measurements.util.regrid
-# import measurements.util.interpolate
 
 import util.math.interpolate
 
@@ -42,8 +41,7 @@ def measurements_to_land_sea_mask(land_sea_mask, z_values):
 
     logging.debug('Interpolating variance for {} points.'.format(len(interpolation_points)))
 
-#     interpolator = measurements.util.interpolate.Time_Periodic_Non_Cartesian_Interpolator(data_points, data_values, t_len=nobs.shape[0], x_len=nobs.shape[1], t_scale=False, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, total_overlapping_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR)
-    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=variances.shape, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, total_overlapping_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR)
+    interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=variances.shape, wrap_around_amount=VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND, number_of_linear_interpolators=VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, single_overlapping_amount_linear_interpolators=VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR/VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR)
 
     variances[interpolation_points_indices] = interpolator.interpolate(interpolation_points)
 

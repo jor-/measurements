@@ -1,11 +1,11 @@
 from util.logging import Logger
 
 import measurements.po4.wod.data.values
-import measurements.land_sea_mask.data
+import measurements.land_sea_mask.lsm
 import measurements.util.plot
 
 with Logger():
-    lsm = measurements.land_sea_mask.data.LandSeaMaskWOA13R(t_dim=48)
+    lsm = measurements.land_sea_mask.lsm.LandSeaMaskWOA13R(t_dim=48)
     file = '/tmp/wod13_{}_value_histogram_{}_{}.png'.format('{}', lsm, '{}')
     min_measurements = 1000
     step_size = 0.05

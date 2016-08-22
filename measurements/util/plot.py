@@ -5,7 +5,6 @@ import numpy as np
 import util.plot
 
 
-
 def distribution_time(measurement_dict, file='/tmp/distribution_time.png', time_step=1/1., t_min=None, t_max=None, tick_power=None):
     m = measurement_dict
     m.discard_space()
@@ -45,12 +44,12 @@ def distribution_depth(measurement_dict, file='/tmp/distribution_depth.png', z_m
 
 
 def value_histograms(measurement_dict, lsm, file='/tmp/value_histogram_{}.png', min_measurements=1, step_size=0.01):
-    measurement_dict.transform_indices_to_lsm(lsm)
+    measurement_dict.discard_year()
+    measurement_dict.coordinates_to_map_indices(lsm, int_indices=True)
     n = measurement_dict.numbers(min_measurements=min_measurements)
     for i in range(len(n)):
         measurement_index = n[i,:-1]
         util.plot.histogram(measurement_dict[measurement_index], file.format(measurement_index), step_size=step_size)
-
 
 
 def _prepare_filename(file, lsm=None, insertion=None):
@@ -84,7 +83,8 @@ def _plot(data, lsm, file, bins=None, step_size=None, layer=None, v_min=None, v_
 
 def distribution_space(measurement_dict, lsm, file='/tmp/distribution_space.png', layer=None, use_log_scale=True, type='both'):
     ## prepare data
-    measurement_dict.transform_indices_to_lsm(lsm)
+    measurement_dict.discard_year()
+    measurement_dict.coordinates_to_map_indices(lsm, int_indices=True)
     data = measurement_dict.numbers()
     ## set v_min and v_max
     if use_log_scale:
@@ -102,22 +102,28 @@ def distribution_space(measurement_dict, lsm, file='/tmp/distribution_space.png'
     _plot_map(data, lsm, file, layer=layer, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale, colorbar_kwargs=colorbar_kwargs)
     _plot_histogram(data[:,-1], lsm, file, step_size=1, v_min=1, v_max=200, use_log_scale=use_log_scale)
 
+
 def sample_mean(measurement_dict, lsm, file='/tmp/sample_mean.png', v_max=None, layer=None, type='both'):
-    measurement_dict.transform_indices_to_lsm(lsm)
+    measurement_dict.discard_year()
+    measurement_dict.coordinates_to_map_indices(lsm, int_indices=True)
     data = measurement_dict.means()
     _plot_map(data, lsm, file, layer=layer, v_min=0, v_max=v_max)
     _plot_histogram(data[:,-1], lsm, file, step_size=0.1, v_min=0, v_max=4, tick_power=3)
 
+
 def sample_deviation(measurement_dict, lsm, file='/tmp/sample_deviation.png', v_max=None, layer=None, type='both', min_measurements=5):
-    measurement_dict.transform_indices_to_lsm(lsm)
+    measurement_dict.discard_year()
+    measurement_dict.coordinates_to_map_indices(lsm, int_indices=True)
     data = measurement_dict.deviations(min_values=min_measurements)
     _plot_map(data, lsm, file, layer=layer, v_min=0, v_max=v_max)
     _plot_histogram(data[:,-1], lsm, file, step_size=0.05, v_min=0, v_max=2, use_log_scale=True)
 
+
 def normalized_values(measurement_dict, lsm, year, file='/tmp/normalized_values.png', layer=None, type='both', min_measurements=5):
     measurement_dict.normalize_with_lsm(lsm, min_values=min_measurements)
     measurement_dict.filter_year(year)
-    measurement_dict.transform_indices_to_lsm(lsm)
+    measurement_dict.discard_year()
+    measurement_dict.coordinates_to_map_indices(lsm, int_indices=True)
     data = measurement_dict.means()
     _plot_map(data, lsm, file, layer=layer, v_min=-1, v_max=1)
     _plot_histogram(data[:,-1], lsm, file, step_size=0.05, use_log_scale=True)

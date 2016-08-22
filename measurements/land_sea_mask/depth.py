@@ -2,21 +2,7 @@ import numpy as np
 
 DEFAULT_OPTIONS = {'start':50, 'increment_start':20, 'increment_value':10, 'increment_value_max':50, 'increment_step':1}
 
-# def diff(i, start=50, increment_start=20, increment_value=10, increment_value_max=50, increment_step=1):
-# def diff(i, options=DEFAULT_OPTIONS):
-#     i = int(np.floor(i / increment_step))
-#     if i <= 0:
-#         return start
-#     else:
-#         return diff(i-1, start=start, increment_start=increment_start, increment_value=increment_value, increment_value_max=increment_value_max, increment_step=1) + min(increment_start  + (i-1)*increment_value, increment_value_max)
-
 def diff(i, start=50, increment_start=20, increment_value=10, increment_value_max=50, increment_step=1):
-#     ## unpack options
-#     start = options['start']
-#     increment_start = options['increment_start']
-#     increment_value = options['increment_value']
-#     increment_value_max = options['increment_value_max']
-#     increment_step = options['increment_step']
     options = {'start':start, 'increment_start':increment_start, 'increment_value':increment_value, 'increment_value_max':increment_value_max, 'increment_step':increment_step}
 
     ## skip diff with no increase

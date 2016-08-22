@@ -2,7 +2,7 @@ import argparse
 
 import measurements.dop.pw.data
 import measurements.po4.wod.data.values
-import measurements.land_sea_mask.data
+import measurements.land_sea_mask.lsm
 import measurements.util.plot
 
 import util.logging
@@ -52,11 +52,11 @@ if __name__ == "__main__":
                 type = type[6:]
                 lsms = []
                 if type == 'tmm' or type == '':
-                    lsms.append(measurements.land_sea_mask.data.LandSeaMaskTMM())
+                    lsms.append(measurements.land_sea_mask.lsm.LandSeaMaskTMM())
                 if type == 'woa13r' or type == '':
-                    lsms.append(measurements.land_sea_mask.data.LandSeaMaskWOA13R())
+                    lsms.append(measurements.land_sea_mask.lsm.LandSeaMaskWOA13R())
                 if type == 'woa13' or type == '':
-                    lsms.append(measurements.land_sea_mask.data.LandSeaMaskWOA13())
+                    lsms.append(measurements.land_sea_mask.lsm.LandSeaMaskWOA13())
 
                 for lsm in lsms:
                     for t_dim in (12, 4, 1):
