@@ -4,15 +4,17 @@ import os.path
 
 import numpy as np
 
+import util.math.sort
+import util.cache.file_based
+import util.cache.memory_based
+import util.logging
+
 import measurements.universal.data
 import measurements.universal.constants
 import measurements.constants
 import measurements.dop.constants
 import measurements.dop.pw.constants
 
-import util.math.sort
-import util.cache
-import util.logging
 logger = util.logging.logger
 
 

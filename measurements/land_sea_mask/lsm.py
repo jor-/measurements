@@ -3,15 +3,17 @@ import os
 
 import numpy as np
 
+import util.cache.file_based
+import util.cache.memory_based
+import util.petsc.universal
+import util.logging
+
 import measurements.constants
 import measurements.land_sea_mask.depth
 import measurements.land_sea_mask.constants
 
-import util.cache
-import util.petsc.universal
-
-import util.logging
 logger = util.logging.logger
+
 
 
 class LandSeaMask():

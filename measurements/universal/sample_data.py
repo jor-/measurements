@@ -1,14 +1,15 @@
 import numpy as np
 import scipy.sparse
 
+import util.math.util
+import util.cache.file_based
+import util.cache.memory_based
+import util.logging
+
 import measurements.universal.dict
 import measurements.universal.constants
 import measurements.constants
 
-import util.math.util
-import util.cache
-
-import util.logging
 logger = util.logging.logger
 
 

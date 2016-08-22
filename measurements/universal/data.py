@@ -4,15 +4,16 @@ import collections
 import numpy as np
 import scipy.sparse
 
+import util.cache.file_based
+import util.cache.memory_based
+import util.options
+import util.logging
+
 import measurements.universal.dict
 import measurements.universal.interpolate
 import measurements.universal.sample_data
 import measurements.universal.constants
 
-import util.cache
-import util.options
-
-import util.logging
 logger = util.logging.logger
 
 
