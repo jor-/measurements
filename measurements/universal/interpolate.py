@@ -3,8 +3,6 @@ import bisect
 
 import numpy as np
 
-import measurements.util.interpolate
-
 import util.math.interpolate
 import util.math.spherical
 
