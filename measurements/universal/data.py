@@ -834,7 +834,7 @@ class MeasurementsCollection(Measurements):
     def convert_measurements_dict_to_array(self, measurements_dict):
         value_list = [measurements_dict[measurement.tracer][measurement.data_set_name] for measurement in self.measurements]
         return np.concatenate(value_list)
-            
+
 
 
 class MeasurementsCollectionCache(MeasurementsCollection):
