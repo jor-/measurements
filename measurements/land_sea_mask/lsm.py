@@ -146,7 +146,7 @@ class LandSeaMask():
     ## indices
 
     @property
-    @util.cache.memory_based.decorator(dependency='t_dim')
+    @util.cache.memory_based.decorator(dependency='self.t_dim')
     def sea_indices(self):
         sea_indices = np.array(np.where(self.bool_mask)).transpose()
         logger.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
@@ -155,7 +155,7 @@ class LandSeaMask():
 
 
     @property
-    @util.cache.memory_based.decorator(dependency='t_dim')
+    @util.cache.memory_based.decorator(dependency='self.t_dim')
     def sea_coordinates(self):
         sea_coordinates = self.map_indices_to_coordinates(self.sea_indices)
         assert sea_coordinates.ndim == 2
