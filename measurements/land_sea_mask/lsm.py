@@ -227,8 +227,17 @@ class LandSeaMask():
 
         logger.debug('Transforming map indices to box bounds done.')
         return box_bounds
-    
-    
+
+
+    @property
+    @util.cache.memory_based.decorator(dependency='self.t_dim')
+    def number_of_map_indices(self):
+        t_dim = self.t_dim
+        if t_dim is None:
+            t_dim = 1
+        return self.lsm.sum() * self.t_dim
+
+
     ## volume
     
     @staticmethod
