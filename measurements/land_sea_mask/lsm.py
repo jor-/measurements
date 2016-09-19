@@ -27,7 +27,20 @@ class LandSeaMask():
 
         self._t_dim = t_dim
         self.t_centered = t_centered
-        
+
+
+    ## equal
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.dim == other.dim and self.t_centered == other.t_centered and np.all(self.z == other.z) and np.all(self.lsm == other.lsm)
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
 
     ## dims
 
