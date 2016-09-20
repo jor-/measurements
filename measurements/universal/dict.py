@@ -148,16 +148,16 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
     ## transform values
 
-    def normalize(self, same_bounds, min_values=5):
-        logger.debug('Normalizing values with same bounds {} and min measurements {}.'.format(same_bounds, min_values))
+    def normalize(self, same_bounds, min_number_of_values=5):
+        logger.debug('Normalizing values with same bounds {} and min measurements {}.'.format(same_bounds, min_number_of_values))
 
         ## save measurements dict
         value_dict = self.value_dict
 
         ## get means and standard_deviations
         self.categorize_indices(same_bounds, discard_year=True)
-        means = self.means(min_values=min_values, return_type='self_type_unsorted')
-        standard_deviations = self.standard_deviations(min_values=min_values, return_type='self_type_unsorted')
+        means = self.means(min_number_of_values=min_number_of_values, return_type='self_type_unsorted')
+        standard_deviations = self.standard_deviations(min_number_of_values=min_number_of_values, return_type='self_type_unsorted')
 
         ## prepare new measurements dict
         self.clear()
@@ -179,9 +179,9 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                     self.append_value(key, value_normalized)
 
 
-    def normalize_with_lsm(self, lsm, min_values=5):
+    def normalize_with_lsm(self, lsm, min_number_of_values=5):
         same_bounds = (self.year_len/lsm.t_dim, 360/lsm.x_dim, 180/lsm.y_dim, lsm.z)
-        return self.normalize(same_bounds, min_values=min_values)
+        return self.normalize(same_bounds, min_number_of_values=min_number_of_values)
         
 
     ## filter    
@@ -292,12 +292,12 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         return measurements_filtered
 
 
-    def filter_same_points_with_same_function(self, filter_same_point_function, min_values=10):
+    def filter_same_points_with_same_function(self, filter_same_point_function, min_number_of_values=10):
         assert callable(filter_same_point_function)
 
         measurements_filtered = MeasurementsSamePointsDict()
         
-        if min_values < float('inf'):
+        if min_number_of_values < float('inf'):
 
             for (point, results) in self.iterator_keys_and_value_lists():
                 point = list(point)
@@ -310,25 +310,25 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                     same_point_measurements.transform_values(transform_function)
                     same_point_value_list = same_point_measurements.values()
     
-                    if len(same_point_value_list) >= min_values:
+                    if len(same_point_value_list) >= min_number_of_values:
                         logger.debug('{} values with point {} passed filter.'.format(len(same_point_value_list), point))
                         measurements_filtered.extend_value_list(point, same_point_value_list)
 
         return measurements_filtered
 
 
-    def filter_same_points_except_year(self, min_values=10):
-        logger.debug('Filtering results with same indicies with min measurements {}.'.format(min_values))
+    def filter_same_points_except_year(self, min_number_of_values=10):
+        logger.debug('Filtering results with same indicies with min measurements {}.'.format(min_number_of_values))
 
         filter_same_point_function = lambda point: self.filter_same_point_except_year(point)
-        return self.filter_same_points_with_same_function(filter_same_point_function, min_values=min_values)
+        return self.filter_same_points_with_same_function(filter_same_point_function, min_number_of_values=min_number_of_values)
 
 
-    def filter_same_points_with_bounds(self, equal_bounds=(0,0,0,0), discard_year=True, only_one_per_year=True, min_values=10):
-        logger.debug('Filtering results with same indicies with equal bound {}, discard year {} and min measurements {}.'.format(equal_bounds, discard_year, min_values))
+    def filter_same_points_with_bounds(self, equal_bounds=(0,0,0,0), discard_year=True, only_one_per_year=True, min_number_of_values=10):
+        logger.debug('Filtering results with same indicies with equal bound {}, discard year {} and min measurements {}.'.format(equal_bounds, discard_year, min_number_of_values))
 
         filter_same_point_function = lambda point: self.filter_same_point_with_bounds(point, equal_bounds=equal_bounds, discard_year=discard_year, only_one_per_year=only_one_per_year)
-        return self.filter_same_points_with_same_function(filter_same_point_function, min_values=min_values)
+        return self.filter_same_points_with_same_function(filter_same_point_function, min_number_of_values=min_number_of_values)
 
 
     ## lsm related calulations
@@ -654,8 +654,8 @@ class MeasurementsSamePointsDict(MeasurementsDict):
 
     ## compute values
 
-    def correlation_or_covariance(self, value_type, min_values=10, stationary=False, max_year_diff=float('inf')):
-        logger.debug('Calculate {} with at least {} values, stationary {} and max_year_diff {}.'.format(value_type, min_values, stationary, max_year_diff))
+    def correlation_or_covariance(self, value_type, min_number_of_values=10, stationary=False, max_year_diff=float('inf')):
+        logger.debug('Calculate {} with at least {} values, stationary {} and max_year_diff {}.'.format(value_type, min_number_of_values, stationary, max_year_diff))
 
         ## check value type
         POSSIBLE_VALUE_TYPES = ('correlation', 'covariance')
@@ -717,7 +717,7 @@ class MeasurementsSamePointsDict(MeasurementsDict):
     
     
                             ## if enough measurements
-                            if n >= min_values:
+                            if n >= min_number_of_values:
     
                                 ## calculate auxiliary values
                                 x0 = matching_results[:,0]
@@ -762,12 +762,12 @@ class MeasurementsSamePointsDict(MeasurementsDict):
         return value_measurements
 
 
-    def correlation(self, min_values=10, stationary=False):
-        return self.correlation_or_covariance('correlation', min_values=min_values, stationary=stationary)
+    def correlation(self, min_number_of_values=10, stationary=False):
+        return self.correlation_or_covariance('correlation', min_number_of_values=min_number_of_values, stationary=stationary)
 
 
-    def covariance(self, min_values=10, stationary=False):
-        return self.correlation_or_covariance('covariance', min_values=min_values, stationary=stationary)
+    def covariance(self, min_number_of_values=10, stationary=False):
+        return self.correlation_or_covariance('covariance', min_number_of_values=min_number_of_values, stationary=stationary)
 
 
 
