@@ -301,7 +301,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         try:
             return self.constant_fill_values[kind]
         except KeyError:
-            raise ValueError('Const fill value is not set for kind {}.'.format(kind))
+            raise ValueError('Constant fill value is not set for kind {}.'.format(kind))
     
     def set_constant_fill_value(self, kind, value):
         self.constant_fill_values[self._check_kind(kind)] = value
