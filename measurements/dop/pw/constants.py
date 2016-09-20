@@ -28,7 +28,8 @@ DATA_FILENAME = 'data.npy'
 from measurements.po4.wod.constants import SAMPLE_LSM
 
 ## deviation
-DEVIATION_CONCENTRATION_NOISE_RATIO = 1.48
+DEVIATION_MIN_VALUE = 0.05
+DEVIATION_CONCENTRATION_NOISE_RATIO = 1.5
 
 
 
