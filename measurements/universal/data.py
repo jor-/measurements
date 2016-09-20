@@ -916,6 +916,71 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
 
 
 
+## union
+
+class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
+    
+    def __init__(self, *measurements_list):
+        logger.debug('Initiating {} with measurements {}.'.format(self.__class__.__name__, measurements_list))
+        
+        if len(measurements_list) == 0:
+            raise ValueError('{} must be initiated with at least one measurement object.'.format(self.__class__.__name__))
+        
+        ## sort
+        measurements_list = sorted(measurements_list, key=lambda measurement: measurement.data_set_name)
+        
+        ## check same tracer and data set name
+        n = len(measurements_list)
+        for i in range(n-1):
+            if measurements_list[i].tracer != measurements_list[i+1].tracer:
+                raise ValueError('Measurements objects with different tracers ({} and {}) are not allowed!'.format(measurements_list[i].tracer, measurements_list[i+1].tracer))
+            if measurements_list[i].data_set_name == measurements_list[i+1].data_set_name:
+                raise ValueError('Measurements objects with same tracer ({}) and same data set name ({}) are not allowed!'.format(measurements_list[i].tracer, measurements_list[i].data_set_name))
+            if measurements_list[i].sample_lsm != measurements_list[i+1].sample_lsm:
+                raise ValueError('Measurements objects with different sample lsm ({} and {}) are not allowed!'.format(measurements_list[i].sample_lsm, measurements_list[i+1].sample_lsm))
+
+        ## store
+        self.measurements = measurements_list
+        
+        ## chose values for union
+        sample_lsm = measurements_list[0].sample_lsm
+        tracer = measurements_list[0].tracer
+        data_set_name = ','.join(map(lambda measurement: measurement.data_set_name, measurements_list))
+        
+        min_standard_deviation = min(map(lambda measurement: measurement.min_standard_deviation, measurements_list))
+        min_abs_correlation = min(map(lambda measurement: measurement.min_abs_correlation, measurements_list))
+        max_abs_correlation = max(map(lambda measurement: measurement.max_abs_correlation, measurements_list))
+        min_measurements_means = min(map(lambda measurement: measurement.min_measurements_means, measurements_list))
+        min_measurements_standard_deviations = min(map(lambda measurement: measurement.min_measurements_standard_deviations, measurements_list))
+        min_measurements_correlations = min(map(lambda measurement: measurement.min_measurements_correlations, measurements_list))
+        
+        ## call super init
+        super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_standard_deviation=min_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_means=min_measurements_means, min_measurements_standard_deviations=min_measurements_standard_deviations, min_measurements_correlations=min_measurements_correlations)
+        
+    
+    @property
+    @overrides.overrides
+    def points(self):
+        return np.concatenate(tuple(map(lambda measurement: measurement.points, self.measurements)), axis=0)
+    
+    @property
+    @overrides.overrides
+    def values(self):
+        return np.concatenate(tuple(map(lambda measurement: measurement.values, self.measurements)))
+
+    @property
+    @overrides.overrides
+    def number_of_measurements(self):
+        return sum(map(lambda measurement: measurement.number_of_measurements, self.measurements))
+
+
+
+class MeasurementsAnnualPeriodicUnionCache(MeasurementsAnnualPeriodicUnion, MeasurementsAnnualPeriodicCache):
+    pass
+        
+
+
+
 ## collection
 
 class MeasurementsCollection(Measurements):
