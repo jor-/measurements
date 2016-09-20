@@ -1,3 +1,5 @@
+import overrides
+
 import util.cache.file_based
 import util.cache.memory_based
 
@@ -10,7 +12,7 @@ import measurements.po4.wod.constants
 
 
 
-class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicFillInterpolationCache):
+class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
     
     def __init__(self, sample_t_dim=measurements.po4.wod.constants.SAMPLE_T_DIM, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
         
@@ -21,11 +23,33 @@ class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicFillInt
         sample_lsm.t_dim = sample_t_dim
         min_deviation = measurements.po4.constants.DEVIATION_MIN_VALUE
         
-        mean_interpolator_setup = measurements.po4.wod.constants.INTERPOLATOR_SETUPS['mean']['concentration'][measurements.constants.MEAN_MIN_MEASUREMENTS][str(sample_lsm)]
-        concentation_deviation_interpolator_setup = measurements.po4.wod.constants.INTERPOLATOR_SETUPS['deviation']['concentration'][measurements.constants.DEVIATION_MIN_MEASUREMENTS][str(sample_lsm)]
-        average_noise_deviation_interpolator_setup = measurements.po4.wod.constants.INTERPOLATOR_SETUPS['deviation']['average_noise'][measurements.constants.DEVIATION_MIN_MEASUREMENTS][str(sample_lsm)]
+        super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_standard_deviation=min_deviation, min_measurements_correlations=min_measurements_correlations)
         
-        super().__init__(mean_interpolator_setup, concentation_deviation_interpolator_setup, average_noise_deviation_interpolator_setup, sample_lsm, tracer=tracer, data_set_name=data_set_name, min_deviation=min_deviation, min_measurements_correlations=min_measurements_correlations)
+        self.fill_strategy = 'interpolate'
+        
+        try:
+            INTERPOLATOR_OPTIONS = measurements.po4.wod.constants.INTERPOLATOR_OPTIONS
+        except AttributeError:
+            pass
+        else:
+            try:
+                interpolator_option = INTERPOLATOR_OPTIONS['mean']['concentration'][measurements.constants.MEAN_MIN_MEASUREMENTS][str(sample_lsm)]
+            except KeyError:
+                pass
+            else:
+                self.set_interpolator_options('concentration_means', interpolator_option)
+            try:
+                interpolator_option = INTERPOLATOR_OPTIONS['deviation']['concentration'][measurements.constants.DEVIATION_MIN_MEASUREMENTS][str(sample_lsm)]
+            except KeyError:
+                pass
+            else:
+                self.set_interpolator_options('concentration_standard_deviations', interpolator_option)
+            try:
+                interpolator_option = INTERPOLATOR_OPTIONS['deviation']['average_noise'][measurements.constants.DEVIATION_MIN_MEASUREMENTS][str(sample_lsm)]
+            except KeyError:
+                pass
+            else:
+                self.set_interpolator_options('average_noise_standard_deviations', interpolator_option)
 
     
     def __str__(self):
@@ -38,12 +62,14 @@ class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicFillInt
     @property
     @util.cache.memory_based.decorator()
     @util.cache.file_based.decorator()
+    @overrides.overrides
     def points(self):
         return measurements.po4.wod.values.points()
 
     @property
     @util.cache.memory_based.decorator()
     @util.cache.file_based.decorator()
+    @overrides.overrides
     def values(self):
         return measurements.po4.wod.values.results()
 
