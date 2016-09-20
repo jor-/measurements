@@ -215,6 +215,40 @@ class MeasurementsYoshimura2007(MeasurementsBase):
         super().__init__('yoshimura_2007', load_yoshimura_2007, min_measurements_correlations=min_measurements_correlations)
 
 
+class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicUnionCache):
+    
+    def __init__(self, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        measurement_list = [ measurement_class(min_measurements_correlations=min_measurements_correlations) for measurement_class in [MeasurementsLadolfi2002, MeasurementsLadolfi2004, MeasurementsYoshimura2007] ]
+        super().__init__(*measurement_list)
+
+        self.standard_deviation_concentration_noise_ratio = measurements.dop.pw.constants.DEVIATION_CONCENTRATION_NOISE_RATIO
+    
+    
+    ## standard_deviation_concentration_noise_ratio 
+    
+    @property
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations'))
+    @util.cache.file_based.decorator()
+    @overrides.overrides
+    def concentation_standard_deviations_for_sample_lsm(self):
+        return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations_for_sample_lsm
+    
+    @property
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations'))
+    @util.cache.file_based.decorator()
+    @overrides.overrides
+    def concentration_standard_deviations(self):
+        return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations
+    
+
+    def _fill_strategy_for_kind(self, kind):
+        if kind == 'concentration_standard_deviations':
+            fill_strategy = self._fill_strategy_for_kind('average_noise_standard_deviations') + '_concentration_noise_ratio_{:g}'.format(self.standard_deviation_concentration_noise_ratio)
+        else:
+            fill_strategy = super()._fill_strategy_for_kind(kind)
+        return fill_strategy
+
+
 
 class MeasurementsNearWaterLadolfi2002(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
     
@@ -235,4 +269,11 @@ class MeasurementsNearWaterYoshimura2007(measurements.universal.data.Measurement
     def __init__(self, water_lsm=None, max_box_distance_to_water=0, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
         measurements = MeasurementsYoshimura2007(min_measurements_correlations=min_measurements_correlations)
         super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+
+
+class MeasurementsNearWater(measurements.universal.data.MeasurementsAnnualPeriodicUnionCache):
+    
+    def __init__(self, water_lsm=None, max_box_distance_to_water=0, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+        measurement_list = [ measurement_class(water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water, min_measurements_correlations=min_measurements_correlations) for measurement_class in [MeasurementsNearWaterLadolfi2002, MeasurementsNearWaterLadolfi2004, MeasurementsNearWaterYoshimura2007] ]
+        super().__init__(*measurement_list)
 
