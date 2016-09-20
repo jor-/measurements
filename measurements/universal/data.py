@@ -124,9 +124,9 @@ class Measurements():
 
 class MeasurementsAnnualPeriodicBase(Measurements):
     
-    def __init__(self, sample_lsm, *args, min_standard_deviation=np.finfo(np.float).resolution, min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE, max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE, min_measurements_means=measurements.universal.constants.MEAN_MIN_MEASUREMENTS, min_measurements_standard_deviations=measurements.universal.constants.DEVIATION_MIN_MEASUREMENTS, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS, **kargs):
+    def __init__(self, sample_lsm, tracer=None, data_set_name=None, min_standard_deviation=np.finfo(np.float).resolution, min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE, max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE, min_measurements_means=measurements.universal.constants.MEAN_MIN_MEASUREMENTS, min_measurements_standard_deviations=measurements.universal.constants.DEVIATION_MIN_MEASUREMENTS, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
         
-        super().__init__(*args, **kargs)
+        super().__init__(tracer=tracer, data_set_name=data_set_name)
         
         self._sample_lsm = sample_lsm
         
@@ -740,7 +740,7 @@ class MeasurementsNearWater(Measurements):
         tracer = self.base_measurements.tracer
         data_set_name = measurements.universal.constants.NEAR_WATER_DATA_SET_NAME.format(base_data_set_name=self.base_measurements.data_set_name, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
         
-        super().__init__(tracer=tracer, data_set_name=data_set_name)
+        Measurements.__init__(self, tracer=tracer, data_set_name=data_set_name)
     
     
     ## projection methods
@@ -801,7 +801,7 @@ class MeasurementsNearWater(Measurements):
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
     
     def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=0):
-        MeasurementsAnnualPeriodicBase.__init__(self.base_measurements.sample_lsm, min_standard_deviation=self.base_measurements.min_standard_deviation, min_abs_correlation=self.base_measurements.min_abs_correlation, max_abs_correlation=self.base_measurements.max_abs_correlation, min_measurements_means=self.base_measurements.min_measurements_means, min_measurements_standard_deviations=self.base_measurements.min_measurements_standard_deviations, min_measurements_correlations=self.base_measurements.min_measurements_correlations)
+        MeasurementsAnnualPeriodicBase.__init__(self, base_measurements.sample_lsm, min_standard_deviation=base_measurements.min_standard_deviation, min_abs_correlation=base_measurements.min_abs_correlation, max_abs_correlation=base_measurements.max_abs_correlation, min_measurements_means=base_measurements.min_measurements_means, min_measurements_standard_deviations=base_measurements.min_measurements_standard_deviations, min_measurements_correlations=base_measurements.min_measurements_correlations)
         super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
     
     
@@ -834,10 +834,6 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
 
 
 class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, MeasurementsAnnualPeriodicNearWater):
-    
-    def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=0):
-        super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
-    
     
     ## cacheable properties
     
