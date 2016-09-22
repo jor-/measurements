@@ -78,7 +78,7 @@ def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_valu
     logger.debug('Interpolating periodic data with coordinates for lsm {} with scaling_values {} and interpolator_options {}.'.format(lsm_base, scaling_values, interpolator_options))
     
     ## convert coordinates to map indices
-    data = np.asarray(data, copy=True)
+    data = np.array(data, copy=True)
     data[:, :-1] = lsm_base.coordinates_to_map_indices(data[:, :-1], discard_year=True, int_indices=False)
     interpolation_points = lsm_base.coordinates_to_map_indices(interpolation_points, discard_year=True, int_indices=False)
 
@@ -179,7 +179,7 @@ class Interpolator_Annual_Periodic:
 
     def interpolate_data_for_sample_lsm_with_coordinates(self, data, interpolator_options=None):
         logger.debug('Interpolating data with coordinates for lsm {} with interpolator_options {}.'.format(self.sample_lsm, interpolator_options))
-        data = np.asarray(data, copy=True)
+        data = np.array(data, copy=True)
         data[:, :-1] = lsm_base.coordinates_to_map_indices(data[:, :-1], discard_year=True, int_indices=False)
         return self.interpolate_data_for_sample_lsm_with_map_indices(data, self.sample_lsm, interpolator_options=interpolator_options)
 
