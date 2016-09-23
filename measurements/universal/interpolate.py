@@ -157,7 +157,7 @@ class Interpolator_Annual_Periodic:
     def scaling_values(self, scaling_values):
         if scaling_values is None:
             scaling_values = default_scaling_values(self.sample_lsm)
-        self._scaling_value = scaling_values
+        self._scaling_values = scaling_values
     
 
     def interpolate_data_for_lsm(self, data, lsm, interpolator_options=None):
