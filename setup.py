@@ -61,7 +61,6 @@ setuptools.setup(
 
         # Supported Python versions
         'Programming Language :: Python :: 3',
-        #'Programming Language :: Python :: 3.5',scikits
     ],
 
 
@@ -77,7 +76,7 @@ setuptools.setup(
     install_requires=[
         'numpy',
         'scipy',
-        'overrides'
+        'overrides',
         'utillib[cache,options,interpolate,cholmod]',
     ],
     extras_require={
