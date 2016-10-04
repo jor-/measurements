@@ -8,12 +8,28 @@ What is this?
 This is a collection of Python modules containing functions to handel measurements.
 
 
+Installation
+------------
+
+This package can be installed using pip (recommended way):
+
+    ``pip3 install measurements``
+
+or by downloading and running:
+
+    ``python3 setup.py install``
+
+
 Web sites
 ---------
 
-The user's site is:
+The source code of this package is hosted on:
 
     https://github.com/jor-/measurements
+
+A Python wheel is available on:
+    
+    https://pypi.python.org/pypi/measurements
 
 
 Author
@@ -25,7 +41,7 @@ Joscha Reimer
 
 
 Copyright
--------
+---------
 
 Copyright (C) 2011-2016  Joscha Reimer jor@informatik.uni-kiel.de
 
