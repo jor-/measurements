@@ -374,7 +374,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         elif kind == 'concentration_standard_deviations':
             data_map_indices_dict = self._sample_mean_and_deviation.sample_concentration_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviations, min_value=0)
         elif kind == 'average_noise_standard_deviations':
-            data_map_indices_dict = self._sample_mean_and_deviation.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviations, min_value=0)
+            data_map_indices_dict = self._sample_mean_and_deviation.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviations, min_value=self.min_standard_deviation)
         else:
             raise ValueError('Unknown kind {}.'.format(kind))
         return data_map_indices_dict
