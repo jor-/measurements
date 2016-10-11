@@ -279,7 +279,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         if value in self.POSSIBLE_FILL_STRATEGIES:
             self._fill_strategy = value
         else:
-            raise ValueError('Fill strategy {} is unknown. Only fill startegies {} are supported.'.formta(value, self.POSSIBLE_FILL_STRATEGIES))
+            raise ValueError('Fill strategy {} is unknown. Only fill strategies {} are supported.'.format(value, self.POSSIBLE_FILL_STRATEGIES))
         
     
     def _check_kind(self, kind):
@@ -536,7 +536,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
             elif concentration_fill_strategy.startswith('interpolate') and average_noise_fill_strategy.startswith('interpolate'):
                 interpolator_options = '+'.join([','.join(map(str, self.get_interpolator_options(kind))) for kind in ('concentration_standard_deviations', 'average_noise_standard_deviations')])
                 fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(scaling_values=','.join(map(str, self.interpolator_scaling_values)), interpolator_options=interpolator_options)
-            ## if different startegies, append both strategies
+            ## if different strategies, append both strategies
             else:
                 fill_strategy = concentration_fill_strategy + '_+_' + average_noise_fill_strategy
         ## else, get used fill strategy
@@ -936,7 +936,7 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
                 raise ValueError('Measurements objects with different sample lsm ({} and {}) are not allowed!'.format(measurements_list[i].sample_lsm, measurements_list[i+1].sample_lsm))
 
         ## store
-        self.measurements = measurements_list
+        self.measurements_list = measurements_list
         
         ## chose values for union
         sample_lsm = measurements_list[0].sample_lsm
@@ -957,17 +957,17 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
     @property
     @overrides.overrides
     def points(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.points, self.measurements)), axis=0)
+        return np.concatenate(tuple(map(lambda measurement: measurement.points, self.measurements_list)), axis=0)
     
     @property
     @overrides.overrides
     def values(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.values, self.measurements)))
+        return np.concatenate(tuple(map(lambda measurement: measurement.values, self.measurements_list)))
 
     @property
     @overrides.overrides
     def number_of_measurements(self):
-        return sum(map(lambda measurement: measurement.number_of_measurements, self.measurements))
+        return sum(map(lambda measurement: measurement.number_of_measurements, self.measurements_list))
 
 
 
@@ -995,7 +995,7 @@ class MeasurementsCollection(Measurements):
                 raise ValueError('There is more then one measurements object with tracer {} and data set name {}!'.format(measurements_list[i].tracer, measurements_list[i].data_set_name))
 
         ## store
-        self.measurements = measurements_list
+        self.measurements_list = measurements_list
         
         ## make tracer and data set name for collection
         tracer = ','.join(map(lambda measurement: measurement.tracer, measurements_list))
@@ -1012,50 +1012,50 @@ class MeasurementsCollection(Measurements):
     
     
     def __str__(self):
-        return ','.join(map(str, self.measurements))
+        return ','.join(map(str, self.measurements_list))
     
     
     def __iter__(self):
-        return self.measurements.__iter__()
+        return self.measurements_list.__iter__()
     
     
     @property
     @overrides.overrides
     def points(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.points, self.measurements)), axis=0)
+        return np.concatenate(tuple(map(lambda measurement: measurement.points, self.measurements_list)), axis=0)
     
     @property
     @overrides.overrides
     def values(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.values, self.measurements)))
+        return np.concatenate(tuple(map(lambda measurement: measurement.values, self.measurements_list)))
     
 
     @property
     @overrides.overrides
     def number_of_measurements(self):
-        return sum(map(lambda measurement: measurement.number_of_measurements, self.measurements))
+        return sum(map(lambda measurement: measurement.number_of_measurements, self.measurements_list))
     
     @property
     @overrides.overrides
     def means(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.means, self.measurements)))  
+        return np.concatenate(tuple(map(lambda measurement: measurement.means, self.measurements_list)))  
 
     @property
     @overrides.overrides
     def standard_deviations(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.standard_deviations, self.measurements)))
+        return np.concatenate(tuple(map(lambda measurement: measurement.standard_deviations, self.measurements_list)))
     
     
     @property
     def correlations_own_sample_matrix(self):
-        n = len(self.measurements)
+        n = len(self.measurements_list)
         correlations = np.array([n,n], dtype=object)
         
         for i in range(n):
-            measurements_i = self.measurements[i]
+            measurements_i = self.measurements_list[i]
             correlations[i, i] = measurements_i.correlations()
             for j in range(i+1, n):
-                measurements_j = self.measurements[j]
+                measurements_j = self.measurements_list[j]
                 correlations[i, j] = measurements_i.correlations(measurements_j)
                 correlations[j, i] = correlations[i, j].T
         
@@ -1085,7 +1085,7 @@ class MeasurementsCollection(Measurements):
         
         results = {}
         
-        for measurement in self.measurements:
+        for measurement in self.measurements_list:
             tracer = measurement.tracer
             data_set_name = measurement.data_set_name
             
@@ -1105,8 +1105,9 @@ class MeasurementsCollection(Measurements):
     
     
     def convert_measurements_dict_to_array(self, measurements_dict):
-        value_list = [measurements_dict[measurement.tracer][measurement.data_set_name] for measurement in self.measurements]
+        value_list = [measurements_dict[measurement.tracer][measurement.data_set_name] for measurement in self.measurements_list]
         return np.concatenate(value_list)
+        
 
 
 
@@ -1162,16 +1163,16 @@ class MeasurementsCollectionCache(MeasurementsCollection):
     
 
     def reduction_factors_cache_file(self):
-        return self._merge_files([measurement.reduction_factors_cache_file for measurement in self.measurements])
+        return self._merge_files([measurement.reduction_factors_cache_file for measurement in self.measurements_list])
 
     def correlations_own_cache_file(self):
-        return self._merge_files([measurement.correlations_own_cache_file for measurement in self.measurements])
+        return self._merge_files([measurement.correlations_own_cache_file for measurement in self.measurements_list])
 
     def _correlations_own_cholesky_decomposition_P_cache_file(self):
-        return self._merge_files([measurement._correlations_own_cholesky_decomposition_P_cache_file for measurement in self.measurements])
+        return self._merge_files([measurement._correlations_own_cholesky_decomposition_P_cache_file for measurement in self.measurements_list])
 
     def _correlations_own_cholesky_decomposition_L_cache_file(self):
-        return self._merge_files([measurement._correlations_own_cholesky_decomposition_L_cache_file for measurement in self.measurements])
+        return self._merge_files([measurement._correlations_own_cholesky_decomposition_L_cache_file for measurement in self.measurements_list])
 
 
 
