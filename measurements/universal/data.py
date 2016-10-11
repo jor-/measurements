@@ -1107,6 +1107,12 @@ class MeasurementsCollection(Measurements):
     def convert_measurements_dict_to_array(self, measurements_dict):
         value_list = [measurements_dict[measurement.tracer][measurement.data_set_name] for measurement in self.measurements_list]
         return np.concatenate(value_list)
+    
+    
+    def subset(self, tracers):
+        measurements_list = [measurement for measurement in self.measurements_list if measurement.tracer in tracers]
+        subset = type(self)(*measurements_list)
+        return subset
         
 
 
