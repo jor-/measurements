@@ -27,6 +27,13 @@ class MeasurementsDict(util.multi_dict.MultiDict):
             return self._year_len
         except AttributeError:
             return 1
+    
+    
+    ## str
+
+    def __str__(self):
+        name = '{name} with {number} measurements'.format(name=self.__class__.__name__, number=len(self))
+        return name
 
 
     ## create
