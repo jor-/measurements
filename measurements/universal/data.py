@@ -124,18 +124,18 @@ class Measurements():
 
 class MeasurementsAnnualPeriodicBase(Measurements):
     
-    def __init__(self, sample_lsm, tracer=None, data_set_name=None, min_standard_deviation=np.finfo(np.float).resolution, min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE, max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE, min_measurements_means=measurements.universal.constants.MEAN_MIN_MEASUREMENTS, min_measurements_standard_deviations=measurements.universal.constants.DEVIATION_MIN_MEASUREMENTS, min_measurements_correlations=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+    def __init__(self, sample_lsm, tracer=None, data_set_name=None, min_standard_deviation=np.finfo(np.float).resolution, min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE, max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE, min_measurements_mean=measurements.universal.constants.MEAN_MIN_MEASUREMENTS, min_measurements_standard_deviation=measurements.universal.constants.DEVIATION_MIN_MEASUREMENTS, min_measurements_correlation=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
         
         super().__init__(tracer=tracer, data_set_name=data_set_name)
         
         self._sample_lsm = sample_lsm
         
-        self.min_measurements_means = min_measurements_means
+        self.min_measurements_mean = min_measurements_mean
         
-        self.min_measurements_standard_deviations = min_measurements_standard_deviations
+        self.min_measurements_standard_deviation = min_measurements_standard_deviation
         self.min_standard_deviation = min_standard_deviation
         
-        self.min_measurements_correlations = min_measurements_correlations
+        self.min_measurements_correlation = min_measurements_correlation
         self.min_abs_correlation = min_abs_correlation
         self.max_abs_correlation = max_abs_correlation
 
@@ -162,7 +162,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     
     @property
     def sample_means(self):
-        return self._sample_mean_and_deviation.sample_concentration_means(min_measurements=self.min_measurements_means)
+        return self._sample_mean_and_deviation.sample_concentration_means(min_measurements=self.min_measurements_mean)
 
     @property
     @overrides.overrides
@@ -178,7 +178,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     
     @property
     def sample_concentration_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_concentration_standard_deviations(min_measurements=self.min_measurements_standard_deviations, min_value=0)
+        return self._sample_mean_and_deviation.sample_concentration_standard_deviations(min_measurements=self.min_measurements_standard_deviation, min_value=0)
 
     @property
     def concentration_standard_deviations(self):
@@ -191,7 +191,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_average_noise_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_average_noise_standard_deviations(min_measurements=self.min_measurements_standard_deviations, min_value=self.min_standard_deviation)
+        return self._sample_mean_and_deviation.sample_average_noise_standard_deviations(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
 
     @property
     def average_noise_standard_deviations(self):
@@ -204,7 +204,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_noise_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_noise_standard_deviations(min_measurements=self.min_measurements_standard_deviations, min_value=self.min_standard_deviation)
+        return self._sample_mean_and_deviation.sample_noise_standard_deviations(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
 
     @property
     def noise_standard_deviations(self):
@@ -225,9 +225,9 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     ## correlation
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.min_measurements_correlations', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory_based.decorator(dependency=('self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     def _sample_correlation(self):
-        return measurements.universal.sample_data.SampleCorrelationMatrix(self, self.sample_lsm, self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
+        return measurements.universal.sample_data.SampleCorrelationMatrix(self, self.sample_lsm, self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
     
 
     @property
@@ -370,11 +370,11 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     
     def _data_map_indices_dict(self, kind):
         if kind == 'concentration_means':        
-            data_map_indices_dict = self._sample_mean_and_deviation.sample_concentration_means_map_indices_dict(min_measurements=self.min_measurements_means)
+            data_map_indices_dict = self._sample_mean_and_deviation.sample_concentration_means_map_indices_dict(min_measurements=self.min_measurements_mean)
         elif kind == 'concentration_standard_deviations':
-            data_map_indices_dict = self._sample_mean_and_deviation.sample_concentration_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviations, min_value=0)
+            data_map_indices_dict = self._sample_mean_and_deviation.sample_concentration_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=0)
         elif kind == 'average_noise_standard_deviations':
-            data_map_indices_dict = self._sample_mean_and_deviation.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviations, min_value=self.min_standard_deviation)
+            data_map_indices_dict = self._sample_mean_and_deviation.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
         else:
             raise ValueError('Unknown kind {}.'.format(kind))
         return data_map_indices_dict
@@ -555,11 +555,11 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     def _mean_cache_file(self, target):
         fill_strategy=self._fill_strategy_str('concentration_means')
-        return measurements.universal.constants.MEAN_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_means, fill_strategy=fill_strategy, target=target)   
+        return measurements.universal.constants.MEAN_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_mean, fill_strategy=fill_strategy, target=target)   
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_means'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_mean'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def means(self):
@@ -570,7 +570,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_means'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_mean'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def means_for_sample_lsm(self):
@@ -588,11 +588,11 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
             min_standard_deviation = 0
         else:
             min_standard_deviation = self.min_standard_deviation
-        return measurements.universal.constants.DEVIATION_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_standard_deviations, min_standard_deviation=min_standard_deviation, deviation_type=deviation_type, fill_strategy=fill_strategy, target=target)
+        return measurements.universal.constants.DEVIATION_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=min_standard_deviation, deviation_type=deviation_type, fill_strategy=fill_strategy, target=target)
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def concentration_standard_deviations(self):
@@ -602,7 +602,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._standard_deviations_cache_file('concentration_standard_deviations', 'sample_points')
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def concentation_standard_deviations_for_sample_lsm(self):
@@ -613,7 +613,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def average_noise_standard_deviations(self):
@@ -623,7 +623,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._standard_deviations_cache_file('average_noise_standard_deviations', 'sample_points')    
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def average_noise_standard_deviations_for_sample_lsm(self):
@@ -634,7 +634,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
 
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def noise_standard_deviations(self):
@@ -645,7 +645,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def standard_deviations(self):
@@ -655,7 +655,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._standard_deviations_cache_file('standard_deviations', 'sample_points')
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def standard_deviations_for_sample_lsm(self):
@@ -670,10 +670,10 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     @property
     @overrides.overrides
     def _sample_correlation(self):
-        return measurements.universal.sample_data.SampleCorrelationMatrixCache(self, self.sample_lsm, self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
+        return measurements.universal.sample_data.SampleCorrelationMatrixCache(self, self.sample_lsm, self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation', 'self.min_measurements_correlations', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     @util.cache.file_based.decorator()
     @overrides.overrides
     def correlations_own(self):
@@ -683,15 +683,15 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     def correlations_own_cache_file(self):
         standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
-        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation)
+        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation)
     
     def reduction_factors_cache_file(self):
         standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
-        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description) 
+        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description) 
 
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation', 'self.min_measurements_correlations', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     def _correlations_own_cholesky_decomposition(self):
         return super().correlations_own_cholesky_decomposition
     
@@ -701,8 +701,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._correlations_own_cholesky_decomposition['P']
     
     def _correlations_own_cholesky_decomposition_P_cache_file(self):
-        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviations, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
-        return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILENAME.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=np.int8, matrix_format=self.matrix_format_correlation, factor_type='P')
+        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
+        return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILENAME.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=np.int8, matrix_format=self.matrix_format_correlation, factor_type='P')
     
     @property
     @util.cache.file_based.decorator()
@@ -710,12 +710,12 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._correlations_own_cholesky_decomposition['L']
     
     def _correlations_own_cholesky_decomposition_L_cache_file(self):
-        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviations, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
-        return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILENAME.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation, factor_type='L')
+        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
+        return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILENAME.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation, factor_type='L')
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviations', 'self.min_standard_deviation', 'self.min_measurements_correlations', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     @overrides.overrides
     def correlations_own_cholesky_decomposition(self):
         return {'P': self._correlations_own_cholesky_decomposition_P, 'L': self._correlations_own_cholesky_decomposition_L}
@@ -801,7 +801,7 @@ class MeasurementsNearWater(Measurements):
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
     
     def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=0):
-        MeasurementsAnnualPeriodicBase.__init__(self, base_measurements.sample_lsm, min_standard_deviation=base_measurements.min_standard_deviation, min_abs_correlation=base_measurements.min_abs_correlation, max_abs_correlation=base_measurements.max_abs_correlation, min_measurements_means=base_measurements.min_measurements_means, min_measurements_standard_deviations=base_measurements.min_measurements_standard_deviations, min_measurements_correlations=base_measurements.min_measurements_correlations)
+        MeasurementsAnnualPeriodicBase.__init__(self, base_measurements.sample_lsm, min_standard_deviation=base_measurements.min_standard_deviation, min_abs_correlation=base_measurements.min_abs_correlation, max_abs_correlation=base_measurements.max_abs_correlation, min_measurements_mean=base_measurements.min_measurements_mean, min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation, min_measurements_correlation=base_measurements.min_measurements_correlation)
         super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
     
     
@@ -946,12 +946,12 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
         min_standard_deviation = min(map(lambda measurement: measurement.min_standard_deviation, measurements_list))
         min_abs_correlation = min(map(lambda measurement: measurement.min_abs_correlation, measurements_list))
         max_abs_correlation = max(map(lambda measurement: measurement.max_abs_correlation, measurements_list))
-        min_measurements_means = min(map(lambda measurement: measurement.min_measurements_means, measurements_list))
-        min_measurements_standard_deviations = min(map(lambda measurement: measurement.min_measurements_standard_deviations, measurements_list))
-        min_measurements_correlations = min(map(lambda measurement: measurement.min_measurements_correlations, measurements_list))
+        min_measurements_mean = min(map(lambda measurement: measurement.min_measurements_mean, measurements_list))
+        min_measurements_standard_deviation = min(map(lambda measurement: measurement.min_measurements_standard_deviation, measurements_list))
+        min_measurements_correlation = min(map(lambda measurement: measurement.min_measurements_correlation, measurements_list))
         
         ## call super init
-        super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_standard_deviation=min_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_means=min_measurements_means, min_measurements_standard_deviations=min_measurements_standard_deviations, min_measurements_correlations=min_measurements_correlations)
+        super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_standard_deviation=min_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_mean=min_measurements_mean, min_measurements_standard_deviation=min_measurements_standard_deviation, min_measurements_correlation=min_measurements_correlation)
         
     
     @property
