@@ -701,7 +701,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._correlations_own_cholesky_decomposition['P']
     
     def _correlations_own_cholesky_decomposition_P_cache_file(self):
-        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
+        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviations, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
         return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILENAME.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=np.int8, matrix_format=self.matrix_format_correlation, factor_type='P')
     
     @property
@@ -710,7 +710,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._correlations_own_cholesky_decomposition['L']
     
     def _correlations_own_cholesky_decomposition_L_cache_file(self):
-        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
+        standard_deviation_description = measurements.universal.constants.DEVIATION_DESCRIPTION.format(min_measurements=self.min_measurements_standard_deviations, min_standard_deviation=self.min_standard_deviation, fill_strategy=self._fill_strategy_str('standard_deviations'))
         return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILENAME.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_correlations, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation, factor_type='L')
     
     
@@ -973,7 +973,7 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
 
 class MeasurementsAnnualPeriodicUnionCache(MeasurementsAnnualPeriodicUnion, MeasurementsAnnualPeriodicCache):
     pass
-        
+    
 
 
 
