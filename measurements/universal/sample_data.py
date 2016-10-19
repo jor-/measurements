@@ -34,9 +34,12 @@ class SampleMeanAndDeviation():
         n = len(points)
         point_data = np.ma.masked_all(n)
         for i in range(n):
-            value_list_i = data_dict[points[i]]
-            assert len(value_list_i) in [0, 1]
-            if len(value_list_i) == 1:
+            try:
+                value_list_i = data_dict[points[i]]
+            except KeyError:
+                pass
+            else:
+                assert len(value_list_i) == 1
                 point_data[i] = value_list_i[0]
         return point_data
 
@@ -409,7 +412,7 @@ class SampleCorrelationMatrixCache(SampleCorrelationMatrix):
 
     @property
     @util.cache.file_based.decorator()
-    def sample_covariance_dict(self, value_type):
+    def sample_covariance_dict(self):
         return super().sample_covariance_dict
     
     @property
