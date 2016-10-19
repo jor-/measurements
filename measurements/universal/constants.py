@@ -68,7 +68,7 @@ CONCENTRATIONS_SAME_POINTS_EXCEPT_YEAR_DICT_FILE = os.path.join(CORRELATION_DIR,
 SAMPLE_COVARIANCE_DICT_FILENAME = 'sample_covariance_dict.nonstationary_-_sample_{sample_lsm}_-_min_values_{min_measurements_correlation:0>2d}_-_max_year_diff_{max_year_diff:0>2}.ppy'
 SAMPLE_COVARIANCE_DICT_FILE = os.path.join(CORRELATION_DIR, SAMPLE_COVARIANCE_DICT_FILENAME)
 
-DEVIATION_DESCRIPTION = 'min_values_{min_measurements:d}_-_min_{min_standard_deviation:g}_-_fill_{fill_strategy}'
+DEVIATION_DESCRIPTION = 'min_values_{min_measurements_standard_deviation:d}_-_min_{min_standard_deviation:g}_-_fill_{fill_strategy}'
 
 SAMPLE_CORRELATION_MATRIX_SAME_BOX_LOWER_TRIANGLE_MATRIX_FILENAME = 'sample_correlation.same_box.lower_triangle_-_sample_{sample_lsm}_-_min_abs_{min_abs_correlation}_-_deviation_{standard_deviation_description}_-_{dtype}.{matrix_format}.npz'
 SAMPLE_CORRELATION_MATRIX_SAME_BOX_LOWER_TRIANGLE_MATRIX_FILE = os.path.join(CORRELATION_DIR, SAMPLE_CORRELATION_MATRIX_SAME_BOX_LOWER_TRIANGLE_MATRIX_FILENAME)
