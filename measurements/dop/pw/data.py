@@ -6,8 +6,8 @@ import numpy as np
 import overrides
 
 import util.math.sort
-import util.cache.file_based
-import util.cache.memory_based
+import util.cache.file
+import util.cache.memory
 import util.logging
 
 import measurements.universal.data
@@ -71,13 +71,13 @@ def prepare_ladolfi_data(measurement_file, start_date, end_date, valid_data_flag
     return data
 
 
-@util.cache.file_based.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.LADOLFI_2002_DIR, measurements.dop.pw.constants.DATA_FILENAME))
+@util.cache.file.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.LADOLFI_2002_DIR, measurements.dop.pw.constants.DATA_FILENAME))
 def load_ladolfi_2002():
     from measurements.dop.pw.constants import LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_START_DATE, LADOLFI_2002_END_DATE, LADOLFI_2002_VALID_DATA_FLAG
     return prepare_ladolfi_data(LADOLFI_2002_MEASUREMENT_FILE, LADOLFI_2002_START_DATE, LADOLFI_2002_END_DATE, LADOLFI_2002_VALID_DATA_FLAG)
 
 
-@util.cache.file_based.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.LADOLFI_2004_DIR, measurements.dop.pw.constants.DATA_FILENAME))
+@util.cache.file.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.LADOLFI_2004_DIR, measurements.dop.pw.constants.DATA_FILENAME))
 def load_ladolfi_2004():
     from measurements.dop.pw.constants import LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_START_DATE, LADOLFI_2004_END_DATE, LADOLFI_2004_VALID_DATA_FLAG
     return prepare_ladolfi_data(LADOLFI_2004_MEASUREMENT_FILE, LADOLFI_2004_START_DATE, LADOLFI_2004_END_DATE, LADOLFI_2004_VALID_DATA_FLAG)
@@ -142,7 +142,7 @@ def prepare_yoshimura_data(measurement_file):
     return data
 
 
-@util.cache.file_based.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.YOSHIMURA_2007_DIR, measurements.dop.pw.constants.DATA_FILENAME))
+@util.cache.file.decorator(cache_file_function=lambda: os.path.join(measurements.dop.pw.constants.YOSHIMURA_2007_DIR, measurements.dop.pw.constants.DATA_FILENAME))
 def load_yoshimura_2007():
     from measurements.dop.pw.constants import YOSHIMURA_2007_MEASUREMENT_FILE
     return prepare_yoshimura_data(YOSHIMURA_2007_MEASUREMENT_FILE)
@@ -181,15 +181,15 @@ class MeasurementsSingleBase(measurements.universal.data.MeasurementsAnnualPerio
         return values
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator()
+    @util.cache.file.decorator()
     @overrides.overrides
     def points(self):
         return self.points_and_results[:, :-1]
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator()
+    @util.cache.file.decorator()
     @overrides.overrides
     def values(self):
         return self.points_and_results[:, -1]
@@ -225,15 +225,15 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUni
     ## standard_deviation_concentration_noise_ratio 
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
-    def concentation_standard_deviations_for_sample_lsm(self):
+    def concentration_standard_deviations_for_sample_lsm(self):
         return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations_for_sample_lsm
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def concentration_standard_deviations(self):
         return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations

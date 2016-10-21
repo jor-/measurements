@@ -5,8 +5,8 @@ import numpy as np
 import scipy.sparse
 import overrides
 
-import util.cache.file_based
-import util.cache.memory_based
+import util.cache.file
+import util.cache.memory
 import util.options
 import util.logging
 
@@ -76,7 +76,7 @@ class Measurements():
         return len(self.points)    
 
     @property
-    @util.cache.memory_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
     def measurements_dict(self):
         m = measurements.universal.dict.MeasurementsDict()
         m.append_values(self.points, self.values)
@@ -153,7 +153,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         return self._sample_lsm
     
     @property
-    @util.cache.memory_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
     def _sample_mean_and_deviation(self):
         return measurements.universal.sample_data.SampleMeanAndDeviation(self.points, self.values, self.sample_lsm)
 
@@ -225,7 +225,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     ## correlation
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     def _sample_correlation(self):
         return measurements.universal.sample_data.SampleCorrelationMatrix(self, self.sample_lsm, self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
     
@@ -261,8 +261,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         
         self.POSSIBLE_FILL_STRATEGIES = ('auto', 'point_average', 'lsm_average', 'constant', 'interpolate')
         self.POSSIBLE_KINDS = ('concentration_means', 'concentration_standard_deviations', 'average_noise_standard_deviations')
-        self.interpolator_options = {}
-        self.constant_fill_values = {}
+        self._interpolator_options = {}
+        self._constant_fill_values = {}
     
     
     ## getter und setter
@@ -290,21 +290,21 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     
     def get_interpolator_options(self, kind):
         try:
-            return self.interpolator_options[kind]
+            return self._interpolator_options[kind]
         except KeyError:
             return (1,1,0,0)
     
     def set_interpolator_options(self, kind, value):
-        self.interpolator_options[self._check_kind(kind)] = value    
+        self._interpolator_options[self._check_kind(kind)] = value    
     
     def get_constant_fill_value(self, kind):
         try:
-            return self.constant_fill_values[kind]
+            return self._constant_fill_values[kind]
         except KeyError:
             raise ValueError('Constant fill value is not set for kind {}.'.format(kind))
     
     def set_constant_fill_value(self, kind, value):
-        self.constant_fill_values[self._check_kind(kind)] = value
+        self._constant_fill_values[self._check_kind(kind)] = value
     
     @property
     def interpolator_scaling_values(self):
@@ -420,7 +420,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         return self._data_for_sample_lsm('means')
 
     @property
-    def concentation_standard_deviations_for_sample_lsm(self):
+    def concentration_standard_deviations_for_sample_lsm(self):
         return self._data_for_sample_lsm('concentration_standard_deviations')
     
     @property
@@ -429,7 +429,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     @property
     def standard_deviations_for_sample_lsm(self):
-        return (self.concentation_standard_deviations_for_sample_lsm**2 + self.average_noise_standard_deviations_for_sample_lsm**2)**(1/2)
+        return (self.concentration_standard_deviations_for_sample_lsm**2 + self.average_noise_standard_deviations_for_sample_lsm**2)**(1/2)
     
     
     ## data for sample points
@@ -490,8 +490,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     ## points and values cache files
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def points(self):
         return super().points
@@ -501,8 +501,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
 
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def values(self):
         return super().values
@@ -512,8 +512,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
 
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def measurements_dict(self):
         return super().measurements_dict    
@@ -559,8 +559,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_mean'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_mean'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def means(self):
         return super().means
@@ -570,8 +570,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_mean'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_mean'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def means_for_sample_lsm(self):
         return super().means_for_sample_lsm
@@ -592,8 +592,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def concentration_standard_deviations(self):
         return super().concentration_standard_deviations
@@ -602,19 +602,19 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._standard_deviations_cache_file('concentration_standard_deviations', 'sample_points')
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
-    def concentation_standard_deviations_for_sample_lsm(self):
-        return super().concentation_standard_deviations_for_sample_lsm
+    def concentration_standard_deviations_for_sample_lsm(self):
+        return super().concentration_standard_deviations_for_sample_lsm
     
     def concentration_standard_deviations_for_sample_lsm_cache_file(self):
         return self._standard_deviations_cache_file('concentration_standard_deviations', str(self.sample_lsm))
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def average_noise_standard_deviations(self):
         return super().average_noise_standard_deviations
@@ -623,8 +623,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._standard_deviations_cache_file('average_noise_standard_deviations', 'sample_points')    
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def average_noise_standard_deviations_for_sample_lsm(self):
         return super().average_noise_standard_deviations_for_sample_lsm
@@ -634,8 +634,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
 
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def noise_standard_deviations(self):
         return super().noise_standard_deviations
@@ -645,8 +645,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def standard_deviations(self):
         return super().standard_deviations
@@ -655,8 +655,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return self._standard_deviations_cache_file('standard_deviations', 'sample_points')
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def standard_deviations_for_sample_lsm(self):
         return super().standard_deviations_for_sample_lsm
@@ -673,8 +673,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return measurements.universal.sample_data.SampleCorrelationMatrixCache(self, self.sample_lsm, self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
 
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own(self):
         import util.math.sparse.decompose.with_cholmod
@@ -691,12 +691,12 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
 
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     def _correlations_own_cholesky_decomposition(self):
         return super().correlations_own_cholesky_decomposition
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def _correlations_own_cholesky_decomposition_P(self):
         return self._correlations_own_cholesky_decomposition['P']
     
@@ -705,7 +705,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
         return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILENAME.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, ordering_method=self.cholesky_ordering_method_correlation, reordering=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_description=standard_deviation_description, dtype=np.int8, matrix_format=self.matrix_format_correlation, factor_type='P')
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def _correlations_own_cholesky_decomposition_L(self):
         return self._correlations_own_cholesky_decomposition['L']
     
@@ -715,7 +715,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodic):
     
     
     @property
-    @util.cache.memory_based.decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     @overrides.overrides
     def correlations_own_cholesky_decomposition(self):
         return {'P': self._correlations_own_cholesky_decomposition_P, 'L': self._correlations_own_cholesky_decomposition_L}
@@ -737,16 +737,23 @@ class MeasurementsNearWater(Measurements):
         water_lsm.t_dim = 0
         self.water_lsm = water_lsm
         
-        tracer = self.base_measurements.tracer
-        data_set_name = measurements.universal.constants.NEAR_WATER_DATA_SET_NAME.format(base_data_set_name=self.base_measurements.data_set_name, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
-        
-        Measurements.__init__(self, tracer=tracer, data_set_name=data_set_name)
+        Measurements.__init__(self)
+
+    
+    ## properties
+    @property
+    def tracer(self):
+        return self.base_measurements.tracer
+    
+    @property
+    def data_set_name(self):
+        return measurements.universal.constants.NEAR_WATER_DATA_SET_NAME.format(base_data_set_name=self.base_measurements.data_set_name, water_lsm=self.water_lsm, max_box_distance_to_water=self.max_box_distance_to_water)
     
     
     ## projection methods
     
     @property
-    @util.cache.memory_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
     def near_water_projection_matrix(self):
         mask = self.water_lsm.coordinates_near_water_mask(self.base_measurements.points, max_box_distance_to_water=self.max_box_distance_to_water)
         
@@ -838,16 +845,16 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
     ## cacheable properties
     
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def near_water_projection_matrix(self):
         return super().near_water_projection_matrix
     
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own_sample_matrix(self):
         return super().correlations_own_sample_matrix
@@ -995,7 +1002,7 @@ class MeasurementsCollection(Measurements):
                 raise ValueError('There is more then one measurements object with tracer {} and data set name {}!'.format(measurements_list[i].tracer, measurements_list[i].data_set_name))
 
         ## store
-        self.measurements_list = measurements_list
+        self._measurements_list = measurements_list
         
         ## make tracer and data set name for collection
         tracer = ','.join(map(lambda measurement: measurement.tracer, measurements_list))
@@ -1009,6 +1016,11 @@ class MeasurementsCollection(Measurements):
         self.cholesky_reordering_correlation = measurements.universal.constants.CORRELATION_CHOLEKSY_REORDER_AFTER_EACH_STEP
         self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
         self.dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
+    
+    
+    @property
+    def measurements_list(self):
+        return self._measurements_list
     
     
     def __str__(self):
@@ -1038,12 +1050,16 @@ class MeasurementsCollection(Measurements):
     @property
     @overrides.overrides
     def means(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.means, self.measurements_list)))  
+        values = np.concatenate(tuple(map(lambda measurement: measurement.means, self.measurements_list)))
+        assert len(values) == self.number_of_measurements
+        return values
 
     @property
     @overrides.overrides
     def standard_deviations(self):
-        return np.concatenate(tuple(map(lambda measurement: measurement.standard_deviations, self.measurements_list)))
+        values = np.concatenate(tuple(map(lambda measurement: measurement.standard_deviations, self.measurements_list)))
+        assert len(values) == self.number_of_measurements
+        return values
     
     
     @property
@@ -1060,6 +1076,7 @@ class MeasurementsCollection(Measurements):
                 correlations[j, i] = correlations[i, j].T
         
         correlations = scipy.sparse.bmat(correlations, format=self.matrix_format_correlation, dtype=self.dtype_correlation)
+        assert correlations.shape == (self.number_of_measurements, self.number_of_measurements)
         return correlations
 
     
@@ -1068,7 +1085,9 @@ class MeasurementsCollection(Measurements):
     def correlations_own(self):
         import util.math.sparse.decompose.with_cholmod
         correlation_matrix, reduction_factors = util.math.sparse.decompose.with_cholmod.approximate_positive_definite(self.correlations_own_sample_matrix, min_abs_value=self.min_abs_correlation, min_diag_value=self.cholesky_min_diag_value_correlation, ordering_method=self.cholesky_ordering_method_correlation, reorder_after_each_step=self.cholesky_reordering_correlation)
-        return correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
+        correlation_matrix = correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
+        assert correlation_matrix.shape == (self.number_of_measurements, self.number_of_measurements)
+        return correlation_matrix
 
 
     @property
@@ -1134,13 +1153,13 @@ class MeasurementsCollectionCache(MeasurementsCollection):
 
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own_sample_matrix(self):
         return super().correlations_own_sample_matrix
 
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own(self):
         import util.math.sparse.decompose.with_cholmod
@@ -1148,17 +1167,17 @@ class MeasurementsCollectionCache(MeasurementsCollection):
         return correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
 
     @property
-    @util.cache.memory_based.decorator()
+    @util.cache.memory.method_decorator()
     def _correlations_own_cholesky_decomposition(self):
         return super().correlations_own_cholesky_decomposition
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def _correlations_own_cholesky_decomposition_P(self):
         return self._correlations_own_cholesky_decomposition['P']
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def _correlations_own_cholesky_decomposition_L(self):
         return self._correlations_own_cholesky_decomposition['L']
     

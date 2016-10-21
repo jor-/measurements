@@ -1,7 +1,7 @@
 import overrides
 
-import util.cache.file_based
-import util.cache.memory_based
+import util.cache.file
+import util.cache.memory
 
 import measurements.universal.data
 import measurements.universal.constants
@@ -60,15 +60,15 @@ class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
 
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator()
+    @util.cache.file.decorator()
     @overrides.overrides
     def points(self):
         return measurements.po4.wod.values.points()
 
     @property
-    @util.cache.memory_based.decorator()
-    @util.cache.file_based.decorator()
+    @util.cache.memory.method_decorator()
+    @util.cache.file.decorator()
     @overrides.overrides
     def values(self):
         return measurements.po4.wod.values.results()

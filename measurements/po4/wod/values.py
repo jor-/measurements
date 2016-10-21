@@ -1,7 +1,7 @@
 import numpy as np
 
 import util.math.sort
-import util.cache.file_based
+import util.cache.file
 import util.logging
 
 import measurements.po4.wod.cruise
@@ -15,7 +15,7 @@ logger = util.logging.logger
 def cruises_list_cache_file():
     return measurements.po4.wod.constants.CRUISES_LIST_FILE
 
-@util.cache.file_based.decorator(cache_file_function=cruises_list_cache_file)
+@util.cache.file.decorator(cache_file_function=cruises_list_cache_file)
 def cruises_list():
     cc = measurements.po4.wod.cruise.CruiseCollection()
     cc.load_cruises_from_netcdf(measurements.po4.wod.constants.CRUISES_DATA_DIR)
@@ -25,7 +25,7 @@ def cruises_list():
 def measurement_dict_cache_file():
     return measurements.po4.wod.constants.MEASUREMENTS_DICT_UNSORTED_FILE
 
-@util.cache.file_based.decorator(cache_file_function=measurement_dict_cache_file)
+@util.cache.file.decorator(cache_file_function=measurement_dict_cache_file)
 def  measurement_dict():
     m = measurements.po4.wod.dict.MeasurementsUnsortedDict()
     m.add_cruises(cruises_list())
@@ -35,7 +35,7 @@ def  measurement_dict():
 def points_and_results_cache_file():
     return measurements.po4.wod.constants.POINTS_AND_RESULTS_FILE
 
-@util.cache.file_based.decorator(cache_file_function=points_and_results_cache_file)
+@util.cache.file.decorator(cache_file_function=points_and_results_cache_file)
 def points_and_results():
     logger.debug('Loading and calculating measurements.')
 

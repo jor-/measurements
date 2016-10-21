@@ -2,7 +2,7 @@ import numpy as np
 import scipy.sparse
 
 import util.math.util
-import util.cache.file_based
+import util.cache.file
 import util.logging
 
 import measurements.universal.dict
@@ -401,37 +401,37 @@ class SampleCorrelationMatrixCache(SampleCorrelationMatrix):
     
     ## cachable values
 
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def map_indices_to_point_index_dict(self, discard_year=False):
         return super().map_indices_to_point_index_dict(discard_year=discard_year)
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def concentrations_same_points_except_year_dict(self):
         return super().concentrations_same_points_except_year_dict
 
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def sample_covariance_dict(self):
         return super().sample_covariance_dict
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def same_box_correlation_matrix_lower_triangle(self):
         return super().same_box_correlation_matrix_lower_triangle
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def different_boxes_quantity_lower_triangle_matrix(self):
         return super().different_boxes_quantity_lower_triangle_matrix
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def different_boxes_correlation_lower_triangle_matrix(self):
         return super().different_boxes_correlation_lower_triangle_matrix
     
     @property
-    @util.cache.file_based.decorator()
+    @util.cache.file.decorator()
     def correlation_matrix(self):
         return super().correlation_matrix
     

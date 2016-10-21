@@ -4,8 +4,8 @@ import os
 import numpy as np
 import overrides
 
-import util.cache.file_based
-import util.cache.memory_based
+import util.cache.file
+import util.cache.memory
 import util.petsc.universal
 import util.logging
 
@@ -160,7 +160,7 @@ class LandSeaMask():
     ## indices
 
     @property
-    @util.cache.memory_based.decorator(dependency='self.t_dim')
+    @util.cache.memory.method_decorator(dependency='self.t_dim')
     def sea_indices(self):
         sea_indices = np.array(np.where(self.bool_mask)).transpose()
         logger.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
@@ -169,7 +169,7 @@ class LandSeaMask():
 
 
     @property
-    @util.cache.memory_based.decorator(dependency='self.t_dim')
+    @util.cache.memory.method_decorator(dependency='self.t_dim')
     def sea_coordinates(self):
         sea_coordinates = self.map_indices_to_coordinates(self.sea_indices)
         assert sea_coordinates.ndim == 2
@@ -244,7 +244,7 @@ class LandSeaMask():
 
 
     @property
-    @util.cache.memory_based.decorator(dependency='self.t_dim')
+    @util.cache.memory.method_decorator(dependency='self.t_dim')
     def number_of_map_indices(self):
         t_dim = self.t_dim
         if t_dim is None:
@@ -616,11 +616,11 @@ class LandSeaMaskFromFile(LandSeaMask):
         super().__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
 
 
-    @util.cache.file_based.decorator(cache_file_function=lambda self: self._lsm_file)
+    @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
     def _calculate_lsm(self):
         raise NotImplementedError
 
-    @util.cache.file_based.decorator(cache_file_function=lambda self: self._depth_file)
+    @util.cache.file.decorator(cache_file_function=lambda self: self._depth_file)
     def _calculate_depth(self):
         raise NotImplementedError
 
@@ -632,7 +632,7 @@ class LandSeaMaskTMM(LandSeaMaskFromFile):
         super().__init__(measurements.land_sea_mask.constants.TMM_DIR, t_dim=t_dim, t_centered=t_centered)
 
 
-    @util.cache.file_based.decorator(cache_file_function=lambda self: self._lsm_file)
+    @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
     @overrides.overrides
     def _calculate_lsm(self):
         lsm = util.petsc.universal.load_petsc_mat_to_array(measurements.land_sea_mask.constants.TMM_PETSC_FILE, dtype=np.int16)
@@ -641,7 +641,7 @@ class LandSeaMaskTMM(LandSeaMaskFromFile):
         return lsm
 
 
-    @util.cache.file_based.decorator(cache_file_function=lambda self: self._depth_file)
+    @util.cache.file.decorator(cache_file_function=lambda self: self._depth_file)
     @overrides.overrides
     def _calculate_depth(self):
         ## read values from txt
@@ -661,7 +661,7 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
         super().__init__(measurements.land_sea_mask.constants.WOA13_DIR, t_dim=t_dim, t_centered=t_centered)
 
 
-    @util.cache.file_based.decorator(cache_file_function=lambda self: self._lsm_file)
+    @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
     @overrides.overrides
     def _calculate_lsm(self):
         ## read values from txt with axis order: x y z
@@ -687,7 +687,7 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
         return lsm
 
 
-    @util.cache.file_based.decorator(cache_file_function=lambda self: self._depth_file)
+    @util.cache.file.decorator(cache_file_function=lambda self: self._depth_file)
     @overrides.overrides
     def _calculate_depth(self):
         ## read values from txt
