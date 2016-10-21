@@ -248,7 +248,7 @@ class SampleCorrelationMatrix:
         return covariance
     
     
-    def different_boxes_sample_covariances_iterator(self):
+    def different_boxes_sample_covariances_map_indices_iterator(self):
         different_boxes_sample_covariances_dict = self.sample_covariance_dict
         different_boxes_sample_covariances_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
         for map_indices, value_list in different_boxes_sample_covariances_dict.iterator_keys_and_value_lists():
@@ -258,6 +258,43 @@ class SampleCorrelationMatrix:
             assert len(values) == 2
             quantity, covariance = values
             yield map_indices, quantity, covariance
+    
+    
+    def different_boxes_sample_covariances_point_indices_iterator(self):
+        ## get values
+        standard_deviations = self.standard_deviations
+        points = self.measurements.points
+        map_indices_to_point_index_dict = self.map_indices_to_point_index_dict(discard_year=False)
+        map_indices_to_point_index_year_discarded_dict = self.map_indices_to_point_index_dict(discard_year=True)
+    
+        ## iterate over sample covariances
+        for map_indices, quantity, covariance in self.different_boxes_sample_covariances_map_indices_iterator():
+            assert quantity >= self.min_measurements
+            map_indices_array = np.array(map_indices)
+            map_indices_diff = map_indices_array[1] - map_indices_array[0]
+            logger.debug('Different box sample covariance found with map indices {}, covariance {} and quantity {}.'.format(map_indices, covariance, quantity))
+            
+            ## iterate over all index pairs with sample covariance
+            for point_index_i in map_indices_to_point_index_year_discarded_dict[map_indices[0]]:
+                point_i = points[point_index_i]
+                point_i_map_index = self.sample_lsm.coordinate_to_map_index(*point_i, discard_year=False, int_indices=True)
+                point_j_map_index = tuple(point_i_map_index + map_indices_diff)
+                
+                try:
+                    point_indices_j = map_indices_to_point_index_dict[point_j_map_index]
+                except KeyError:
+                    pass
+                else:
+                    for point_index_j in point_indices_j:
+                        ## calculate correlation
+                        correlation = covariance / (standard_deviations[point_index_i] * standard_deviations[point_index_j])
+                        
+                        ## return if correlation is big enough
+                        if np.abs(correlation) >= self.min_abs_correlation:
+                            point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
+                            assert point_index_min < point_index_max and point_index_min in (point_index_i, point_index_j) and point_index_max in (point_index_i, point_index_j)
+
+                            yield point_index_min, point_index_max, quantity, correlation
     
 
     ## different boxes covariance and quantity matrix
@@ -278,35 +315,14 @@ class SampleCorrelationMatrix:
         ## create lil matrix
         quantity_matrix = scipy.sparse.lil_matrix(self.shape, dtype=dtype)
         
-        ## get values
-        standard_deviations = self.standard_deviations
-        points = self.measurements.points
-        map_indices_to_point_index_dict = self.map_indices_to_point_index_dict(discard_year=False)
-        map_indices_to_point_index_year_discarded_dict = self.map_indices_to_point_index_dict(discard_year=True)
-    
-        ## iterate over sample covariances
-        for map_indices, quantity, covariance in self.different_boxes_sample_covariances_iterator():
-            map_indices_array = np.array(map_indices)
-            map_indices_diff = map_indices_array[1] - map_indices_array[0]
-            logger.debug('For different box correlation matrix entires with map indices {} inserting quantity {} (covariance {}).'.format(map_indices, quantity, covariance))
-            
-            ## iterate over all index pairs with sample covariance
-            for point_index_i in map_indices_to_point_index_year_discarded_dict[map_indices[0]]:
-                point_i = points[point_index_i]
-                point_i_map_index = self.sample_lsm.coordinate_to_map_index(*point_i, discard_year=False, int_indices=True)
-                point_j_map_index = tuple(point_i_map_index + map_indices_diff)
-                
-                for point_index_j in map_indices_to_point_index_dict[point_j_map_index]:
-                    
-                    ## calculate correlation
-                    correlation = covariance / (standard_deviations[point_index_i] * standard_deviations[point_index_j])
-                    
-                    ## insert quantity
-                    if np.abs(correlation) >= self.min_abs_correlation:
-                        point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
-                        assert point_index_min < point_index_max and point_index_min in (point_index_i, point_index_j) and point_index_max in (point_index_i, point_index_j)
-                        quantity_matrix[point_index_max, point_index_min] = quantity
-
+        ## insert correlation
+        for point_index_min, point_index_max, quantity, correlation in self.different_boxes_sample_covariances_point_indices_iterator():
+            assert quantity >= self.min_measurements
+            assert np.abs(correlation) >= self.min_abs_correlation
+            assert point_index_max > point_index_min
+            quantity_matrix[point_index_max, point_index_min] = quantity
+        
+        ## convert to wanted format
         if self.matrix_format != 'lil':
             logger.debug('Converting quantity matrix to format {}.'.format(self.matrix_format))
             if self.matrix_format == 'csc':
@@ -314,9 +330,9 @@ class SampleCorrelationMatrix:
                 logger.debug('quantity matrix converted to format csr.')
             quantity_matrix = quantity_matrix.asformat(self.matrix_format).astype(dtype)
             logger.debug('quantity matrix converted to format {}.'.format(self.matrix_format))
-
+        
+        ## return
         logger.debug('Calculated differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {}.'.format(correlation_matrix.nnz, self.min_abs_correlation))
-
         return quantity_matrix
     
     
@@ -327,34 +343,12 @@ class SampleCorrelationMatrix:
         ## create lil matrix
         correlation_matrix = scipy.sparse.lil_matrix(self.shape, dtype=self.dtype)
         
-        ## get values
-        standard_deviations = self.standard_deviations
-        points = self.measurements.points
-        map_indices_to_point_index_dict = self.map_indices_to_point_index_dict(discard_year=False)
-        map_indices_to_point_index_year_discarded_dict = self.map_indices_to_point_index_dict(discard_year=True)
-    
-        ## iterate over sample covariances
-        for map_indices, quantity, covariance in self.different_boxes_sample_covariances_iterator():
-            map_indices_array = np.array(map_indices)
-            map_indices_diff = map_indices_array[1] - map_indices_array[0]
-            logger.debug('For different box correlation matrix entires with map indices {} inserting covariance {} (quantity {}).'.format(map_indices, covariance, quantity))
-            
-            ## iterate over all index pairs with sample covariance
-            for point_index_i in map_indices_to_point_index_year_discarded_dict[map_indices[0]]:
-                point_i = points[point_index_i]
-                point_i_map_index = self.sample_lsm.coordinate_to_map_index(*point_i, discard_year=False, int_indices=True)
-                point_j_map_index = tuple(point_i_map_index + map_indices_diff)
-                
-                for point_index_j in map_indices_to_point_index_dict[point_j_map_index]:
-                    
-                    ## calculate correlation
-                    correlation = covariance / (standard_deviations[point_index_i] * standard_deviations[point_index_j])
-                    
-                    ## insert correlation
-                    if np.abs(correlation) >= self.min_abs_correlation:
-                        point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
-                        assert point_index_min < point_index_max and point_index_min in (point_index_i, point_index_j) and point_index_max in (point_index_i, point_index_j)
-                        correlation_matrix[point_index_max, point_index_min] = correlation
+        ## insert correlation
+        for point_index_min, point_index_max, quantity, correlation in self.different_boxes_sample_covariances_point_indices_iterator():
+            assert quantity >= self.min_measurements
+            assert np.abs(correlation) >= self.min_abs_correlation
+            assert point_index_max > point_index_min
+            correlation_matrix[point_index_max, point_index_min] = correlation
 
         ## convert to wanted format
         if self.matrix_format != 'lil':
