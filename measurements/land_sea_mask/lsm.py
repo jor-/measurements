@@ -177,6 +177,8 @@ class LandSeaMask():
     
 
     def is_coordinate_near_water(self, point, max_box_distance_to_water=0):
+        if max_box_distance_to_water < 0:
+            raise ValueError('max_box_distance_to_water must be greater or equal to 0 but it is {}.'.format(max_box_distance_to_water))
         old_t_dim =  self.t_dim
         self.t_dim = 0
         
