@@ -241,7 +241,7 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUni
 
     def _fill_strategy_for_kind(self, kind):
         if kind == 'concentration_standard_deviations':
-            fill_strategy = self._fill_strategy_for_kind('average_noise_standard_deviations') + '_concentration_noise_ratio_{:g}'.format(self.standard_deviation_concentration_noise_ratio)
+            fill_strategy = self._fill_strategy_for_kind('average_noise_standard_deviations') + '_ratio_{:g}'.format(self.standard_deviation_concentration_noise_ratio)
         else:
             fill_strategy = super()._fill_strategy_for_kind(kind)
         return fill_strategy
