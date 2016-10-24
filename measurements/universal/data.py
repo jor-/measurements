@@ -1065,7 +1065,7 @@ class MeasurementsCollection(Measurements):
     @property
     def correlations_own_sample_matrix(self):
         n = len(self.measurements_list)
-        correlations = np.array([n,n], dtype=object)
+        correlations = np.empty([n,n], dtype=object)
         
         for i in range(n):
             measurements_i = self.measurements_list[i]
