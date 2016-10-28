@@ -9,11 +9,19 @@ from measurements.constants import BASE_DIR
 
 BASE_DATE = datetime.datetime(1770, 1, 1)
 DAY_OFFSET = 'time' # number of days since 01.01.1770 (float)
+DAY_OFFSET_UNIT = b'days since 1770-01-01 00:00:00'
+
 LAT = 'lat'
+LAT_UNIT = b'degrees_north'
 LON = 'lon'
+LON_UNIT = b'degrees_east'
 DEPTH = 'z'
-DEPTH_FLAG = 'z_WODflag'
+DEPTH_UNIT = b'm'
+
 PO4 = 'Phosphate'
+PO4_UNIT = b'umol/l'
+
+DEPTH_FLAG = 'z_WODflag'
 PO4_FLAG = 'Phosphate_WODflag'
 PO4_PROFILE_FLAG = 'Phosphate_WODprofileflag'
 MISSING_VALUE = - 10**10

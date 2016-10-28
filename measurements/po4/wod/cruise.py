@@ -18,76 +18,97 @@ logger = util.logging.logger
 class Cruise():
 
     def __init__(self, file):
+        
         ## open netcdf file
-        f = scipy.io.netcdf.netcdf_file(file, 'r')
+        with scipy.io.netcdf.netcdf_file(file, 'r') as f:
 
-        ## read time and data
-        day_offset = float(f.variables[measurements.po4.wod.constants.DAY_OFFSET].data)
-        hours_offset = (day_offset % 1) * 24
-        minutes_offset = (hours_offset % 1) * 60
-        seconds_offset = (minutes_offset % 1) * 60
-
-        day_offset = int(day_offset)
-        hours_offset = int(hours_offset)
-        minutes_offset = int(minutes_offset)
-        seconds_offset = int(seconds_offset)
-
-        dt_offset = datetime.timedelta(days=day_offset, hours=hours_offset, minutes=minutes_offset, seconds=seconds_offset)
-        dt = measurements.po4.wod.constants.BASE_DATE + dt_offset
-        dt_float = util.datetime.datetime_to_float(dt)
-
-        self.dt_float = dt_float
-
-        ## read coordinates and valid measurements
-        try:
-            self.x = float(f.variables[measurements.po4.wod.constants.LON].data)
-            if self.x == 180:
-                self.x = -180
-            self.y = float(f.variables[measurements.po4.wod.constants.LAT].data)
-            if self.y == -90 or self.y == 90:
-                self.x = 0
-
-            z = f.variables[measurements.po4.wod.constants.DEPTH].data
-            po4 = f.variables[measurements.po4.wod.constants.PO4].data
-
-            z_flag = f.variables[measurements.po4.wod.constants.DEPTH_FLAG].data
-            po4_flag = f.variables[measurements.po4.wod.constants.PO4_FLAG].data
-            po4_profile_flag = f.variables[measurements.po4.wod.constants.PO4_PROFILE_FLAG].data
-        except KeyError as e:
-            missing_key = e.args[0]
-            warnings.warn('Date with name {} is missing in file {}!'.format(missing_key, file))
-            z = np.array([])
-            po4 = np.array([])
-
-        ## remove invalid measurements
-        if len(po4) > 0:
-            valid_mask = np.logical_and(po4_flag == 0, z_flag == 0) * (po4_profile_flag == 0)
-            z = z[valid_mask]
-            po4 = po4[valid_mask]
-
-            valid_mask = po4 != measurements.po4.wod.constants.MISSING_VALUE
-            z = z[valid_mask]
-            po4 = po4[valid_mask]
-
-        ## check values
-        if np.any(po4 < 0):
-            warnings.warn('PO4 in {} is lower then 0!'.format(file))
-            valid_mask = po4 > 0
-            po4 = po4[valid_mask]
-            z = z[valid_mask]
-
-        if np.any(z < 0):
-            warnings.warn('Depth in {} is lower then 0!'.format(file))
-            z[z < 0] = 0
+            ## read time and data
+            day_offset_var = f.variables[measurements.po4.wod.constants.DAY_OFFSET]
+            assert day_offset_var.units == measurements.po4.wod.constants.DAY_OFFSET_UNIT
+            day_offset = float(day_offset_var.data)
+            hours_offset = (day_offset % 1) * 24
+            minutes_offset = (hours_offset % 1) * 60
+            seconds_offset = (minutes_offset % 1) * 60
+    
+            day_offset = int(day_offset)
+            hours_offset = int(hours_offset)
+            minutes_offset = int(minutes_offset)
+            seconds_offset = int(seconds_offset)
+    
+            dt_offset = datetime.timedelta(days=day_offset, hours=hours_offset, minutes=minutes_offset, seconds=seconds_offset)
+            dt = measurements.po4.wod.constants.BASE_DATE + dt_offset
+            dt_float = util.datetime.datetime_to_float(dt)
+    
+            ## read coordinates and valid measurements
+            try:
+                x_var = f.variables[measurements.po4.wod.constants.LON]
+                y_var = f.variables[measurements.po4.wod.constants.LAT]
+                z_var = f.variables[measurements.po4.wod.constants.DEPTH]
+                po4_var = f.variables[measurements.po4.wod.constants.PO4]
+                z_flag_var = f.variables[measurements.po4.wod.constants.DEPTH_FLAG]
+                po4_flag_var = f.variables[measurements.po4.wod.constants.PO4_FLAG]
+                po4_profile_flag_var = f.variables[measurements.po4.wod.constants.PO4_PROFILE_FLAG]
+            except KeyError as e:
+                missing_key = e.args[0]
+                logger.warn('Date with name {} is missing in file {}!'.format(missing_key, file))
+                dt_float = float('nan')
+                x = float('nan')
+                y = float('nan')
+                z = np.array([])
+                po4 = np.array([])
+            else:
+                assert x_var.units == measurements.po4.wod.constants.LON_UNIT
+                x = float(x_var.data)
+                if x == 180:
+                    x = -180
+                assert x >= -180 and x < 180
+                
+                assert y_var.units == measurements.po4.wod.constants.LAT_UNIT
+                y = float(y_var.data)
+                if y == -90 or y == 90:
+                    x = 0
+                assert y >= -90 and y <= 90
+                
+                assert z_var.units == measurements.po4.wod.constants.DEPTH_UNIT
+                z = z_var.data
+                
+                assert po4_var.units == measurements.po4.wod.constants.PO4_UNIT
+                po4 = z_var.data
+    
+                z_flag = z_flag_var.data
+                po4_flag = po4_flag_var.data
+                po4_profile_flag = po4_profile_flag_var.data
+                
+    
+            ## remove invalid measurements
+            if len(po4) > 0:
+                valid_mask = np.logical_and(po4_flag == 0, z_flag == 0) * (po4_profile_flag == 0)
+                z = z[valid_mask]
+                po4 = po4[valid_mask]
+    
+                valid_mask = po4 != measurements.po4.wod.constants.MISSING_VALUE
+                z = z[valid_mask]
+                po4 = po4[valid_mask]
+    
+            ## check values
+            if np.any(po4 < 0):
+                logger.warn('PO4 in {} is lower then 0!'.format(file))
+                valid_mask = po4 > 0
+                po4 = po4[valid_mask]
+                z = z[valid_mask]
+    
+            if np.any(z < 0):
+                logger.warn('Depth in {} is lower then 0!'.format(file))
+                z[z < 0] = 0
 
         ## save values
+        self.dt_float = dt_float
+        self.x = x
+        self.y = y
         self.z = z
         self.po4 = po4
 
-        ## close file
-        f.close()
-
-        logger.debug('Cruise from {} loaded.'.format(file))
+        logger.debug('Cruise from {} loaded with {:d} values.'.format(file, self.number_of_measurements))
 
 
     @property
@@ -131,7 +152,7 @@ class CruiseCollection():
         self.__cruises = cruises
 
 
-    def load_cruises_from_netcdf(self, data_dir):
+    def load_cruises_from_netcdf_files(self, data_dir):
         logger.debug('Loading all cruises from netcdf files.')
 
         ## lookup files
