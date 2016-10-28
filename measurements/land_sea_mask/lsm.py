@@ -103,9 +103,9 @@ class LandSeaMask():
         logger.debug('Regridding z from {} to {}.'.format(self.z, new_z_values))
         new_z_values = np.asanyarray(new_z_values)
 
-        z_values = self.z
-        for i in range(len(z_values)):
-            self._lsm[self._lsm == i] = bisect.bisect_left(new_z_values, z_values[i])
+        old_z_values = self.z
+        for i in range(len(old_z_values)):
+            self._lsm[self._lsm == i] = bisect.bisect_left(new_z_values, old_z_values[i])
         self._depth_level = new_z_values
 
     @property
