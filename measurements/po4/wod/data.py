@@ -1,16 +1,72 @@
 import overrides
-
-import util.cache.file
-import util.cache.memory
+import numpy as np
 
 import measurements.universal.data
 import measurements.universal.constants
 import measurements.constants
-import measurements.po4.wod.values
 import measurements.po4.constants
+import measurements.po4.wod.cruise
+import measurements.po4.wod.dict
 import measurements.po4.wod.constants
 
+import util.math.sort
+import util.cache.file
+import util.cache.memory
+import util.logging
 
+logger = util.logging.logger
+
+
+
+## data load functions
+
+@util.cache.file.decorator(cache_file_function=lambda :measurements.po4.wod.constants.CRUISES_LIST_FILE)
+def cruises_list():
+    cc = measurements.po4.wod.cruise.CruiseCollection()
+    cc.load_cruises_from_netcdf_files(measurements.po4.wod.constants.CRUISES_DATA_DIR)
+    return cc.cruises
+
+
+@util.cache.file.decorator(cache_file_function=lambda :measurements.po4.wod.constants.MEASUREMENTS_DICT_UNSORTED_FILE)
+def measurement_dict():
+    m = measurements.po4.wod.dict.MeasurementsUnsortedDict()
+    m.add_cruises(cruises_list())
+    return m
+
+
+@util.cache.file.decorator(cache_file_function=lambda :measurements.po4.wod.constants.POINTS_AND_RESULTS_FILE)
+def points_and_results():
+    logger.debug('Loading and calculating measurements.')
+
+    ## load measurements
+    m = measurement_dict()
+
+    values = m.items()
+    assert values.ndim == 2
+    n = values.shape[1]
+    assert n == 5
+
+    ## sort measurements
+    sorted_indices = util.math.sort.lex_sorted_indices(values)
+    assert sorted_indices.ndim == 1
+    values = values[sorted_indices]
+
+    ## split measurements
+    points = values[:, :-1]
+    results = values[:, -1]
+
+    return{'points': points, 'results': results}
+
+
+def points():
+    points_and_results()['points']
+
+def results():
+    points_and_results()['results']
+
+
+
+## measurement classes
 
 class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
     
@@ -64,14 +120,14 @@ class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
     @util.cache.file.decorator()
     @overrides.overrides
     def points(self):
-        return measurements.po4.wod.values.points()
+        return points()
 
     @property
     @util.cache.memory.method_decorator()
     @util.cache.file.decorator()
     @overrides.overrides
     def values(self):
-        return measurements.po4.wod.values.results()
+        return results()
 
 
 
