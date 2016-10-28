@@ -11,11 +11,12 @@ class MeasurementsDict(measurements.universal.dict.MeasurementsDict):
 
     def add_cruises(self, cruises):
         for cruise in cruises:
+            t = cruise.dt_float
             x = cruise.x
             y = cruise.y
             z = cruise.z
-            t = cruise.dt_float
             results = cruise.po4.astype(float)
+            assert len(z) == len(results)
 
             for i in range(results.size):
                 index = (t, x, y, z[i])
