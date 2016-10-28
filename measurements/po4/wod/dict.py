@@ -10,9 +10,6 @@ class MeasurementsDict(measurements.universal.dict.MeasurementsDict):
         super().__init__(sorted=sorted)
 
     def add_cruises(self, cruises):
-        measurements_dict = self.measurements_dict
-
-        ## insert results in dict
         for cruise in cruises:
             x = cruise.x
             y = cruise.y
@@ -22,7 +19,7 @@ class MeasurementsDict(measurements.universal.dict.MeasurementsDict):
 
             for i in range(results.size):
                 index = (t, x, y, z[i])
-                self.add_result(index, results[i])
+                self.append_value(index, results[i])
 
 
     def save(self, file=measurements.po4.wod.constants.MEASUREMENTS_DICT_UNSORTED_FILE):
