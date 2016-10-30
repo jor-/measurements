@@ -73,7 +73,7 @@ class Cruise():
                 z = z_var.data
                 
                 assert po4_var.units == measurements.po4.wod.constants.PO4_UNIT
-                po4 = z_var.data
+                po4 = po4_var.data
     
                 z_flag = z_flag_var.data
                 po4_flag = po4_flag_var.data
