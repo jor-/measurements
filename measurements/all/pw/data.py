@@ -23,5 +23,5 @@ def all_measurements(max_box_distance_to_water=None, min_measurements_correlatio
         if tracers is None or 'dop' in tracers:
             measurements_collection.append(measurements.dop.pw.data.MeasurementsNearWater(min_measurements_correlation=min_measurements_correlation, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water))
     
-    measurements_collection = measurements.universal.data.MeasurementsCollection(*measurements_collection)
+    measurements_collection = measurements.universal.data.MeasurementsCollectionCache(*measurements_collection)
     return measurements_collection
