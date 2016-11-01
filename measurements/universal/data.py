@@ -668,6 +668,9 @@ class MeasurementsCollection(Measurements):
     def __init__(self, *measurements_list):
         logger.debug('Initiating {} with measurements {}.'.format(self.__class__.__name__, measurements_list))
         
+        if len(measurements_list) == 0:
+            raise ValueError('There are no measurements in the measurements list!')
+        
         ## sort
         measurements_list = sorted(measurements_list, key=lambda measurement: measurement.data_set_name)
         measurements_list = sorted(measurements_list, key=lambda measurement: measurement.tracer)
@@ -684,8 +687,10 @@ class MeasurementsCollection(Measurements):
         ## make tracer and data set name for collection
         tracer = ','.join(map(lambda measurement: measurement.tracer, measurements_list))
         data_set_name = ','.join(map(lambda measurement: measurement.data_set_name, measurements_list))
-        data_set_name = ','.join(map(lambda measurement: '{tracer}:{data_set_name}'.format(tracer=measurement.tracer, data_set_name=measurement.data_set_name), measurements_list))
-        
+        if len(measurements_list) > 1:
+            data_set_name = ','.join(map(lambda measurement: '{tracer}:{data_set_name}'.format(tracer=measurement.tracer, data_set_name=measurement.data_set_name), measurements_list))
+        else:
+            data_set_name = measurements_list[0].data_set_name
         super().__init__(tracer=tracer, data_set_name=data_set_name)
         
         ## correlation constants
@@ -1274,24 +1279,13 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
     
     def _merge_files(self, directory, files):
         ## common dirnames above file
-        file_dirs = files
-        dirname_above_file = ''
-        same_dirnames = True
-        
-        while same_dirnames:
-            file_dirs = [os.path.dirname(file_dir) for file_dir in file_dirs]
-            current_dirnames = [os.path.basename(file_dir) for file_dir in file_dirs]
-            current_dirname = current_dirnames[0]
-            same_dirnames = current_dirnames.count(current_dirname) == len(current_dirnames)
-            if same_dirnames:
-                dirname_above_file = os.path.join(current_dirname, dirname_above_file)
-        
-        ## merge filnames
-        filenames = [os.path.basename(file) for file in files]
-        filename_joined = util.str.merge(filenames)
+        number_of_measurement_dirs_below_base_dir = measurements.universal.constants.MEASUREMENT_DIR[len(measurements.universal.constants.BASE_DIR):].count(os.path.sep)
+        filenames = [file[len(measurements.universal.constants.BASE_DIR):] for file in files]
+        filenames = [os.path.join(*file.split(os.path.sep)[number_of_measurement_dirs_below_base_dir+1:]) for file in filenames]
         
         ## join dirs and filename
-        file_joined = os.path.join(directory, dirname_above_file, filename_joined)
+        filename_joined = util.str.merge(filenames)
+        file_joined = os.path.join(directory, filename_joined)
         return file_joined
     
     @property
