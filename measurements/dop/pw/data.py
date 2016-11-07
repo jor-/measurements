@@ -220,6 +220,7 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUni
     def __init__(self, *measurement_list):
         super().__init__(*measurement_list)
         self.standard_deviation_concentration_noise_ratio = measurements.dop.pw.constants.DEVIATION_CONCENTRATION_NOISE_RATIO
+        self.fill_strategy = 'point_average'
     
     
     ## standard_deviation_concentration_noise_ratio 
