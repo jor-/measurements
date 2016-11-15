@@ -108,13 +108,6 @@ class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
                 self.set_interpolator_options('average_noise_standard_deviations', interpolator_option)
 
     
-    def __str__(self):
-        string = super().__str__()
-        if self.min_measurements_correlation < float('inf'):
-            string = string + '({min_measurements_correlation})'.format(min_measurements_correlation=self.min_measurements_correlation)
-        return string
-
-
     @property
     @util.cache.memory.method_decorator()
     @util.cache.file.decorator()

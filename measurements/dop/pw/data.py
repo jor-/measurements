@@ -164,13 +164,6 @@ class MeasurementsSingleBase(measurements.universal.data.MeasurementsAnnualPerio
         super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_standard_deviation=min_standard_deviation, min_measurements_correlation=min_measurements_correlation)
         
         self._load_data_function = load_data_function
-    
-    
-    def __str__(self):
-        string = super().__str__()
-        if self.min_measurements_correlation < float('inf'):
-            string = string + '({min_measurements_correlation})'.format(min_measurements_correlation=self.min_measurements_correlation)
-        return string
 
 
     @property
