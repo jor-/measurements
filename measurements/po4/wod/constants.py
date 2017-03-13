@@ -41,8 +41,3 @@ MEASUREMENTS_DICT_UNSORTED_FILE = os.path.join(DATA_DIR, 'measurement_dict_unsor
 
 SAMPLE_T_DIM = 12
 SAMPLE_LSM = measurements.land_sea_mask.lsm.LandSeaMaskWOA13R(t_dim=SAMPLE_T_DIM)
-
-## deviation
-
-DEVIATION_MIN_VALUE = 0.05
-
