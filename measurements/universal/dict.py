@@ -4,7 +4,7 @@ import itertools
 
 import numpy as np
 import scipy.stats
-import overrides
+#import overrides
 
 import measurements.util.calculate
 
@@ -19,7 +19,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
     def __init__(self, sorted=False):
         super().__init__(sorted=sorted)
         self._year_len = 1
-    
+
 
     @property
     def year_len(self):
@@ -27,8 +27,8 @@ class MeasurementsDict(util.multi_dict.MultiDict):
             return self._year_len
         except AttributeError:
             return 1
-    
-    
+
+
     ## str
 
     def __str__(self):
@@ -108,8 +108,8 @@ class MeasurementsDict(util.multi_dict.MultiDict):
     @staticmethod
     def categorize_index_to_lsm(index, lsm, discard_year=False):
         return MeasurementsDict.categorize_index(index, (self.year_len/lsm.t_dim, 360/lsm.x_dim, 180/lsm.y_dim, lsm.z), discard_year=discard_year)
-        
-    
+
+
     def categorize_indices_to_lsm(self, lsm, discard_year=False):
         self.categorize_indices((self.year_len/lsm.t_dim, 360/lsm.x_dim, 180/lsm.y_dim, lsm.z), discard_year=discard_year)
 
@@ -128,13 +128,13 @@ class MeasurementsDict(util.multi_dict.MultiDict):
     def discard_year(self, discard_year=True):
         if discard_year:
             logger.debug('Discarding year.')
-    
+
             def transform_function(key):
                 key_list = list(key)
                 key_list[0] = key[0] % self.year_len
                 key = tuple(key_list)
                 return key
-    
+
             self.transform_keys(transform_function)
 
 
@@ -149,7 +149,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
     ## io
 
-    @overrides.overrides
+    #@overrides.overrides
     def save(self, file):
         only_dict = self.year_len != 1
         super().save(file, only_dict=only_dict)
@@ -191,17 +191,17 @@ class MeasurementsDict(util.multi_dict.MultiDict):
     def normalize_with_lsm(self, lsm, min_number_of_values=5):
         same_bounds = (self.year_len/lsm.t_dim, 360/lsm.x_dim, 180/lsm.y_dim, lsm.z)
         return self.normalize(same_bounds, min_number_of_values=min_number_of_values)
-        
 
-    ## filter    
+
+    ## filter
 
     def filter_year(self, year, return_type='self'):
         return self.filter_key_range(0, [year, year+self.year_len-10**(-10)], return_type=return_type)
-    
-    
+
+
     def filter_coordinates_near_water(self, lsm, max_land_boxes=0, return_type='self'):
         self.filter_with_boolean_function(lambda point, values: lsm.is_coordinate_near_water(point, max_land_boxes=max_land_boxes), return_type=return_type)
-    
+
 
     def filter_same_point_with_bounds(self, point, equal_bounds=(0,0,0,0), discard_year=True, only_one_per_year=True):
         ## equal_bounds is float -> copy values for each dim
@@ -305,20 +305,20 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         assert callable(filter_same_point_function)
 
         measurements_filtered = MeasurementsSamePointsDict()
-        
+
         if min_number_of_values < float('inf'):
 
             for (point, results) in self.iterator_keys_and_value_lists():
                 point = list(point)
                 point[0] = point[0] % self.year_len
-    
+
                 if not point in measurements_filtered:
                     same_point_measurements = filter_same_point_function(point)
-    
+
                     transform_function = lambda point, result: (point[0], result)
                     same_point_measurements.transform_values(transform_function)
                     same_point_value_list = same_point_measurements.values()
-    
+
                     if len(same_point_value_list) >= min_number_of_values:
                         logger.debug('{} values with point {} passed filter.'.format(len(same_point_value_list), point))
                         measurements_filtered.extend_value_list(point, same_point_value_list)
@@ -678,42 +678,42 @@ class MeasurementsSamePointsDict(MeasurementsDict):
             value_measurements = MeasurementsCovarianceStationaryDict()
         else:
             value_measurements = MeasurementsCovarianceDict()
-        
+
         ## calculate values
         if len(self) > 0:
-    
+
             ## check max_year_diff
             if max_year_diff is None or max_year_diff == float('inf'):
                 t = self.values()[:,0]
                 max_year_diff = int(np.ceil((t.max() - t.min()) / self.year_len))
                 logger.debug('Using max_year_diff {}.'.format(max_year_diff))
-    
+
             ## iterate over each pair of measurement indices
             index_of_measurement = [0, 0]
             for (key_0, transformed_value_list_0) in self.iterator_keys_and_value_lists():
                 index_of_measurement[1] = 0
                 for (key_1, transformed_value_list_1) in self.iterator_keys_and_value_lists():
-    
+
                     ## skip previous values
                     if index_of_measurement[1] > index_of_measurement[0] or (index_of_measurement[1] == index_of_measurement[0] and max_year_diff > 1):
-    
+
                         ## make keys to list
                         keys = (tuple(key_0), tuple(key_1))
-    
+
                         ## calculate all desired year offsets
                         desired_year_offsets = tuple(np.arange(1, max_year_diff) * self.year_len)
                         if not np.allclose(keys[0], keys[1]):
                             desired_year_offsets += tuple(np.arange(-max_year_diff+1, 1) * self.year_len)
-    
+
                         if not np.isclose(keys[0][0], keys[1][0]):
                             if keys[0][0] < keys[1][0]:
                                 desired_year_offsets +=  (max_year_diff * self.year_len,)
                             else:
                                 desired_year_offsets +=  (-max_year_diff * self.year_len,)
-    
+
                         ## for all year offsets
                         for desired_year_offset in desired_year_offsets:
-    
+
                             ## get values with desired year offset and t fraction diff
                             matching_results = []
                             for (t0, r0) in transformed_value_list_0:
@@ -723,22 +723,22 @@ class MeasurementsSamePointsDict(MeasurementsDict):
                                         matching_results.append([r0, r1])
                             matching_results = np.array(matching_results)
                             n = len(matching_results)
-    
-    
+
+
                             ## if enough measurements
                             if n >= min_number_of_values:
-    
+
                                 ## calculate auxiliary values
                                 x0 = matching_results[:,0]
                                 x1 = matching_results[:,1]
-    
+
                                 m0 = x0.mean()
                                 m1 = x1.mean()
-    
+
                                 if calculate_correlation:
                                     s0 = np.sqrt(np.sum((x0 - m0)**2))
                                     s1 = np.sqrt(np.sum((x1 - m1)**2))
-    
+
                                 if not calculate_correlation or (s0 > 0 and s1 > 0):
                                     ## calculate value
                                     if calculate_correlation:
@@ -746,25 +746,25 @@ class MeasurementsSamePointsDict(MeasurementsDict):
                                         assert value >= -1 and value <= 1
                                     else:
                                         value = np.sum((x0 - m0) * (x1 - m1)) / (n-1)
-    
+
                                     value = (n, value)
-    
+
                                     ## prepare key pair
                                     value_keys = [list(keys[0]), list(keys[1])]
                                     if desired_year_offset >= 0:
                                         value_keys[0][0] = value_keys[0][0] + desired_year_offset
                                     else:
                                         value_keys[1][0] = value_keys[1][0] - desired_year_offset
-    
+
                                     ## add value to value dict
                                     assert not value_measurements.has_values(value_keys)
                                     value_measurements.append_value(value_keys, value)
-    
+
                                     logger.debug('{} {} calculated with {} values for index {}.'.format(value_type, value, n, value_keys))
                                 else:
                                     logger.warning('Correlation for key {} and {} could not be calculated since a sample standard deviation is zero. Skipping this correlation.'.format(keys[0], keys[1]))
-    
-    
+
+
                     index_of_measurement[1] += 1
                 index_of_measurement[0] += 1
 
@@ -824,7 +824,7 @@ class MeasurementsCovarianceDict(util.multi_dict.MultiDictPermutablePointPairs):
 
 
     ## io
-    @overrides.overrides
+    #@overrides.overrides
     def save(self, file):
         only_dict = self.year_len != 1
         super().save(file, only_dict=only_dict)
