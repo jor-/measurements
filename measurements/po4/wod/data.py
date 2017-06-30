@@ -1,4 +1,4 @@
-#import overrides
+import overrides
 import numpy as np
 
 import measurements.universal.data
@@ -111,14 +111,14 @@ class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
     @property
     @util.cache.memory.method_decorator()
     @util.cache.file.decorator()
-    #@overrides.overrides
+    @overrides.overrides
     def points(self):
         return points()
 
     @property
     @util.cache.memory.method_decorator()
     @util.cache.file.decorator()
-    #@overrides.overrides
+    @overrides.overrides
     def values(self):
         return results()
 

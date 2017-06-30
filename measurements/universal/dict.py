@@ -4,7 +4,7 @@ import itertools
 
 import numpy as np
 import scipy.stats
-#import overrides
+import overrides
 
 import measurements.util.calculate
 
@@ -149,7 +149,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
     ## io
 
-    #@overrides.overrides
+    @overrides.overrides
     def save(self, file):
         only_dict = self.year_len != 1
         super().save(file, only_dict=only_dict)
@@ -824,7 +824,7 @@ class MeasurementsCovarianceDict(util.multi_dict.MultiDictPermutablePointPairs):
 
 
     ## io
-    #@overrides.overrides
+    @overrides.overrides
     def save(self, file):
         only_dict = self.year_len != 1
         super().save(file, only_dict=only_dict)

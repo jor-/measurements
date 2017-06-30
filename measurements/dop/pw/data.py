@@ -3,7 +3,7 @@ import datetime
 import os.path
 
 import numpy as np
-#import overrides
+import overrides
 
 import util.math.sort
 import util.cache.file
@@ -176,14 +176,14 @@ class MeasurementsSingleBase(measurements.universal.data.MeasurementsAnnualPerio
     @property
     @util.cache.memory.method_decorator()
     @util.cache.file.decorator()
-    #@overrides.overrides
+    @overrides.overrides
     def points(self):
         return self.points_and_results[:, :-1]
 
     @property
     @util.cache.memory.method_decorator()
     @util.cache.file.decorator()
-    #@overrides.overrides
+    @overrides.overrides
     def values(self):
         return self.points_and_results[:, -1]
 
@@ -221,14 +221,14 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUni
     @property
     @util.cache.memory.method_decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
     @util.cache.file.decorator()
-    #@overrides.overrides
+    @overrides.overrides
     def concentration_standard_deviations_for_sample_lsm(self):
         return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations_for_sample_lsm
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
     @util.cache.file.decorator()
-    #@overrides.overrides
+    @overrides.overrides
     def concentration_standard_deviations(self):
         return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations
 

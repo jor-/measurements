@@ -2,7 +2,7 @@ import bisect
 import os
 
 import numpy as np
-#import overrides
+import overrides
 
 import util.cache.file
 import util.cache.memory
@@ -635,7 +635,7 @@ class LandSeaMaskTMM(LandSeaMaskFromFile):
 
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
-    #@overrides.overrides
+    @overrides.overrides
     def _calculate_lsm(self):
         lsm = util.petsc.universal.load_petsc_mat_to_array(measurements.land_sea_mask.constants.TMM_PETSC_FILE, dtype=np.int16)
         lsm = lsm.transpose() # metos3d: x and y are changed
@@ -644,7 +644,7 @@ class LandSeaMaskTMM(LandSeaMaskFromFile):
 
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._depth_file)
-    #@overrides.overrides
+    @overrides.overrides
     def _calculate_depth(self):
         ## read values from txt
         depth = np.genfromtxt(measurements.land_sea_mask.constants.TMM_DEPTH_TXT_FILE, dtype=np.int16, comments='#', usecols=(0,))
@@ -664,7 +664,7 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
 
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
-    #@overrides.overrides
+    @overrides.overrides
     def _calculate_lsm(self):
         ## read values from txt with axis order: x y z
         lsm = np.genfromtxt(measurements.land_sea_mask.constants.WOA13_LSM_TXT_FILE, dtype=float, delimiter=',', comments='#', usecols=(1, 0, 2))
@@ -690,7 +690,7 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
 
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._depth_file)
-    #@overrides.overrides
+    @overrides.overrides
     def _calculate_depth(self):
         ## read values from txt
         depth = np.genfromtxt(measurements.land_sea_mask.constants.WOA13_DEPTH_TXT_FILE, dtype=np.int16, comments='#', usecols=(0,))

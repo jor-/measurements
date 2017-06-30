@@ -87,7 +87,7 @@ setuptools.setup(
     install_requires = [
         'numpy',
         'scipy',
-        #'overrides',
+        'overrides',
         'utillib[cache,options,interpolate,cholmod]',
     ],
     extras_require = {
