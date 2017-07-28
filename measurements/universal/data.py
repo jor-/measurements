@@ -521,31 +521,31 @@ class MeasurementsNearWater(Measurements):
     @property
     @overrides.overrides
     def points(self):
-        return self.near_water_projection_matrix * self.base_measurements.points
+        return self.near_water_projection_matrix @ self.base_measurements.points
 
     @property
     @overrides.overrides
     def values(self):
-        return self.near_water_projection_matrix * self.base_measurements.values
+        return self.near_water_projection_matrix @ self.base_measurements.values
 
     @property
     @overrides.overrides
     def means(self):
-        return self.near_water_projection_matrix * self.base_measurements.means
+        return self.near_water_projection_matrix @ self.base_measurements.means
 
     @property
     @overrides.overrides
     def standard_deviations(self):
-        return self.near_water_projection_matrix * self.base_measurements.standard_deviations
+        return self.near_water_projection_matrix @ self.base_measurements.standard_deviations
 
     @property
     @overrides.overrides
     def correlations_own_sample_matrix(self):
-        return self.near_water_projection_matrix * self.base_measurements.correlations_own_sample_matrix * self.near_water_projection_matrix.T
+        return self.near_water_projection_matrix @ self.base_measurements.correlations_own_sample_matrix @ self.near_water_projection_matrix.T
 
     @overrides.overrides
     def correlations_other(self, measurements=None):
-        return self.near_water_projection_matrix * self.base_measurements.correlations_other(measurements=measurements)
+        return self.near_water_projection_matrix @ self.base_measurements.correlations_other(measurements=measurements)
 
 
 
@@ -560,17 +560,17 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     @property
     @overrides.overrides
     def concentration_standard_deviations(self):
-        return self.near_water_projection_matrix * self.base_measurements.concentration_standard_deviations
+        return self.near_water_projection_matrix @ self.base_measurements.concentration_standard_deviations
 
     @property
     @overrides.overrides
     def noise_standard_deviations(self):
-        return self.near_water_projection_matrix * self.base_measurements.noise_standard_deviations
+        return self.near_water_projection_matrix @ self.base_measurements.noise_standard_deviations
 
     @property
     @overrides.overrides
     def average_noise_standard_deviations(self):
-        return self.near_water_projection_matrix * self.base_measurements.average_noise_standard_deviations
+        return self.near_water_projection_matrix @ self.base_measurements.average_noise_standard_deviations
 
 
 
