@@ -104,7 +104,13 @@ class Measurements():
 
     @property
     def correlations_own_decomposition(self):
-        correlation_matrix_decomposition = matrix.calculate.approximate(self.correlations_own_sample_matrix, min_diag_value=self.min_diag_value_decomposition_correlation, min_abs_value=self.min_abs_correlation, permutation_method=self.permutation_method_decomposition_correlation, check_finite=False, return_type=self.decomposition_type_correlations)
+        correlation_matrix_decomposition = matrix.calculate.approximate(
+            self.correlations_own_sample_matrix,
+            min_diag_value=self.min_diag_value_decomposition_correlation,
+            min_abs_value=self.min_abs_correlation,
+            permutation_method=self.permutation_method_decomposition_correlation,
+            check_finite=False,
+            return_type=self.decomposition_type_correlations)
         return correlation_matrix_decomposition
 
     @property
@@ -129,7 +135,13 @@ class Measurements():
 
 class MeasurementsAnnualPeriodicBase(Measurements):
 
-    def __init__(self, sample_lsm, tracer=None, data_set_name=None, min_standard_deviation=np.finfo(np.float).resolution, min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE, max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE, min_measurements_mean=measurements.universal.constants.MEAN_MIN_MEASUREMENTS, min_measurements_standard_deviation=measurements.universal.constants.DEVIATION_MIN_MEASUREMENTS, min_measurements_correlation=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
+    def __init__(self, sample_lsm, tracer=None, data_set_name=None,
+                 min_standard_deviation=np.finfo(np.float).resolution,
+                 min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE,
+                 max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE,
+                 min_measurements_mean=measurements.universal.constants.MEAN_MIN_MEASUREMENTS,
+                 min_measurements_standard_deviation=measurements.universal.constants.DEVIATION_MIN_MEASUREMENTS,
+                 min_measurements_correlation=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
 
         super().__init__(tracer=tracer, data_set_name=data_set_name)
 
@@ -177,7 +189,9 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_concentration_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_concentration_standard_deviations(min_measurements=self.min_measurements_standard_deviation, min_value=0)
+        return self._sample_mean_and_deviation.sample_concentration_standard_deviations(
+            min_measurements=self.min_measurements_standard_deviation,
+            min_value=0)
 
     @property
     def concentration_standard_deviations(self):
@@ -190,7 +204,9 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_average_noise_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_average_noise_standard_deviations(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
+        return self._sample_mean_and_deviation.sample_average_noise_standard_deviations(
+            min_measurements=self.min_measurements_standard_deviation,
+            min_value=self.min_standard_deviation)
 
     @property
     def average_noise_standard_deviations(self):
@@ -203,7 +219,9 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_noise_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_noise_standard_deviations(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
+        return self._sample_mean_and_deviation.sample_noise_standard_deviations(
+            min_measurements=self.min_measurements_standard_deviation,
+            min_value=self.min_standard_deviation)
 
     @property
     def noise_standard_deviations(self):
@@ -226,7 +244,12 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
     def _sample_correlation(self):
-        return measurements.universal.sample_data.SampleCorrelationMatrix(self, self.sample_lsm, self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
+        return measurements.universal.sample_data.SampleCorrelationMatrix(
+            self, self.sample_lsm, self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            matrix_format=self.matrix_format_correlation,
+            dtype=self.dtype_correlation)
 
 
     @property
@@ -279,7 +302,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     @property
     def _interpolator(self):
-        return measurements.universal.interpolate.Interpolator_Annual_Periodic(self.sample_lsm, scaling_values=self.interpolator_scaling_values)
+        return measurements.universal.interpolate.Interpolator_Annual_Periodic(
+            self.sample_lsm, scaling_values=self.interpolator_scaling_values)
 
 
     ## fill strategy
@@ -491,7 +515,10 @@ class MeasurementsNearWater(Measurements):
 
     @property
     def data_set_name(self):
-        return measurements.universal.constants.NEAR_WATER_DATA_SET_NAME.format(base_data_set_name=self.base_measurements.data_set_name, water_lsm=self.water_lsm, max_box_distance_to_water=self.max_box_distance_to_water)
+        return measurements.universal.constants.NEAR_WATER_DATA_SET_NAME.format(
+            base_data_set_name=self.base_measurements.data_set_name,
+            water_lsm=self.water_lsm,
+            max_box_distance_to_water=self.max_box_distance_to_water)
 
 
     ## projection methods
@@ -499,7 +526,9 @@ class MeasurementsNearWater(Measurements):
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
     def near_water_projection_matrix(self):
-        mask = self.water_lsm.coordinates_near_water_mask(self.base_measurements.points, max_box_distance_to_water=self.max_box_distance_to_water)
+        mask = self.water_lsm.coordinates_near_water_mask(
+            self.base_measurements.points,
+            max_box_distance_to_water=self.max_box_distance_to_water)
 
         n = mask.sum()
         m = len(mask)
@@ -554,7 +583,14 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
 
     def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=0):
         super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
-        MeasurementsAnnualPeriodicBase.__init__(self, base_measurements.sample_lsm, min_standard_deviation=base_measurements.min_standard_deviation, min_abs_correlation=base_measurements.min_abs_correlation, max_abs_correlation=base_measurements.max_abs_correlation, min_measurements_mean=base_measurements.min_measurements_mean, min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation, min_measurements_correlation=base_measurements.min_measurements_correlation)
+        MeasurementsAnnualPeriodicBase.__init__(
+                self, base_measurements.sample_lsm,
+                min_standard_deviation=base_measurements.min_standard_deviation,
+                min_abs_correlation=base_measurements.min_abs_correlation,
+                max_abs_correlation=base_measurements.max_abs_correlation,
+                min_measurements_mean=base_measurements.min_measurements_mean,
+                min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation,
+                min_measurements_correlation=base_measurements.min_measurements_correlation)
 
 
     @property
@@ -801,12 +837,17 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualP
     @property
     @overrides.overrides
     def mean_id(self):
-        return measurements.universal.constants.MEAN_ID.format(sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_mean)
+        return measurements.universal.constants.MEAN_ID.format(
+            sample_lsm=self.sample_lsm,
+            min_measurements=self.min_measurements_mean)
 
     @property
     @overrides.overrides
     def standard_deviation_id(self):
-        return measurements.universal.constants.DEVIATION_ID.format(sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=self.min_standard_deviation)
+        return measurements.universal.constants.DEVIATION_ID.format(
+            sample_lsm=self.sample_lsm,
+            min_measurements=self.min_measurements_standard_deviation,
+            min_standard_deviation=self.min_standard_deviation)
 
     @property
     def standard_deviation_id_without_sample_lsm(self):
@@ -817,7 +858,15 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualP
     @property
     @overrides.overrides
     def correlation_id(self):
-        return measurements.universal.constants.CORRELATION_ID.format(sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, decomposition_type=self.decomposition_type_correlations, standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
+        return measurements.universal.constants.CORRELATION_ID.format(
+            sample_lsm=self.sample_lsm,
+            min_measurements_correlation=self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            decomposition_type=self.decomposition_type_correlations,
+            standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
 
 
@@ -850,7 +899,9 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
             ## if interpolation, append options for interpolations
             if fill_strategy == 'interpolate':
-                fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(scaling_values=','.join(map(str, self.interpolator_scaling_values)), interpolator_options=','.join(map(str, self.get_interpolator_options(kind))))
+                fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(
+                    scaling_values=','.join(map(str, self.interpolator_scaling_values)),
+                    interpolator_options=','.join(map(str, self.get_interpolator_options(kind))))
 
         return fill_strategy
 
@@ -905,7 +956,12 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
     def _mean_cache_file(self, target):
         fill_strategy=self._fill_strategy_id('concentration_means')
-        return measurements.universal.constants.MEAN_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_mean, fill_strategy=fill_strategy, target=target)
+        return measurements.universal.constants.MEAN_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            sample_lsm=self.sample_lsm,
+            min_measurements=self.min_measurements_mean,
+            fill_strategy=fill_strategy, target=target)
 
 
     @property
@@ -938,7 +994,14 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_standard_deviation = 0
         else:
             min_standard_deviation = self.min_standard_deviation
-        return measurements.universal.constants.DEVIATION_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements=self.min_measurements_standard_deviation, min_standard_deviation=min_standard_deviation, deviation_type=deviation_type, fill_strategy=fill_strategy, target=target)
+        return measurements.universal.constants.DEVIATION_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            sample_lsm=self.sample_lsm,
+            min_measurements=self.min_measurements_standard_deviation,
+            min_standard_deviation=min_standard_deviation,
+            deviation_type=deviation_type,
+            fill_strategy=fill_strategy, target=target)
 
 
     @property
@@ -1020,7 +1083,12 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @property
     @overrides.overrides
     def _sample_correlation(self):
-        return measurements.universal.sample_data.SampleCorrelationMatrixCache(self, self.sample_lsm, self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
+        return measurements.universal.sample_data.SampleCorrelationMatrixCache(
+            self, self.sample_lsm, self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            matrix_format=self.matrix_format_correlation,
+            dtype=self.dtype_correlation)
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.min_diag_value_decomposition_correlation', 'self.permutation_method_decomposition_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation', 'self.decomposition_type_correlations'))
@@ -1028,14 +1096,41 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @overrides.overrides
     def correlations_own_decomposition(self):
         reduction_factors_file = self.reduction_factors_cache_file()
-        correlation_matrix_decomposition = matrix.calculate.approximate_with_reduction_factor_file(self.correlations_own_sample_matrix, min_diag_value=self.min_diag_value_decomposition_correlation, min_abs_value=self.min_abs_correlation, permutation_method=self.permutation_method_decomposition_correlation, check_finite=False, return_type=self.decomposition_type_correlations, reduction_factors_file=reduction_factors_file)
+        correlation_matrix_decomposition = matrix.calculate.approximate_with_reduction_factor_file(
+            self.correlations_own_sample_matrix,
+            min_diag_value=self.min_diag_value_decomposition_correlation,
+            min_abs_value=self.min_abs_correlation,
+            permutation_method=self.permutation_method_decomposition_correlation,
+            check_finite=False,
+            return_type=self.decomposition_type_correlations,
+            reduction_factors_file=reduction_factors_file)
         return correlation_matrix_decomposition
 
     def correlations_own_decomposition_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_DECOMPOSITION_FILE.format(tracer=self.tracer, data_set=self.data_set_name, decomposition_type=self.decomposition_type_correlations, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm, dtype=self.dtype_correlation)
+        return measurements.universal.constants.CORRELATION_MATRIX_DECOMPOSITION_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            decomposition_type=self.decomposition_type_correlations,
+            sample_lsm=self.sample_lsm,
+            min_measurements_correlation=self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
+            dtype=self.dtype_correlation)
 
     def reduction_factors_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
+        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            sample_lsm=self.sample_lsm,
+            min_measurements_correlation=self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.min_diag_value_decomposition_correlation', 'self.permutation_method_decomposition_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation', 'self.decomposition_type_correlations'))
@@ -1045,7 +1140,19 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return super().correlations_own
 
     def correlations_own_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE.format(tracer=self.tracer, data_set=self.data_set_name, decomposition_type=self.decomposition_type_correlations, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation)
+        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            decomposition_type=self.decomposition_type_correlations,
+            sample_lsm=self.sample_lsm,
+            min_measurements_correlation=self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
+            dtype=self.dtype_correlation,
+            matrix_format=self.matrix_format_correlation)
 
 
 
@@ -1090,7 +1197,13 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
     ## cache files
 
     def near_water_projection_matrix_cache_file(self):
-        return measurements.universal.constants.NEAR_WATER_PROJECTION_MASK_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, water_lsm=self.water_lsm, max_box_distance_to_water=self.max_box_distance_to_water, matrix_format='csc')
+        return measurements.universal.constants.NEAR_WATER_PROJECTION_MASK_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            sample_lsm=self.sample_lsm,
+            water_lsm=self.water_lsm,
+            max_box_distance_to_water=self.max_box_distance_to_water,
+            matrix_format='csc')
 
     @overrides.overrides
     def points_cache_file(self):
