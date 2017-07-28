@@ -2,6 +2,7 @@ import os.path
 
 import numpy as np
 
+import matrix.constants
 from measurements.constants import BASE_DIR
 
 ## base dir
@@ -71,9 +72,9 @@ DEVIATION_ID = SEPERATOR.join([
 CORRELATION_MIN_MEASUREMENTS = 30
 CORRELATION_MIN_ABS_VALUE = 0.01
 CORRELATION_MAX_ABS_VALUE = 0.99
-CORRELATION_CHOLESKY_MIN_DIAG_VALUE = 0.1
-CORRELATION_CHOLESKY_ORDERING_METHOD = 'default'
-CORRELATION_CHOLEKSY_REORDER_AFTER_EACH_STEP = True
+CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE = 0.1
+CORRELATION_DECOMPOSITION_PERMUTATION_METHOD = 'default'
+CORRELATION_DECOMPOSITION_TYPE = matrix.constants.LDL_DECOMPOSITION_TYPE
 CORRELATION_DTYPE = np.dtype(np.float32)
 CORRELATION_FORMAT = 'csc'
 
@@ -84,8 +85,8 @@ CORRELATION_ID = SEPERATOR.join([
 'min_values_{min_measurements_correlation:0>2d}',
 'min_abs_{min_abs_correlation}',
 'max_abs_{max_abs_correlation}',
-'ordering_{cholesky_ordering_method_correlation}_{cholesky_reordering_correlation:d}',
-'min_diag_{cholesky_min_diag_value:.0e}',
+'min_diag_{decomposition_min_diag_value:.0e}',
+'decomposition_{decomposition_type}',
 'dev:_{standard_deviation_id}'])
 
 CORRELATION_DIR = os.path.join(MEASUREMENT_DIR, 'correlation')
@@ -98,7 +99,7 @@ MAP_INDEX_TO_POINT_INDEX_DICT_FILE = os.path.join(CORRELATION_DIR,
 
 CONCENTRATIONS_SAME_POINTS_EXCEPT_YEAR_DICT_FILE = os.path.join(CORRELATION_DIR,
 'concentrations_same_points_except_year_dict', SEPERATOR.join([
-'concentrations_same_points_except_year_dict', 
+'concentrations_same_points_except_year_dict',
 'sample_{sample_lsm}',
 'min_values_{min_measurements_correlation:0>2d}.ppy']))
 
@@ -147,17 +148,16 @@ SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(CORRELATION_DIR,
 'dev:_{standard_deviation_id}',
 '{dtype}.{matrix_format}.npz']))
 
-CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE = os.path.join(CORRELATION_DIR,
-'positive_definite', SEPERATOR.join([
-'correlation',
+CORRELATION_MATRIX_DECOMPOSITION_FILE = os.path.join(CORRELATION_DIR,
+'positive_definite_decomposition', SEPERATOR.join([
+'decomposition_{decomposition_type}',
 'sample_{sample_lsm}',
 'min_values_{min_measurements_correlation:0>2d}',
 'min_abs_{min_abs_correlation}',
 'max_abs_{max_abs_correlation}',
-'ordering_{cholesky_ordering_method_correlation}_{cholesky_reordering_correlation:d}',
-'min_diag_{cholesky_min_diag_value:.0e}',
+'min_diag_{decomposition_min_diag_value:.0e}',
 'dev:_{standard_deviation_id}',
-'{dtype}.{matrix_format}.npz']))
+'{dtype}.dec']))
 
 CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE = os.path.join(CORRELATION_DIR,
 'positive_definite', SEPERATOR.join([
@@ -166,18 +166,17 @@ CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE = os.path.join(CORRE
 'min_values_{min_measurements_correlation:0>2d}',
 'min_abs_{min_abs_correlation}',
 'max_abs_{max_abs_correlation}',
-'ordering_{cholesky_ordering_method_correlation}_{cholesky_reordering_correlation:d}',
-'min_diag_{cholesky_min_diag_value:.0e}',
+'min_diag_{decomposition_min_diag_value:.0e}',
 'dev:_{standard_deviation_id}.npy']))
 
-CORRELATION_MATRIX_CHOLESKY_FACTOR_FILE = os.path.join(CORRELATION_DIR,
+CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE = os.path.join(CORRELATION_DIR,
 'positive_definite', SEPERATOR.join([
-'cholesky_{factor_type}',
+'correlation',
+'decomposition_{decomposition_type}',
 'sample_{sample_lsm}',
 'min_values_{min_measurements_correlation:0>2d}',
 'min_abs_{min_abs_correlation}',
 'max_abs_{max_abs_correlation}',
-'ordering_{cholesky_ordering_method_correlation}_{cholesky_reordering_correlation:d}',
-'min_diag_{cholesky_min_diag_value:.0e}',
+'min_diag_{decomposition_min_diag_value:.0e}',
 'dev:_{standard_deviation_id}',
 '{dtype}.{matrix_format}.npz']))

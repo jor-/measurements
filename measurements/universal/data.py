@@ -4,6 +4,8 @@ import os.path
 import numpy as np
 import scipy.sparse
 import overrides
+import matrix
+import matrix.calculate
 
 import measurements.universal.dict
 import measurements.universal.interpolate
@@ -25,7 +27,14 @@ class Measurements():
     def __init__(self, tracer=None, data_set_name=None):
         self._tracer = tracer
         self._data_set_name = data_set_name
-        self.cholesky_ordering_method_correlation = 'best'
+
+        self.min_abs_correlation = measurements.universal.constants.CORRELATION_MIN_ABS_VALUE
+        self.min_diag_value_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE
+        self.permutation_method_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_PERMUTATION_METHOD
+        self.decomposition_type_correlations = measurements.universal.constants.CORRELATION_DECOMPOSITION_TYPE
+        self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
+        self.dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
+
         logger.debug('{}: initialized with tracer {} and data set {}.'.format(self.__class__.__name__, tracer, data_set_name))
 
 
@@ -90,14 +99,20 @@ class Measurements():
 
 
     @property
-    def correlations_own(self):
+    def correlations_own_sample_matrix(self):
         return scipy.sparse.eye(self.number_of_measurements)
 
     @property
-    def correlations_own_cholesky_decomposition(self):
-        import util.math.sparse.decompose.with_cholmod
-        P, L = util.math.sparse.decompose.with_cholmod.cholesky(self.correlations_own, ordering_method=self.cholesky_ordering_method_correlation, return_type=util.math.sparse.decompose.with_cholmod.RETURN_P_L)
-        return {'P': P, 'L': L}
+    def correlations_own_decomposition(self):
+        correlation_matrix_decomposition = matrix.calculate.approximate(self.correlations_own_sample_matrix, min_diag_value=self.min_diag_value_decomposition_correlation, min_abs_value=self.min_abs_correlation, permutation_method=self.permutation_method_decomposition_correlation, check_finite=False, return_type=self.decomposition_type_correlations)
+        return correlation_matrix_decomposition
+
+    @property
+    def correlations_own(self):
+        correlation_matrix_decomposition = self.correlations_own_decomposition
+        correlation_matrix = correlation_matrix_decomposition.composed_matrix
+        correlation_matrix = correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
+        return correlation_matrix
 
     def correlations_other(self, measurements=None):
         return scipy.sparse.dia_matrix((self.number_of_measurements, measurements.number_of_measurements))
@@ -128,16 +143,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         self.min_measurements_correlation = min_measurements_correlation
         self.min_abs_correlation = min_abs_correlation
         self.max_abs_correlation = max_abs_correlation
-
-        self.cholesky_min_diag_value_correlation = measurements.universal.constants.CORRELATION_CHOLESKY_MIN_DIAG_VALUE
-        self.cholesky_ordering_method_correlation = measurements.universal.constants.CORRELATION_CHOLESKY_ORDERING_METHOD
-        self.cholesky_reordering_correlation = measurements.universal.constants.CORRELATION_CHOLEKSY_REORDER_AFTER_EACH_STEP
-        self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
-
-
-    @property
-    def dtype_correlation(self):
-        return measurements.universal.constants.CORRELATION_DTYPE
 
 
     ## general sample data
@@ -227,23 +232,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     @property
     def correlations_own_sample_matrix(self):
         return self._sample_correlation.correlation_matrix
-
-
-    @property
-    @overrides.overrides
-    def correlations_own(self):
-        import util.math.sparse.decompose.with_cholmod
-        correlation_matrix, reduction_factors = util.math.sparse.decompose.with_cholmod.approximate_positive_definite(self.correlations_own_sample_matrix, min_abs_value=self.min_abs_correlation, min_diag_value=self.cholesky_min_diag_value_correlation, ordering_method=self.cholesky_ordering_method_correlation, reorder_after_each_step=self.cholesky_reordering_correlation)
-        return correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
-
-
-    @property
-    @overrides.overrides
-    def correlations_own_cholesky_decomposition(self):
-        import util.math.sparse.decompose.with_cholmod
-        P, L = util.math.sparse.decompose.with_cholmod.cholesky(self.correlations_own, ordering_method=self.cholesky_ordering_method_correlation, return_type=util.math.sparse.decompose.with_cholmod.RETURN_P_L)
-        return {'P': P.asformat(self.matrix_format_correlation).astype(np.int8), 'L': L.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)}
-
 
 
 
@@ -552,8 +540,8 @@ class MeasurementsNearWater(Measurements):
 
     @property
     @overrides.overrides
-    def correlations_own(self):
-        return self.near_water_projection_matrix * self.base_measurements.correlations_own * self.near_water_projection_matrix.T
+    def correlations_own_sample_matrix(self):
+        return self.near_water_projection_matrix * self.base_measurements.correlations_own_sample_matrix * self.near_water_projection_matrix.T
 
     @overrides.overrides
     def correlations_other(self, measurements=None):
@@ -565,8 +553,8 @@ class MeasurementsNearWater(Measurements):
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
 
     def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=0):
-        MeasurementsAnnualPeriodicBase.__init__(self, base_measurements.sample_lsm, min_standard_deviation=base_measurements.min_standard_deviation, min_abs_correlation=base_measurements.min_abs_correlation, max_abs_correlation=base_measurements.max_abs_correlation, min_measurements_mean=base_measurements.min_measurements_mean, min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation, min_measurements_correlation=base_measurements.min_measurements_correlation)
         super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+        MeasurementsAnnualPeriodicBase.__init__(self, base_measurements.sample_lsm, min_standard_deviation=base_measurements.min_standard_deviation, min_abs_correlation=base_measurements.min_abs_correlation, max_abs_correlation=base_measurements.max_abs_correlation, min_measurements_mean=base_measurements.min_measurements_mean, min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation, min_measurements_correlation=base_measurements.min_measurements_correlation)
 
 
     @property
@@ -583,18 +571,6 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     @overrides.overrides
     def average_noise_standard_deviations(self):
         return self.near_water_projection_matrix * self.base_measurements.average_noise_standard_deviations
-
-
-    @property
-    @overrides.overrides
-    def correlations_own_sample_matrix(self):
-        return self.near_water_projection_matrix * self.base_measurements.correlations_own_sample_matrix * self.near_water_projection_matrix.T
-
-    @property
-    @overrides.overrides
-    def correlations_own(self):
-        return MeasurementsAnnualPeriodicBase.correlations_own
-
 
 
 
@@ -661,7 +637,6 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
 
 
 
-
 class MeasurementsCollection(Measurements):
 
     def __init__(self, *measurements_list):
@@ -694,9 +669,8 @@ class MeasurementsCollection(Measurements):
 
         ## correlation constants
         self.min_abs_correlation = min([measurement.min_abs_correlation for measurement in measurements_list])
-        self.cholesky_min_diag_value_correlation = min([measurement.cholesky_min_diag_value_correlation for measurement in measurements_list])
-        self.cholesky_ordering_method_correlation = measurements.universal.constants.CORRELATION_CHOLESKY_ORDERING_METHOD
-        self.cholesky_reordering_correlation = measurements.universal.constants.CORRELATION_CHOLEKSY_REORDER_AFTER_EACH_STEP
+        self.min_diag_value_decomposition_correlation = min([measurement.min_diag_value_decomposition_correlation for measurement in measurements_list])
+        self.permutation_method_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_PERMUTATION_METHOD
         self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
         self.dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
 
@@ -746,6 +720,7 @@ class MeasurementsCollection(Measurements):
 
 
     @property
+    @overrides.overrides
     def correlations_own_sample_matrix(self):
         n = len(self.measurements_list)
         correlations = np.empty([n,n], dtype=object)
@@ -761,24 +736,6 @@ class MeasurementsCollection(Measurements):
         correlations = scipy.sparse.bmat(correlations, format=self.matrix_format_correlation, dtype=self.dtype_correlation)
         assert correlations.shape == (self.number_of_measurements, self.number_of_measurements)
         return correlations
-
-
-    @property
-    @overrides.overrides
-    def correlations_own(self):
-        import util.math.sparse.decompose.with_cholmod
-        correlation_matrix, reduction_factors = util.math.sparse.decompose.with_cholmod.approximate_positive_definite(self.correlations_own_sample_matrix, min_abs_value=self.min_abs_correlation, min_diag_value=self.cholesky_min_diag_value_correlation, ordering_method=self.cholesky_ordering_method_correlation, reorder_after_each_step=self.cholesky_reordering_correlation)
-        correlation_matrix = correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
-        assert correlation_matrix.shape == (self.number_of_measurements, self.number_of_measurements)
-        return correlation_matrix
-
-
-    @property
-    @overrides.overrides
-    def correlations_own_cholesky_decomposition(self):
-        import util.math.sparse.decompose.with_cholmod
-        P, L = util.math.sparse.decompose.with_cholmod.cholesky(self.correlations_own, ordering_method=self.cholesky_ordering_method_correlation, return_type=util.math.sparse.decompose.with_cholmod.RETURN_P_L)
-        return {'P': P.asformat(self.matrix_format_correlation).astype(np.int8), 'L': L.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)}
 
 
     def _measurements_dict(self, convert_function=None):
@@ -837,7 +794,6 @@ class MeasurementsCache():
 
 
 
-
 class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualPeriodicBase):
 
     ## ids
@@ -861,7 +817,7 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualP
     @property
     @overrides.overrides
     def correlation_id(self):
-        return measurements.universal.constants.CORRELATION_ID.format(sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, cholesky_ordering_method_correlation=self.cholesky_ordering_method_correlation, cholesky_reordering_correlation=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
+        return measurements.universal.constants.CORRELATION_ID.format(sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, decomposition_type=self.decomposition_type_correlations, standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
 
 
@@ -908,7 +864,6 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @overrides.overrides
     def standard_deviation_id(self):
         return super().standard_deviation_id + '_-_fill_' + self._fill_strategy_id('standard_deviations')
-
 
 
     ## points and values cache files
@@ -1068,49 +1023,29 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return measurements.universal.sample_data.SampleCorrelationMatrixCache(self, self.sample_lsm, self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, matrix_format=self.matrix_format_correlation, dtype=self.dtype_correlation)
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.min_diag_value_decomposition_correlation', 'self.permutation_method_decomposition_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation', 'self.decomposition_type_correlations'))
+    @util.cache.file.decorator(load_function=matrix.decompositions.load, save_function=matrix.decompositions.save)
+    @overrides.overrides
+    def correlations_own_decomposition(self):
+        reduction_factors_file = self.reduction_factors_cache_file()
+        correlation_matrix_decomposition = matrix.calculate.approximate_with_reduction_factor_file(self.correlations_own_sample_matrix, min_diag_value=self.min_diag_value_decomposition_correlation, min_abs_value=self.min_abs_correlation, permutation_method=self.permutation_method_decomposition_correlation, check_finite=False, return_type=self.decomposition_type_correlations, reduction_factors_file=reduction_factors_file)
+        return correlation_matrix_decomposition
+
+    def correlations_own_decomposition_cache_file(self):
+        return measurements.universal.constants.CORRELATION_MATRIX_DECOMPOSITION_FILE.format(tracer=self.tracer, data_set=self.data_set_name, decomposition_type=self.decomposition_type_correlations, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm, dtype=self.dtype_correlation)
+
+    def reduction_factors_cache_file(self):
+        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
+
+    @property
+    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.min_diag_value_decomposition_correlation', 'self.permutation_method_decomposition_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation', 'self.decomposition_type_correlations'))
     @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own(self):
-        import util.math.sparse.decompose.with_cholmod
-        correlation_matrix, reduction_factors = util.math.sparse.decompose.with_cholmod.approximate_positive_definite(self.correlations_own_sample_matrix, min_abs_value=self.min_abs_correlation, min_diag_value=self.cholesky_min_diag_value_correlation, ordering_method=self.cholesky_ordering_method_correlation, reorder_after_each_step=self.cholesky_reordering_correlation, reduction_factors_file=self.reduction_factors_cache_file())
-        return correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
+        return super().correlations_own
 
     def correlations_own_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, cholesky_ordering_method_correlation=self.cholesky_ordering_method_correlation, cholesky_reordering_correlation=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation)
-
-    def reduction_factors_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, cholesky_ordering_method_correlation=self.cholesky_ordering_method_correlation, cholesky_reordering_correlation=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
-
-
-    @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
-    def _correlations_own_cholesky_decomposition(self):
-        return super().correlations_own_cholesky_decomposition
-
-    @property
-    @util.cache.file.decorator()
-    def _correlations_own_cholesky_decomposition_P(self):
-        return self._correlations_own_cholesky_decomposition['P']
-
-    def _correlations_own_cholesky_decomposition_P_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, cholesky_ordering_method_correlation=self.cholesky_ordering_method_correlation, cholesky_reordering_correlation=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm, dtype=np.dtype(np.int8), matrix_format=self.matrix_format_correlation, factor_type='P')
-
-    @property
-    @util.cache.file.decorator()
-    def _correlations_own_cholesky_decomposition_L(self):
-        return self._correlations_own_cholesky_decomposition['L']
-
-    def _correlations_own_cholesky_decomposition_L_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_CHOLESKY_FACTOR_FILE.format(tracer=self.tracer, data_set=self.data_set_name, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, cholesky_ordering_method_correlation=self.cholesky_ordering_method_correlation, cholesky_reordering_correlation=self.cholesky_reordering_correlation, cholesky_min_diag_value=self.cholesky_min_diag_value_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation, factor_type='L')
-
-
-    @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.cholesky_min_diag_value_correlation', 'self.cholesky_ordering_method_correlation', 'self.cholesky_reordering_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
-    @overrides.overrides
-    def correlations_own_cholesky_decomposition(self):
-        return {'P': self._correlations_own_cholesky_decomposition_P, 'L': self._correlations_own_cholesky_decomposition_L}
-
+        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE.format(tracer=self.tracer, data_set=self.data_set_name, decomposition_type=self.decomposition_type_correlations, sample_lsm=self.sample_lsm, min_measurements_correlation=self.min_measurements_correlation, min_abs_correlation=self.min_abs_correlation, max_abs_correlation=self.max_abs_correlation, permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation, decomposition_min_diag_value=self.min_diag_value_decomposition_correlation, standard_deviation_id=self.standard_deviation_id_without_sample_lsm, dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation)
 
 
 
@@ -1193,27 +1128,21 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         return self.base_measurements._sample_correlation.correlation_matrix_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
-    def correlations_own_cache_file(self):
-        return self.base_measurements.correlations_own_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
+    def correlations_own_decomposition_cache_file(self):
+        return self.base_measurements.correlations_own_decomposition_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
     def reduction_factors_cache_file(self):
         return self.base_measurements.reduction_factors_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
-    def _correlations_own_cholesky_decomposition_P_cache_file(self):
-        return self.base_measurements._correlations_own_cholesky_decomposition_P_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
-
-    @overrides.overrides
-    def _correlations_own_cholesky_decomposition_L_cache_file(self):
-        return self.base_measurements._correlations_own_cholesky_decomposition_L_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
-
+    def correlations_own_cache_file(self):
+        return self.base_measurements.correlations_own_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
 
 
 class MeasurementsAnnualPeriodicUnionCache(MeasurementsAnnualPeriodicUnion, MeasurementsAnnualPeriodicCache):
     pass
-
 
 
 
@@ -1246,32 +1175,16 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
         return super().correlations_own_sample_matrix
 
     @property
+    @util.cache.file.decorator(load_function=matrix.decompositions.load, save_function=matrix.decompositions.save)
+    @overrides.overrides
+    def correlations_own_decomposition(self):
+        return super().correlations_own_decomposition
+
+    @property
     @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own(self):
-        import util.math.sparse.decompose.with_cholmod
-        correlation_matrix, reduction_factors = util.math.sparse.decompose.with_cholmod.approximate_positive_definite(self.correlations_own_sample_matrix, min_abs_value=self.min_abs_correlation, min_diag_value=self.cholesky_min_diag_value_correlation, ordering_method=self.cholesky_ordering_method_correlation, reorder_after_each_step=self.cholesky_reordering_correlation, reduction_factors_file=self.reduction_factors_cache_file())
-        return correlation_matrix.asformat(self.matrix_format_correlation).astype(self.dtype_correlation)
-
-    @property
-    @util.cache.memory.method_decorator()
-    def _correlations_own_cholesky_decomposition(self):
-        return super().correlations_own_cholesky_decomposition
-
-    @property
-    @util.cache.file.decorator()
-    def _correlations_own_cholesky_decomposition_P(self):
-        return self._correlations_own_cholesky_decomposition['P']
-
-    @property
-    @util.cache.file.decorator()
-    def _correlations_own_cholesky_decomposition_L(self):
-        return self._correlations_own_cholesky_decomposition['L']
-
-    @property
-    @overrides.overrides
-    def correlations_own_cholesky_decomposition(self):
-        return {'P': self._correlations_own_cholesky_decomposition_P, 'L': self._correlations_own_cholesky_decomposition_L}
+        return super().correlations_own
 
 
     ## files
@@ -1292,22 +1205,16 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
         return measurements.universal.constants.MEASUREMENT_DIR.format(tracer=self.tracer, data_set=self.data_set_name)
 
     def correlations_own_sample_matrix_cache_file(self):
-        merged_correlation_ids = util.str.merge([measurement.correlation_id for measurement in self.measurements_list])
-        filename = measurements.universal.constants.SEPERATOR.join(['sample_correlation', merged_correlation_ids, '{dtype}.{matrix_format}.npz'.format(dtype=self.dtype_correlation, matrix_format=self.matrix_format_correlation)])
-        return os.path.join(self.measurements_dir, 'correlation', 'sample_correlation', filename)
+        return self._merge_files(self.measurements_dir, [measurement._sample_correlation.correlation_matrix_cache_file() for measurement in self.measurements_list])
+
+    def correlations_own_decomposition_cache_file(self):
+        return self._merge_files(self.measurements_dir, [measurement.correlations_own_decomposition_cache_file() for measurement in self.measurements_list])
 
     def reduction_factors_cache_file(self):
         return self._merge_files(self.measurements_dir, [measurement.reduction_factors_cache_file() for measurement in self.measurements_list])
 
     def correlations_own_cache_file(self):
         return self._merge_files(self.measurements_dir, [measurement.correlations_own_cache_file() for measurement in self.measurements_list])
-
-    def _correlations_own_cholesky_decomposition_P_cache_file(self):
-        return self._merge_files(self.measurements_dir, [measurement._correlations_own_cholesky_decomposition_P_cache_file() for measurement in self.measurements_list])
-
-    def _correlations_own_cholesky_decomposition_L_cache_file(self):
-        return self._merge_files(self.measurements_dir, [measurement._correlations_own_cholesky_decomposition_L_cache_file() for measurement in self.measurements_list])
-
 
 
 
@@ -1321,10 +1228,8 @@ class TooFewValuesError(Exception):
 
 
 
-
 def as_measurements_collection(measurements):
     if isinstance(measurements, MeasurementsCollectionCache):
         return measurements
     else:
         return MeasurementsCollectionCache(*measurements)
-

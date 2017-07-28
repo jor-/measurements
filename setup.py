@@ -88,7 +88,8 @@ setuptools.setup(
         'numpy',
         'scipy',
         'overrides',
-        'utillib[cache,options,interpolate,cholmod]',
+        'matrix-decomposition',
+        'utillib[cache,options,interpolate]',
     ],
     extras_require = {
         'plot' : ['matplotlib', 'utillib[plot]'],
