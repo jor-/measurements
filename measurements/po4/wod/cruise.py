@@ -10,7 +10,6 @@ import util.io.object
 import util.datetime
 
 import util.logging
-logger = util.logging.logger
 
 
 class UnitError(ValueError):
@@ -108,13 +107,13 @@ class Cruise():
 
             ## check values
             if np.any(values < 0):
-                logger.warn('Values in {} are lower then 0!'.format(file))
+                util.logging.warn('Values in {} are lower then 0!'.format(file))
                 valid_mask = values > 0
                 values = values[valid_mask]
                 depth = depth[valid_mask]
 
             if np.any(depth < 0):
-                logger.warn('Depth in {} is lower then 0!'.format(file))
+                util.logging.warn('Depth in {} is lower then 0!'.format(file))
                 depth[depth < 0] = 0
 
 
@@ -125,7 +124,7 @@ class Cruise():
         self.depth = depth
         self.values = values
 
-        logger.debug('Cruise from {} loaded with {:d} values.'.format(file, self.number_of_measurements))
+        util.logging.debug('Cruise from {} loaded with {:d} values.'.format(file, self.number_of_measurements))
 
 
 
@@ -150,34 +149,34 @@ class CruiseCollection():
 
 
     def load_cruises_from_netcdf_files(self, data_dir):
-        logger.debug('Loading all cruises from netcdf files.')
+        util.logging.debug('Loading all cruises from netcdf files.')
 
         ## lookup files
-        logger.debug('Looking up files in %s.' % data_dir)
+        util.logging.debug('Looking up files in %s.' % data_dir)
         files = util.io.fs.get_files(data_dir, use_absolute_filenames=True)
-        logger.debug('%d files found.' % len(files))
+        util.logging.debug('%d files found.' % len(files))
 
         ## load cruises
-        logger.debug('Loading cruises from found files.')
+        util.logging.debug('Loading cruises from found files.')
         cruises = [Cruise(file) for file in files]
-        logger.debug('%d cruises loaded.' % len(cruises))
+        util.logging.debug('%d cruises loaded.' % len(cruises))
 
         ## remove empty cruises
-        logger.debug('Removing empty cruises.')
+        util.logging.debug('Removing empty cruises.')
         cruises = [cruise for cruise in cruises if cruise.number_of_measurements > 0]
-        logger.debug('%d not empty cruises found.' % len(cruises))
+        util.logging.debug('%d not empty cruises found.' % len(cruises))
 
         ## return cruises
         self.cruises = cruises
 
 
     def save_cruises_to_pickle_file(self, file):
-        logger.debug('Saving cruises at %s.' % file)
+        util.logging.debug('Saving cruises at %s.' % file)
         util.io.object.save(file, self.cruises)
-        logger.debug('Cruises saved at %s.' % file)
+        util.logging.debug('Cruises saved at %s.' % file)
 
 
     def load_cruises_from_pickle_file(self, file):
-        logger.debug('Loading cruises at %s.' % file)
+        util.logging.debug('Loading cruises at %s.' % file)
         self.cruises = util.io.object.load(file)
-        logger.debug('Cruises loaded at %s.' % file)
+        util.logging.debug('Cruises loaded at %s.' % file)

@@ -9,7 +9,6 @@ import measurements.universal.dict
 import measurements.universal.constants
 import measurements.constants
 
-logger = util.logging.logger
 
 
 
@@ -76,13 +75,13 @@ class SampleMeanAndDeviation():
     ## mean
 
     def sample_concentration_means_map_indices_dict(self, min_measurements=measurements.constants.MEAN_MIN_MEASUREMENTS):
-        logger.debug('Calculating sample_concentration_means_map_indices_dict with min_measurements {}.'.format(min_measurements))
+        util.logging.debug('Calculating sample_concentration_means_map_indices_dict with min_measurements {}.'.format(min_measurements))
         data_function = lambda data_dict: data_dict.means(min_number_of_values=min_measurements, return_type='self')
         data = self._sample_data_dict_concentration_based(data_function)
         return data
 
     def sample_concentration_means(self, min_measurements=measurements.constants.MEAN_MIN_MEASUREMENTS):
-        logger.debug('Calculating sample_concentration_means with min_measurements {}.'.format(min_measurements))
+        util.logging.debug('Calculating sample_concentration_means with min_measurements {}.'.format(min_measurements))
         data_dict = self.sample_concentration_means_map_indices_dict(min_measurements=min_measurements)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
@@ -91,42 +90,42 @@ class SampleMeanAndDeviation():
     ## deviation
     
     def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        logger.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_concentration_based(data_function) 
         return data_dict
 
     
     def sample_concentration_standard_deviations(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        logger.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_dict = self.sample_concentration_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
 
     def sample_average_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        logger.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_average_noise_based(data_function)
         return data_dict
 
 
     def sample_average_noise_standard_deviations(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        logger.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_dict = self.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
     
     def sample_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        logger.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_noise_based(data_function)
         return data_dict
 
     
     def sample_noise_standard_deviations(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        logger.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_dict = self.sample_noise_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=False)
         return data
@@ -169,7 +168,7 @@ class SampleCorrelationMatrix:
     ##  map index to point index dict
 
     def map_indices_to_point_index_dict(self, discard_year=False):
-        logger.debug('Calculating map index to point index dict with discard year {}.'.format(discard_year))
+        util.logging.debug('Calculating map index to point index dict with discard year {}.'.format(discard_year))
 
         points = self.measurements.points
         map_indices_to_point_index_dict = measurements.universal.dict.MeasurementsDict()
@@ -186,7 +185,7 @@ class SampleCorrelationMatrix:
     
     @property
     def same_box_correlation_matrix_lower_triangle(self):
-        logger.debug('Calculating same box correlation matrix lower triangle with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.matrix_format, self.dtype))
+        util.logging.debug('Calculating same box correlation matrix lower triangle with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.matrix_format, self.dtype))
         
         ## create lil matrix
         correlation_matrix = scipy.sparse.lil_matrix(self.shape, dtype=self.dtype)
@@ -219,15 +218,15 @@ class SampleCorrelationMatrix:
                         point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
                         assert point_index_min < point_index_max
                         correlation_matrix[point_index_max, point_index_min] = correlation
-                        logger.debug('Same box correlation {} added to same box lower triangle matrix at ({}, {}).'.format(correlation, point_index_max, point_index_min))
+                        util.logging.debug('Same box correlation {} added to same box lower triangle matrix at ({}, {}).'.format(correlation, point_index_max, point_index_min))
 
             
         ## convert to needed format
         if self.matrix_format != 'lil':
-            logger.debug('Converting matrix to format {} and dtype {}.'.format(self.matrix_format, self.dtype))
+            util.logging.debug('Converting matrix to format {} and dtype {}.'.format(self.matrix_format, self.dtype))
             correlation_matrix = correlation_matrix.asformat(self.matrix_format).astype(self.dtype)
 
-        logger.debug('Calculated same box correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, self.min_abs_correlation, self.matrix_format, self.dtype))
+        util.logging.debug('Calculated same box correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, self.min_abs_correlation, self.matrix_format, self.dtype))
         return correlation_matrix
 
     
@@ -272,7 +271,7 @@ class SampleCorrelationMatrix:
             assert quantity >= self.min_measurements
             map_indices_array = np.array(map_indices)
             map_indices_diff = map_indices_array[1] - map_indices_array[0]
-            logger.debug('Different box sample covariance found with map indices {}, covariance {} and quantity {}.'.format(map_indices, covariance, quantity))
+            util.logging.debug('Different box sample covariance found with map indices {}, covariance {} and quantity {}.'.format(map_indices, covariance, quantity))
             
             ## iterate over all index pairs with sample covariance
             for point_index_i in map_indices_to_point_index_year_discarded_dict[map_indices[0]]:
@@ -301,7 +300,7 @@ class SampleCorrelationMatrix:
 
     @property
     def different_boxes_quantity_lower_triangle_matrix(self):
-        logger.debug('Calculating different boxes quantity lower triangle matrix with minimal absolute correlation {} in matrix format {}.'.format(self.min_abs_correlation, self.matrix_format))
+        util.logging.debug('Calculating different boxes quantity lower triangle matrix with minimal absolute correlation {} in matrix format {}.'.format(self.min_abs_correlation, self.matrix_format))
 
         ## get max quantity
         max_quantity = 0
@@ -324,21 +323,21 @@ class SampleCorrelationMatrix:
         
         ## convert to wanted format
         if self.matrix_format != 'lil':
-            logger.debug('Converting quantity matrix to format {}.'.format(self.matrix_format))
+            util.logging.debug('Converting quantity matrix to format {}.'.format(self.matrix_format))
             if self.matrix_format == 'csc':
                 quantity_matrix = quantity_matrix.asformat('csr')
-                logger.debug('quantity matrix converted to format csr.')
+                util.logging.debug('quantity matrix converted to format csr.')
             quantity_matrix = quantity_matrix.asformat(self.matrix_format).astype(dtype)
-            logger.debug('quantity matrix converted to format {}.'.format(self.matrix_format))
+            util.logging.debug('quantity matrix converted to format {}.'.format(self.matrix_format))
         
         ## return
-        logger.debug('Calculated differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {}.'.format(correlation_matrix.nnz, self.min_abs_correlation))
+        util.logging.debug('Calculated differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {}.'.format(correlation_matrix.nnz, self.min_abs_correlation))
         return quantity_matrix
     
     
     @property
     def different_boxes_correlation_lower_triangle_matrix(self):
-        logger.debug('Calculating different boxes correlation lower triangle matrix with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.matrix_format, self.dtype))
+        util.logging.debug('Calculating different boxes correlation lower triangle matrix with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.matrix_format, self.dtype))
         
         ## create lil matrix
         correlation_matrix = scipy.sparse.lil_matrix(self.shape, dtype=self.dtype)
@@ -352,15 +351,15 @@ class SampleCorrelationMatrix:
 
         ## convert to wanted format
         if self.matrix_format != 'lil':
-            logger.debug('Converting correlation matrix to format {}.'.format(self.matrix_format))
+            util.logging.debug('Converting correlation matrix to format {}.'.format(self.matrix_format))
             if self.matrix_format == 'csc':
                 correlation_matrix = correlation_matrix.asformat('csr')
-                logger.debug('Correlation matrix converted to format csr.')
+                util.logging.debug('Correlation matrix converted to format csr.')
             correlation_matrix = correlation_matrix.asformat(self.matrix_format).astype(self.dtype)
-            logger.debug('Correlation matrix converted to format {}.'.format(self.matrix_format))
+            util.logging.debug('Correlation matrix converted to format {}.'.format(self.matrix_format))
 
         ## return
-        logger.debug('Calculated differend boxes correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, self.min_abs_correlation, self.matrix_format, self.dtype))
+        util.logging.debug('Calculated differend boxes correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, self.min_abs_correlation, self.matrix_format, self.dtype))
         return correlation_matrix
 
 
@@ -368,7 +367,7 @@ class SampleCorrelationMatrix:
 
     @property
     def correlation_matrix(self):
-        logger.debug('Calculating correlation matrix for minimal absolute correlation {} and maximal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.max_abs_correlation, self.matrix_format, self.dtype))
+        util.logging.debug('Calculating correlation matrix for minimal absolute correlation {} and maximal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.max_abs_correlation, self.matrix_format, self.dtype))
         
         ## add same box and different boxes correlations lower triangle
         correlation_lower_triangle_matrix = self.different_boxes_correlation_lower_triangle_matrix + self.same_box_correlation_matrix_lower_triangle

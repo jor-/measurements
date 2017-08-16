@@ -1,7 +1,6 @@
 import numpy as np
 
 import logging
-logger = logging.getLogger(__name__)
 
 import measurements.dop.box.load
 import measurements.po4.woa.data13.load
@@ -11,12 +10,12 @@ import util.io.np
 
 def npy_or_save_dop_and_po4(npy_file, dop_function, po4_function):
     try:
-        logger.debug('Loading data from {}.'.format(npy_file))
+        util.logging.debug('Loading data from {}.'.format(npy_file))
 
         data = np.load(npy_file)
 
     except (OSError, IOError):
-        logger.debug('File {} does not exists. Calculating data.'.format(npy_file))
+        util.logging.debug('File {} does not exists. Calculating data.'.format(npy_file))
 
         dop = dop_function()
         po4 = po4_function()

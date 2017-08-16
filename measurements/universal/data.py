@@ -18,7 +18,6 @@ import util.options
 import util.str
 import util.logging
 
-logger = util.logging.logger
 
 
 
@@ -35,7 +34,7 @@ class Measurements():
         self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
         self.dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
 
-        logger.debug('{}: initialized with tracer {} and data set {}.'.format(self.__class__.__name__, tracer, data_set_name))
+        util.logging.debug('{}: initialized with tracer {} and data set {}.'.format(self.__class__.__name__, tracer, data_set_name))
 
 
     def __repr__(self):
@@ -343,7 +342,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         else:
             fill_strategy = 'constant'
 
-        logger.debug('{}: Chosen {} as fill strategy, since {:d} sample data are for {:%} of the sampe lsm available.'.format(self.__class__.__name__, fill_strategy, number_of_sample_values, sample_data_fill_amount))
+        util.logging.debug('{}: Chosen {} as fill strategy, since {:d} sample data are for {:%} of the sampe lsm available.'.format(self.__class__.__name__, fill_strategy, number_of_sample_values, sample_data_fill_amount))
         return fill_strategy
 
 
@@ -355,7 +354,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             fill_strategy = self._choose_fill_strategy(number_of_sample_values)
 
         ## return
-        logger.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
+        util.logging.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
         return fill_strategy
 
 
@@ -370,7 +369,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             raise TooFewValuesError('No sample values are available. Fill method {} is not applicable.'.format(fill_strategy))
 
         ## return
-        logger.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
+        util.logging.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
         return fill_strategy
 
 
@@ -391,7 +390,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     ## data for sample lsm
 
     def _data_for_sample_lsm(self, kind):
-        logger.debug('{}: Calculating {} data for sample lsm.'.format(self.__class__.__name__, kind))
+        util.logging.debug('{}: Calculating {} data for sample lsm.'.format(self.__class__.__name__, kind))
 
         ## get data
         data_map_indices_dict = self._data_map_indices_dict(kind)
@@ -399,7 +398,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
         ## choose fill strategy
         fill_strategy = self._fill_strategy_with_number_of_sample_values(len(map_indices_and_values))
-        logger.debug('{}: Filling sample lsm values with fill strategy {}.'.format(self.__class__.__name__, fill_strategy))
+        util.logging.debug('{}: Filling sample lsm values with fill strategy {}.'.format(self.__class__.__name__, fill_strategy))
 
         ## apply fill_strategy
         if fill_strategy in ('point_average', 'lsm_average', 'constant'):
@@ -443,7 +442,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     ## data for sample points
 
     def _data_for_sample_points(self, kind):
-        logger.debug('{}: Calculating {} data for sample points.'.format(self.__class__.__name__, kind))
+        util.logging.debug('{}: Calculating {} data for sample points.'.format(self.__class__.__name__, kind))
 
         ## get data
         data_map_indices_dict = self._data_map_indices_dict(kind)
@@ -451,13 +450,13 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         number_of_values = data.count()
         number_of_points = len(data)
 
-        logger.debug('{}: Got values for {:d} of {:d} points with sample data.'.format(self.__class__.__name__, number_of_values, number_of_points))
+        util.logging.debug('{}: Got values for {:d} of {:d} points with sample data.'.format(self.__class__.__name__, number_of_values, number_of_points))
 
         ## fill if empty values
         if number_of_values < number_of_points:
             ## choose fill strategy
             fill_strategy = self._fill_strategy_with_number_of_sample_values(len(data_map_indices_dict))
-            logger.debug('{}: Filling remaining {:%} sample points values with fill strategy {}.'.format(self.__class__.__name__, 1-number_of_values/number_of_points, fill_strategy))
+            util.logging.debug('{}: Filling remaining {:%} sample points values with fill strategy {}.'.format(self.__class__.__name__, 1-number_of_values/number_of_points, fill_strategy))
 
             ## fill
             if fill_strategy == 'point_average':
@@ -613,7 +612,7 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
 class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
 
     def __init__(self, *measurements_list):
-        logger.debug('Initiating {} with measurements {}.'.format(self.__class__.__name__, measurements_list))
+        util.logging.debug('Initiating {} with measurements {}.'.format(self.__class__.__name__, measurements_list))
 
         if len(measurements_list) == 0:
             raise ValueError('{} must be initiated with at least one measurement object.'.format(self.__class__.__name__))
@@ -676,7 +675,7 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
 class MeasurementsCollection(Measurements):
 
     def __init__(self, *measurements_list):
-        logger.debug('Initiating {} with measurements {}.'.format(self.__class__.__name__, measurements_list))
+        util.logging.debug('Initiating {} with measurements {}.'.format(self.__class__.__name__, measurements_list))
 
         if len(measurements_list) == 0:
             raise ValueError('There are no measurements in the measurements list!')

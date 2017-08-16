@@ -4,7 +4,6 @@ import util.io.netcdf
 import measurements.po4.woa.data13.save
 
 import util.logging
-logger = util.logging.logger
 
 
 ## (raw) data from woa
@@ -77,10 +76,10 @@ def measurement_data():
 
 def npy_or_save(npy_file):
     try:
-        logger.debug('Loading data from {}.'.format(npy_file))
+        util.logging.debug('Loading data from {}.'.format(npy_file))
         data = np.load(npy_file)
     except (OSError, IOError):
-        logger.debug('File {} does not exists. Calculating PO4 woa data.'.format(npy_file))
+        util.logging.debug('File {} does not exists. Calculating PO4 woa data.'.format(npy_file))
         measurements.po4.woa.data13.save.measurements_to_metos_boxes()
         data = np.load(npy_file)
 

@@ -7,7 +7,6 @@ import util.math.interpolate
 import util.math.spherical
 
 import util.logging
-logger = util.logging.logger
 
 
 
@@ -16,7 +15,7 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
     def __init__(self, data_points, data_values, t_len, wrap_around_amount=0, number_of_linear_interpolators=1, single_overlapping_amount_linear_interpolators=0, parallel=False):
         from measurements.constants import EARTH_RADIUS
 
-        logger.debug('Initiating time periodic earth interpolator with {} data points, time len {}, wrap around amount {} and {} linear interpolators with single overlapping amount of {}.'.format(len(data_points), t_len, wrap_around_amount, number_of_linear_interpolators, single_overlapping_amount_linear_interpolators))
+        util.logging.debug('Initiating time periodic earth interpolator with {} data points, time len {}, wrap around amount {} and {} linear interpolators with single overlapping amount of {}.'.format(len(data_points), t_len, wrap_around_amount, number_of_linear_interpolators, single_overlapping_amount_linear_interpolators))
 
         ## call super constructor
         self.order = number_of_linear_interpolators
@@ -40,7 +39,7 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
             upper_depth = MAX_SEA_DEPTH
             upper_depth_bound = np.max(points[:,3])
 
-            logger.debug('Lower depth is {}, upper depth is {}.'.format(lower_depth, upper_depth))
+            util.logging.debug('Lower depth is {}, upper depth is {}.'.format(lower_depth, upper_depth))
 
             assert lower_depth_bound >= lower_depth and upper_depth_bound <= upper_depth
 
@@ -48,20 +47,20 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
                 lower_depth_bound_indices = np.where(np.isclose(points[:,3], lower_depth_bound))[0]
                 lower_depth_bound_points = points[lower_depth_bound_indices]
                 lower_depth_bound_points[:,3] = lower_depth
-                logger.debug('{} values appended for lower bound {}.'.format(len(lower_depth_bound_indices), lower_depth))
+                util.logging.debug('{} values appended for lower bound {}.'.format(len(lower_depth_bound_indices), lower_depth))
             else:
                 lower_depth_bound_indices = np.array([])
                 lower_depth_bound_points = np.array([])
-                logger.debug('No values appended for lower bound {}.'.format(lower_depth))
+                util.logging.debug('No values appended for lower bound {}.'.format(lower_depth))
             if upper_depth_bound < upper_depth:
                 upper_depth_bound_indices = np.where(np.isclose(points[:,3], lower_depth_bound))[0]
                 upper_depth_bound_points = points[upper_depth_bound_indices]
                 upper_depth_bound_points[:,3] = upper_depth
-                logger.debug('{} values appended for upper bound {}.'.format(len(upper_depth_bound_indices), upper_depth))
+                util.logging.debug('{} values appended for upper bound {}.'.format(len(upper_depth_bound_indices), upper_depth))
             else:
                 upper_depth_bound_indices= np.array([])
                 upper_depth_bound_points = np.array([])
-                logger.debug('No values appended for upper bound {}.'.format(upper_depth))
+                util.logging.debug('No values appended for upper bound {}.'.format(upper_depth))
 
             indices = np.concatenate((lower_depth_bound_indices, np.arange(len(points)), upper_depth_bound_indices), axis=0)
             points = np.concatenate((lower_depth_bound_points, points, upper_depth_bound_points), axis=0)
@@ -75,7 +74,7 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
 
 
 def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_values=None, interpolator_options=None):
-    logger.debug('Interpolating periodic data with coordinates for lsm {} with scaling_values {} and interpolator_options {}.'.format(lsm_base, scaling_values, interpolator_options))
+    util.logging.debug('Interpolating periodic data with coordinates for lsm {} with scaling_values {} and interpolator_options {}.'.format(lsm_base, scaling_values, interpolator_options))
     
     ## convert coordinates to map indices
     data = np.array(data, copy=True)
@@ -88,7 +87,7 @@ def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_valu
 
 
 def periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_values=None, interpolator_options=None):
-    logger.debug('Interpolating periodic data with map indices for lsm {} with scaling_values {} and interpolator_options {}.'.format(lsm_base, scaling_values, interpolator_options))
+    util.logging.debug('Interpolating periodic data with map indices for lsm {} with scaling_values {} and interpolator_options {}.'.format(lsm_base, scaling_values, interpolator_options))
     
     assert data.ndim == 2
     assert data.shape[1] == 5
@@ -161,7 +160,7 @@ class Interpolator_Annual_Periodic:
     
 
     def interpolate_data_for_lsm(self, data, lsm, interpolator_options=None):
-        logger.debug('Interpolating data for lsm {} with interpolator_options {}.'.format(lsm, interpolator_options))
+        util.logging.debug('Interpolating data for lsm {} with interpolator_options {}.'.format(lsm, interpolator_options))
         
         sea_indices = lsm.sea_indices
         sea_coordinates = lsm.map_indices_to_coordinates(sea_indices)
@@ -178,14 +177,14 @@ class Interpolator_Annual_Periodic:
     
 
     def interpolate_data_for_sample_lsm_with_coordinates(self, data, interpolator_options=None):
-        logger.debug('Interpolating data with coordinates for lsm {} with interpolator_options {}.'.format(self.sample_lsm, interpolator_options))
+        util.logging.debug('Interpolating data with coordinates for lsm {} with interpolator_options {}.'.format(self.sample_lsm, interpolator_options))
         data = np.array(data, copy=True)
         data[:, :-1] = lsm_base.coordinates_to_map_indices(data[:, :-1], discard_year=True, int_indices=False)
         return self.interpolate_data_for_sample_lsm_with_map_indices(data, self.sample_lsm, interpolator_options=interpolator_options)
 
 
     def interpolate_data_for_sample_lsm_with_map_indices(self, data, interpolator_options=None):
-        logger.debug('Interpolating data with map indices for lsm {} with interpolator_options {}.'.format(self.sample_lsm, interpolator_options))
+        util.logging.debug('Interpolating data with map indices for lsm {} with interpolator_options {}.'.format(self.sample_lsm, interpolator_options))
         
         sea_indices = self.sample_lsm.sea_indices
         
@@ -201,7 +200,7 @@ class Interpolator_Annual_Periodic:
 
 
     def interpolate_data_for_points_from_interpolated_lsm_data(self, interpolated_lsm_data, interpolation_points):
-        logger.debug('Interpolationg data for points from interpolated data for lsm {}.'.format(self.sample_lsm))
+        util.logging.debug('Interpolationg data for points from interpolated data for lsm {}.'.format(self.sample_lsm))
         
         ## get interpolated points and values
         interpolated_lsm_data_mask = ~np.isnan(interpolated_lsm_data)
@@ -224,7 +223,7 @@ class Interpolator_Annual_Periodic:
 
 
     def interpolate_data_for_points(self, data, interpolation_points, interpolator_options=None):
-        logger.debug('Interpolationg data for points with interpolator_options {}.'.format(interpolator_options))
+        util.logging.debug('Interpolationg data for points with interpolator_options {}.'.format(interpolator_options))
         
         ## interpolate for sample lsm
         interpolated_lsm_data = self.interpolate_data_for_lsm(data, self.sample_lsm, interpolator_options=interpolator_options)

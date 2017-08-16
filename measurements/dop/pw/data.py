@@ -16,7 +16,6 @@ import measurements.constants
 import measurements.dop.constants
 import measurements.dop.pw.constants
 
-logger = util.logging.logger
 
 
 ## data load functions
@@ -66,7 +65,7 @@ def prepare_ladolfi_data(measurement_file, start_date, end_date, valid_data_flag
     t = t.reshape([n, 1])
     data = np.concatenate((t, data), axis=1)
 
-    logger.debug('{} DOP data sets loaded from {}.'.format(data.shape[0], measurement_file))
+    util.logging.debug('{} DOP data sets loaded from {}.'.format(data.shape[0], measurement_file))
 
     return data
 
@@ -92,21 +91,21 @@ def prepare_yoshimura_data(measurement_file):
         value_string = value_bytes.decode()
         d = datetime.datetime.strptime(value_string, '%d-%B-%Y').date()
         year = d.year
-        logger.debug('Convering: "{}" is in the year {}.'.format(value_bytes, year))
+        util.logging.debug('Convering: "{}" is in the year {}.'.format(value_bytes, year))
         return year
 
     def convert_date_to_number_of_days_in_year(value_bytes):
         value_string = value_bytes.decode()
         d = datetime.datetime.strptime(value_string, '%d-%B-%Y').date()
         number_of_days = d.timetuple().tm_yday
-        logger.debug('Convering: "{}" is the {}. day in a year.'.format(value_bytes, number_of_days))
+        util.logging.debug('Convering: "{}" is the {}. day in a year.'.format(value_bytes, number_of_days))
         return number_of_days
 
     def convert_date_to_number_of_all_days_in_year(value_bytes):
         value_string = value_bytes.decode()
         d = datetime.datetime.strptime(value_string, '%d-%B-%Y').date()
         number_of_days_in_year = calendar.isleap(d.year) + 365
-        logger.debug('Convering: The year of "{}" has {} days.'.format(value_bytes, number_of_days_in_year))
+        util.logging.debug('Convering: The year of "{}" has {} days.'.format(value_bytes, number_of_days_in_year))
         return number_of_days_in_year
 
     def convert_time_to_day_frac(value_bytes):
@@ -114,7 +113,7 @@ def prepare_yoshimura_data(measurement_file):
         dt = datetime.datetime.strptime(value_string, '%H:%M')
         hour_frac = dt.hour + dt.minute / 60
         day_frac = hour_frac / 24
-        logger.debug('Convering: The time "{}" is {} of a day.'.format(value_bytes, day_frac))
+        util.logging.debug('Convering: The time "{}" is {} of a day.'.format(value_bytes, day_frac))
         return day_frac
 
     year = np.loadtxt(measurement_file, usecols=(2,), converters={2: convert_date_to_year})
@@ -137,7 +136,7 @@ def prepare_yoshimura_data(measurement_file):
     ## concatenate columns in order long, lat, depth, dop
     data = np.concatenate((time[:,np.newaxis], long[:,np.newaxis], lat[:,np.newaxis], depth[:,np.newaxis], dop[:,np.newaxis]), axis=1)
 
-    logger.debug('{} DOP data sets loaded from {}.'.format(data.shape[0], measurement_file))
+    util.logging.debug('{} DOP data sets loaded from {}.'.format(data.shape[0], measurement_file))
 
     return data
 

@@ -1,6 +1,5 @@
 import numpy as np
 import logging
-logger = logging.getLogger(__name__)
 
 import measurements.dop.pw.data
 import measurements.util.regrid
@@ -12,7 +11,7 @@ def save(land_sea_mask, z_values, t_dim=12):
     from measurements.dop.constants import DEVIATION_MIN_MEASUREMENTS, DEVIATION_MIN_VALUE, T_RANGE, X_RANGE, Y_RANGE
     from .constants import NOBS_FILE, VARIS_FILE, MEANS_FILE
 
-    logger.debug('Calculating and saving dop measurement data.')
+    util.logging.debug('Calculating and saving dop measurement data.')
 
     ## load measurement data
     measurement_data = measurements.dop.pw.data.data()

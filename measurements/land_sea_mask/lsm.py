@@ -13,7 +13,6 @@ import measurements.constants
 import measurements.land_sea_mask.depth
 import measurements.land_sea_mask.constants
 
-logger = util.logging.logger
 
 
 
@@ -100,7 +99,7 @@ class LandSeaMask():
 
     @z.setter
     def z(self, new_z_values):
-        logger.debug('Regridding z from {} to {}.'.format(self.z, new_z_values))
+        util.logging.debug('Regridding z from {} to {}.'.format(self.z, new_z_values))
         new_z_values = np.asanyarray(new_z_values)
 
         old_z_values = self.z
@@ -163,7 +162,7 @@ class LandSeaMask():
     @util.cache.memory.method_decorator(dependency='self.t_dim')
     def sea_indices(self):
         sea_indices = np.array(np.where(self.bool_mask)).transpose()
-        logger.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
+        util.logging.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
         assert sea_indices.ndim == 2
         return sea_indices
 
@@ -189,7 +188,7 @@ class LandSeaMask():
         self.t_dim = old_t_dim
 
         is_near_water = np.any(np.all(distance <= max_box_distance_to_water, axis=1))
-        logger.debug('Coordinate {} is near water {} with max_box_distance_to_water {}.'.format(point, is_near_water, max_box_distance_to_water))
+        util.logging.debug('Coordinate {} is near water {} with max_box_distance_to_water {}.'.format(point, is_near_water, max_box_distance_to_water))
         return is_near_water
 
 
@@ -231,7 +230,7 @@ class LandSeaMask():
 
         ## calculate
         n = len(map_indices)
-        logger.debug('Transforming {} map indices to box bounds for {}.'.format(n, self))
+        util.logging.debug('Transforming {} map indices to box bounds for {}.'.format(n, self))
 
         box_bounds = np.empty(map_indices.shape + (2,))
         for i in range(n):
@@ -241,7 +240,7 @@ class LandSeaMask():
         if result_ndim == 1:
             box_bounds = box_bounds[0]
 
-        logger.debug('Transforming map indices to box bounds done.')
+        util.logging.debug('Transforming map indices to box bounds done.')
         return box_bounds
 
 
@@ -295,7 +294,7 @@ class LandSeaMask():
 
         ## calculate
         n = len(bounds)
-        logger.debug('Calculating volume of {} coordinate boxes.'.format(n))
+        util.logging.debug('Calculating volume of {} coordinate boxes.'.format(n))
 
         box_volumes = np.empty(n)
         for i in range(n):
@@ -305,12 +304,12 @@ class LandSeaMask():
         if result_ndim == 1:
             box_volumes = box_volumes[0]
 
-        logger.debug('Volume of coordinate boxes are calculated.')
+        util.logging.debug('Volume of coordinate boxes are calculated.')
         return box_volumes
 
 
     def volume_of_boxes_of_map_indices(self, map_indices):
-        logger.debug('Calculating volume of boxes of {} map indices.'.format(len(map_indices)))
+        util.logging.debug('Calculating volume of boxes of {} map indices.'.format(len(map_indices)))
 
         ## calculate box bounds as map indices
         box_bounds = self.box_bounds_of_map_indices(map_indices)
@@ -331,7 +330,7 @@ class LandSeaMask():
 
     @property
     def volume_map(self):
-        logger.debug('Calculating volume map.')
+        util.logging.debug('Calculating volume map.')
 
         ## calculate sea map indices
         sea_indices = self.sea_indices
@@ -425,7 +424,7 @@ class LandSeaMask():
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
-        logger.debug('Transforming {} coordinates to map indices for {} with discard year {} and int_indices {}.'.format(len(points), self, discard_year, int_indices))
+        util.logging.debug('Transforming {} coordinates to map indices for {} with discard year {} and int_indices {}.'.format(len(points), self, discard_year, int_indices))
 
         n = len(points)
         if int_indices:
@@ -440,7 +439,7 @@ class LandSeaMask():
         if result_ndim == 1:
             new_points = new_points[0]
 
-        logger.debug('Transforming from coordinates to map indices done.')
+        util.logging.debug('Transforming from coordinates to map indices done.')
         return new_points
 
 
@@ -504,7 +503,7 @@ class LandSeaMask():
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
-        logger.debug('Transforming {} map indices from {} to coordinates with use_modulo_for_x {}'.format(len(points), self, use_modulo_for_x))
+        util.logging.debug('Transforming {} map indices from {} to coordinates with use_modulo_for_x {}'.format(len(points), self, use_modulo_for_x))
 
         n = len(points)
         new_points = np.empty((n, self.ndim))
@@ -514,7 +513,7 @@ class LandSeaMask():
         if result_ndim == 1:
             new_points = new_points[0]
 
-        logger.debug('Transforming from map indices to coordinates done.')
+        util.logging.debug('Transforming from map indices to coordinates done.')
         return new_points
 
 
@@ -548,7 +547,7 @@ class LandSeaMask():
 
 
     def insert_index_values_in_map(self, values, no_data_value=0, skip_values_on_land=True):
-        logger.debug('Inserting {} values in map with value {} for no data.'.format(len(values), no_data_value))
+        util.logging.debug('Inserting {} values in map with value {} for no data.'.format(len(values), no_data_value))
 
         if values.shape[1] not in (4, 5):
             raise ValueError('Values have wrong shape: Second dimension have to be 4 or 5, but it is {}.'.format(values.shape[1]))

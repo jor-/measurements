@@ -14,7 +14,6 @@ import util.cache.file
 import util.cache.memory
 import util.logging
 
-logger = util.logging.logger
 
 
 
@@ -36,7 +35,7 @@ def measurement_dict():
 
 @util.cache.file.decorator(cache_file_function=lambda :measurements.po4.wod.constants.POINTS_AND_RESULTS_FILE)
 def points_and_results():
-    logger.debug('Loading and calculating measurements.')
+    util.logging.debug('Loading and calculating measurements.')
 
     ## load measurements
     m = measurement_dict()
