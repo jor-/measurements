@@ -107,8 +107,7 @@ SAMPLE_COVARIANCE_DICT_FILE = os.path.join(CORRELATION_DIR,
 'sample_covariance', SEPERATOR.join([
 'sample_covariance_dict.nonstationary',
 'sample_{sample_lsm}',
-'min_values_{min_measurements_correlation:0>2d}',
-'max_year_diff_{max_year_diff:0>2}.ppy']))
+'min_values_{min_measurements_correlation:0>2d}.ppy']))
 
 SAMPLE_CORRELATION_MATRIX_SAME_BOX_LOWER_TRIANGLE_MATRIX_FILE = os.path.join(CORRELATION_DIR,
 'sample_correlation', SEPERATOR.join([
@@ -123,7 +122,6 @@ SAMPLE_QUANTITY_MATRIX_DIFFERENT_BOXES_LOWER_TRIANGLE_MATRIX_FILE = os.path.join
 'sample_quantity.different_boxes.lower_triangle',
 'sample_{sample_lsm}',
 'min_values_{min_measurements_correlation:0>2d}',
-'max_year_diff_{max_year_diff:0>2}',
 'min_abs_{min_abs_correlation}',
 'dev:_{standard_deviation_id}',
 '{dtype}.{matrix_format}.npz']))
@@ -133,7 +131,6 @@ SAMPLE_CORRELATION_MATRIX_DIFFERENT_BOXES_LOWER_TRIANGLE_MATRIX_FILE = os.path.j
 'sample_correlation.different_boxes.lower_triangle',
 'sample_{sample_lsm}',
 'min_values_{min_measurements_correlation:0>2d}',
-'max_year_diff_{max_year_diff:0>2}',
 'min_abs_{min_abs_correlation}',
 'dev:_{standard_deviation_id}',
 '{dtype}.{matrix_format}.npz']))
