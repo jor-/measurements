@@ -4,8 +4,8 @@ import os.path
 import numpy as np
 import scipy.sparse
 import overrides
-import matrix
 import matrix.calculate
+import matrix.decompositions
 
 import measurements.universal.dict
 import measurements.universal.interpolate
@@ -103,7 +103,7 @@ class Measurements():
 
     @property
     def correlations_own_decomposition(self):
-        correlation_matrix_decomposition = matrix.calculate.approximate(
+        correlation_matrix_decomposition = matrix.calculate.approximate_decomposition(
             self.correlations_own_sample_matrix,
             min_diag_value=self.min_diag_value_decomposition_correlation,
             min_abs_value=self.min_abs_correlation,
@@ -1095,7 +1095,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @overrides.overrides
     def correlations_own_decomposition(self):
         reduction_factors_file = self.reduction_factors_cache_file()
-        correlation_matrix_decomposition = matrix.calculate.approximate_with_reduction_factor_file(
+        correlation_matrix_decomposition = matrix.calculate.approximate_decomposition_with_reduction_factor_file(
             self.correlations_own_sample_matrix,
             min_diag_value=self.min_diag_value_decomposition_correlation,
             min_abs_value=self.min_abs_correlation,
