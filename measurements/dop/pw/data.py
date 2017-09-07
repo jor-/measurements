@@ -18,7 +18,7 @@ import measurements.dop.pw.constants
 
 
 
-## data load functions
+# data load functions
 
 def prepare_ladolfi_data(measurement_file, start_date, end_date, valid_data_flag):
 
@@ -84,9 +84,9 @@ def load_ladolfi_2004():
 
 
 def prepare_yoshimura_data(measurement_file):
-    ## columns: lat, long, date, time, dop
+    # columns: lat, long, date, time, dop
 
-    ## calculate time
+    # calculate time
     def convert_date_to_year(value_bytes):
         value_string = value_bytes.decode()
         d = datetime.datetime.strptime(value_string, '%d-%B-%Y').date()
@@ -126,14 +126,14 @@ def prepare_yoshimura_data(measurement_file):
     time = year + year_frac
 
 
-    ## load lat, long and dop
+    # load lat, long and dop
     lat = np.loadtxt(measurement_file, usecols=(0,))
     long = np.loadtxt(measurement_file, usecols=(1,))
     dop = np.loadtxt(measurement_file, usecols=(4,))
     depth = dop * 0
 
 
-    ## concatenate columns in order long, lat, depth, dop
+    # concatenate columns in order long, lat, depth, dop
     data = np.concatenate((time[:,np.newaxis], long[:,np.newaxis], lat[:,np.newaxis], depth[:,np.newaxis], dop[:,np.newaxis]), axis=1)
 
     util.logging.debug('{} DOP data sets loaded from {}.'.format(data.shape[0], measurement_file))
@@ -148,7 +148,7 @@ def load_yoshimura_2007():
 
 
 
-## measurement classes
+# measurement classes
 
 class MeasurementsSingleBase(measurements.universal.data.MeasurementsAnnualPeriodicCache):
 
@@ -213,7 +213,7 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUni
         self.fill_strategy = 'point_average'
 
 
-    ## standard_deviation_concentration_noise_ratio
+    # standard_deviation_concentration_noise_ratio
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))

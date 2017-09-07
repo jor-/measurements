@@ -82,23 +82,23 @@ def _plot(data, lsm, file, bins=None, step_size=None, layer=None, v_min=None, v_
 
 
 def distribution_space(measurement_dict, lsm, file='/tmp/distribution_space.png', layer=None, use_log_scale=True, type='both'):
-    ## prepare data
+    # prepare data
     measurement_dict.discard_year()
     measurement_dict.coordinates_to_map_indices(lsm, int_indices=True)
     data = measurement_dict.numbers()
-    ## set v_min and v_max
+    # set v_min and v_max
     if use_log_scale:
         v_min = 1
         v_max = 10**np.min([np.floor(np.log(np.nanmax(data))), 3])
     else:
         v_min = 1
         v_max = None
-    ## colorbar ticks
+    # colorbar ticks
     colorbar_kwargs = {'fraction':0.021, 'pad':0.05, 'aspect':20, 'orientation':'vertical'}
     data_max = data[:,-1].max()
     if data_max < 10:
         colorbar_kwargs['ticks'] = np.arange(1, data_max+1)
-    ## plot
+    # plot
     _plot_map(data, lsm, file, layer=layer, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale, colorbar_kwargs=colorbar_kwargs)
     _plot_histogram(data[:,-1], lsm, file, step_size=1, v_min=1, v_max=200, use_log_scale=use_log_scale)
 

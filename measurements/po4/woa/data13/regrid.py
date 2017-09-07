@@ -14,22 +14,22 @@ def measurements_to_land_sea_mask(land_sea_mask, z_values):
     from .constants import VARI_INTERPOLATION_NUMBER_OF_LINEAR_INTERPOLATOR, VARI_INTERPOLATION_TOTAL_OVERLAPPING_OF_LINEAR_INTERPOLATOR, VARI_INTERPOLATION_AMOUNT_OF_WRAP_AROUND
     from measurements.po4.constants import DEVIATION_MIN_MEASUREMENTS, DEVIATION_MIN_VALUE
 
-    ## load measurement data and regrid them
+    # load measurement data and regrid them
     measurement_data = measurements.po4.woa.data13.load.measurement_data()
     (means, nobs, variances) = measurements.util.regrid.measurements_to_land_sea_mask(measurement_data, land_sea_mask, t_range=T_RANGE, x_range=X_RANGE, y_range=Y_RANGE)
     assert means.ndim == 4 and nobs.ndim == 4 and variances.ndim == 4
     assert means.shape == nobs.shape == variances.ndim
 
-    ## remove variances with to few measurements
+    # remove variances with to few measurements
     ANNUAL_THRESHOLD_INDEX = bisect.bisect_right(z_values, ANNUAL_THRESHOLD)
     variances[:,:,:,:ANNUAL_THRESHOLD_INDEX][nobs[:,:,:,:ANNUAL_THRESHOLD_INDEX] < DEVIATION_MIN_MEASUREMENTS] = np.inf
     variances[:,:,:,ANNUAL_THRESHOLD_INDEX:][nobs[:,:,:,ANNUAL_THRESHOLD_INDEX:] < DEVIATION_MIN_MEASUREMENTS / land_sea_mask.t_dim] = np.inf
 
-    ## set variances below lower bound to lower bound
+    # set variances below lower bound to lower bound
     variances[variances < DEVIATION_MIN_VALUE**2] = DEVIATION_MIN_VALUE**2
 
 
-    ## interpolate missing variances
+    # interpolate missing variances
     data_index_t, data_index_x, data_index_y, data_index_z = np.where(nobs >= DEVIATION_MIN_MEASUREMENTS)
     data_points_indices = (data_index_t, data_index_x, data_index_y, data_index_z)
     data_points = np.array(data_points_indices).swapaxes(0,1)
@@ -48,6 +48,6 @@ def measurements_to_land_sea_mask(land_sea_mask, z_values):
     assert np.all(np.isfinite(np.logical_not(np.isnan(variances))))
 
 
-    ## return regrided values
+    # return regrided values
     return (means, nobs, variances)
 

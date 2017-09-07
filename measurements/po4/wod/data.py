@@ -17,7 +17,7 @@ import util.logging
 
 
 
-## data load functions
+# data load functions
 
 @util.cache.file.decorator(cache_file_function=lambda :measurements.po4.wod.constants.CRUISES_LIST_FILE)
 def cruises_list():
@@ -37,7 +37,7 @@ def measurement_dict():
 def points_and_results():
     util.logging.debug('Loading and calculating measurements.')
 
-    ## load measurements
+    # load measurements
     m = measurement_dict()
 
     values = m.items()
@@ -45,12 +45,12 @@ def points_and_results():
     n = values.shape[1]
     assert n == 5
 
-    ## sort measurements
+    # sort measurements
     sorted_indices = util.math.sort.lex_sorted_indices(values)
     assert sorted_indices.ndim == 1
     values = values[sorted_indices]
 
-    ## split measurements
+    # split measurements
     points = values[:, :-1]
     results = values[:, -1]
 
@@ -65,7 +65,7 @@ def results():
 
 
 
-## measurement classes
+# measurement classes
 
 class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
 

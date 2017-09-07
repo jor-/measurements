@@ -26,7 +26,7 @@ class SampleMeanAndDeviation():
         return measurement_dict
 
 
-    ## general
+    # general
 
     def _convert_map_indices_dict_to_array_for_points(self, data_dict, is_discard_year):
         points = self.sample_lsm.coordinates_to_map_indices(self.points, discard_year=is_discard_year, int_indices=True)
@@ -72,7 +72,7 @@ class SampleMeanAndDeviation():
         return data_dict
 
 
-    ## mean
+    # mean
 
     def sample_concentration_means_map_indices_dict(self, min_measurements=measurements.constants.MEAN_MIN_MEASUREMENTS):
         util.logging.debug('Calculating sample_concentration_means_map_indices_dict with min_measurements {}.'.format(min_measurements))
@@ -87,7 +87,7 @@ class SampleMeanAndDeviation():
         return data
 
 
-    ## deviation
+    # deviation
 
     def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
@@ -147,7 +147,7 @@ class SampleCorrelationMatrix:
         self.matrix_format = matrix_format
 
 
-    ## properties
+    # properties
 
     @property
     def shape(self):
@@ -155,7 +155,7 @@ class SampleCorrelationMatrix:
         return (n, n)
 
 
-    ## standard deviation
+    # standard deviation
 
     @property
     def standard_deviations(self):
@@ -164,7 +164,7 @@ class SampleCorrelationMatrix:
         return standard_deviations
 
 
-    ##  map index to point index dict
+    #  map index to point index dict
 
     def map_indices_to_point_index_dict(self, discard_year=False):
         util.logging.debug('Calculating map index to point index dict with discard year {}.'.format(discard_year))
@@ -180,21 +180,21 @@ class SampleCorrelationMatrix:
         return map_indices_to_point_index_dict
 
 
-    ## same box correlation
+    # same box correlation
 
     @property
     def same_box_correlation_matrix_lower_triangle(self):
         util.logging.debug('Calculating same box correlation matrix lower triangle with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.matrix_format, self.dtype))
 
-        ## create lil matrix
+        # create lil matrix
         correlation_matrix = scipy.sparse.lil_matrix(self.shape, dtype=self.dtype)
 
-        ## get values
+        # get values
         standard_deviations = self.standard_deviations
         map_indices_to_point_index_dict = self.map_indices_to_point_index_dict(discard_year=False)
         same_box_sample_covariance_index_array = self.measurements.concentration_standard_deviations**2
 
-        ## iterate all point pairs in same box
+        # iterate all point pairs in same box
         for key, point_index_list in map_indices_to_point_index_dict.iterator_keys_and_value_lists():
             n = len(point_index_list)
 
@@ -206,12 +206,12 @@ class SampleCorrelationMatrix:
                 for j in range(i+1, n):
                     point_index_j = point_index_list[j]
 
-                    ## calculate correlation
+                    # calculate correlation
                     assert same_box_sample_covariance_index_array[point_index_i] == same_box_sample_covariance_index_array[point_index_j]
                     correlation = covariance / (standard_deviations[point_index_i] * standard_deviations[point_index_j])
                     assert correlation >= 0 and correlation <= 1
 
-                    ## if abs correlation geq min correlation, insert
+                    # if abs correlation geq min correlation, insert
                     if np.abs(correlation) >= self.min_abs_correlation:
 
                         point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
@@ -220,7 +220,7 @@ class SampleCorrelationMatrix:
                         util.logging.debug('Same box correlation {} added to same box lower triangle matrix at ({}, {}).'.format(correlation, point_index_max, point_index_min))
 
 
-        ## convert to needed format
+        # convert to needed format
         if self.matrix_format != 'lil':
             util.logging.debug('Converting matrix to format {} and dtype {}.'.format(self.matrix_format, self.dtype))
             correlation_matrix = correlation_matrix.asformat(self.matrix_format).astype(self.dtype)
@@ -229,7 +229,7 @@ class SampleCorrelationMatrix:
         return correlation_matrix
 
 
-    ## different_boxes_sample_covariances
+    # different_boxes_sample_covariances
 
     @property
     def concentrations_same_points_except_year_dict(self):
@@ -259,20 +259,20 @@ class SampleCorrelationMatrix:
 
 
     def different_boxes_sample_covariances_point_indices_iterator(self):
-        ## get values
+        # get values
         standard_deviations = self.standard_deviations
         points = self.measurements.points
         map_indices_to_point_index_dict = self.map_indices_to_point_index_dict(discard_year=False)
         map_indices_to_point_index_year_discarded_dict = self.map_indices_to_point_index_dict(discard_year=True)
 
-        ## iterate over sample covariances
+        # iterate over sample covariances
         for map_indices, quantity, covariance in self.different_boxes_sample_covariances_map_indices_iterator():
             assert quantity >= self.min_measurements
             map_indices_array = np.array(map_indices)
             map_indices_diff = map_indices_array[1] - map_indices_array[0]
             util.logging.debug('Different box sample covariance found with map indices {}, covariance {} and quantity {}.'.format(map_indices, covariance, quantity))
 
-            ## iterate over all index pairs with sample covariance
+            # iterate over all index pairs with sample covariance
             for point_index_i in map_indices_to_point_index_year_discarded_dict[map_indices[0]]:
                 point_i = points[point_index_i]
                 point_i_map_index = self.sample_lsm.coordinate_to_map_index(*point_i, discard_year=False, int_indices=True)
@@ -284,10 +284,10 @@ class SampleCorrelationMatrix:
                     pass
                 else:
                     for point_index_j in point_indices_j:
-                        ## calculate correlation
+                        # calculate correlation
                         correlation = covariance / (standard_deviations[point_index_i] * standard_deviations[point_index_j])
 
-                        ## return if correlation is big enough
+                        # return if correlation is big enough
                         if np.abs(correlation) >= self.min_abs_correlation:
                             point_index_min, point_index_max = (min(point_index_i, point_index_j), max(point_index_i, point_index_j))
                             assert point_index_min < point_index_max and point_index_min in (point_index_i, point_index_j) and point_index_max in (point_index_i, point_index_j)
@@ -295,32 +295,32 @@ class SampleCorrelationMatrix:
                             yield point_index_min, point_index_max, quantity, correlation
 
 
-    ## different boxes covariance and quantity matrix
+    # different boxes covariance and quantity matrix
 
     @property
     def different_boxes_quantity_lower_triangle_matrix(self):
         util.logging.debug('Calculating different boxes quantity lower triangle matrix with minimal absolute correlation {} in matrix format {}.'.format(self.min_abs_correlation, self.matrix_format))
 
-        ## get max quantity
+        # get max quantity
         max_quantity = 0
         for map_indices, quantity, covariance in self.different_boxes_sample_covariances_iterator():
             max_quantity = max(max_quantity, quantity)
 
-        ## get matrix dtype
+        # get matrix dtype
         dtype = util.math.util.min_int_dtype(max_quantity, unsigned=True)
         dtype = np.dtype(dtype)
 
-        ## create lil matrix
+        # create lil matrix
         quantity_matrix = scipy.sparse.lil_matrix(self.shape, dtype=dtype)
 
-        ## insert correlation
+        # insert correlation
         for point_index_min, point_index_max, quantity, correlation in self.different_boxes_sample_covariances_point_indices_iterator():
             assert quantity >= self.min_measurements
             assert np.abs(correlation) >= self.min_abs_correlation
             assert point_index_max > point_index_min
             quantity_matrix[point_index_max, point_index_min] = quantity
 
-        ## convert to wanted format
+        # convert to wanted format
         if self.matrix_format != 'lil':
             util.logging.debug('Converting quantity matrix to format {}.'.format(self.matrix_format))
             if self.matrix_format == 'csc':
@@ -329,7 +329,7 @@ class SampleCorrelationMatrix:
             quantity_matrix = quantity_matrix.asformat(self.matrix_format).astype(dtype)
             util.logging.debug('quantity matrix converted to format {}.'.format(self.matrix_format))
 
-        ## return
+        # return
         util.logging.debug('Calculated differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {}.'.format(correlation_matrix.nnz, self.min_abs_correlation))
         return quantity_matrix
 
@@ -338,17 +338,17 @@ class SampleCorrelationMatrix:
     def different_boxes_correlation_lower_triangle_matrix(self):
         util.logging.debug('Calculating different boxes correlation lower triangle matrix with minimal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.matrix_format, self.dtype))
 
-        ## create lil matrix
+        # create lil matrix
         correlation_matrix = scipy.sparse.lil_matrix(self.shape, dtype=self.dtype)
 
-        ## insert correlation
+        # insert correlation
         for point_index_min, point_index_max, quantity, correlation in self.different_boxes_sample_covariances_point_indices_iterator():
             assert quantity >= self.min_measurements
             assert np.abs(correlation) >= self.min_abs_correlation
             assert point_index_max > point_index_min
             correlation_matrix[point_index_max, point_index_min] = correlation
 
-        ## convert to wanted format
+        # convert to wanted format
         if self.matrix_format != 'lil':
             util.logging.debug('Converting correlation matrix to format {}.'.format(self.matrix_format))
             if self.matrix_format == 'csc':
@@ -357,33 +357,33 @@ class SampleCorrelationMatrix:
             correlation_matrix = correlation_matrix.asformat(self.matrix_format).astype(self.dtype)
             util.logging.debug('Correlation matrix converted to format {}.'.format(self.matrix_format))
 
-        ## return
+        # return
         util.logging.debug('Calculated differend boxes correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, self.min_abs_correlation, self.matrix_format, self.dtype))
         return correlation_matrix
 
 
-    ## correlation matrix
+    # correlation matrix
 
     @property
     def correlation_matrix(self):
         util.logging.debug('Calculating correlation matrix for minimal absolute correlation {} and maximal absolute correlation {} in matrix format {} with dtype {}.'.format(self.min_abs_correlation, self.max_abs_correlation, self.matrix_format, self.dtype))
 
-        ## add same box and different boxes correlations lower triangle
+        # add same box and different boxes correlations lower triangle
         correlation_lower_triangle_matrix = self.different_boxes_correlation_lower_triangle_matrix + self.same_box_correlation_matrix_lower_triangle
         assert np.all(np.isclose(correlation_lower_triangle_matrix.diagonal(), 0))
 
-        ## apply max abs correlation
+        # apply max abs correlation
         mask = np.abs(correlation_lower_triangle_matrix.data) > self.max_abs_correlation
         correlation_lower_triangle_matrix.data[mask] = np.sign(correlation_lower_triangle_matrix.data[mask]) * self.max_abs_correlation
 
-        ## add lower and upper triangle
+        # add lower and upper triangle
         correlation_matrix = correlation_lower_triangle_matrix + correlation_lower_triangle_matrix.T
 
-        ## add diagonal ones
+        # add diagonal ones
         diagonal = scipy.sparse.eye(correlation_matrix.shape[0])
         correlation_matrix = correlation_matrix + diagonal
 
-        ## return
+        # return
         return correlation_matrix.asformat(self.matrix_format).astype(self.dtype)
 
 
@@ -391,7 +391,7 @@ class SampleCorrelationMatrix:
 
 class SampleCorrelationMatrixCache(SampleCorrelationMatrix):
 
-    ## cachable values
+    # cachable values
 
     @util.cache.file.decorator()
     def map_indices_to_point_index_dict(self, discard_year=False):
@@ -428,7 +428,7 @@ class SampleCorrelationMatrixCache(SampleCorrelationMatrix):
         return super().correlation_matrix
 
 
-    ## cache files
+    # cache files
 
     def map_indices_to_point_index_dict_cache_file(self,
 discard_year=False):

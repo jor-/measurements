@@ -26,7 +26,7 @@ def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
     assert t_dim in (1, default_t_dim)
 
 
-    ## chose lsm
+    # chose lsm
     if lsm_kind == 'TMM':
         sample_lsm = measurements.land_sea_mask.lsm.LandSeaMaskTMM(t_dim=default_t_dim)
     elif lsm_kind == 'WOA13':
@@ -34,7 +34,7 @@ def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
     elif lsm_kind == 'WOA13R':
         sample_lsm = measurements.land_sea_mask.lsm.LandSeaMaskWOA13R(t_dim=default_t_dim)
 
-    ## chose interpolator and min and max values
+    # chose interpolator and min and max values
     if 'mean' in data_kind:
         values = measurements.po4.wod.mean.values
         constants = measurements.po4.wod.mean.constants
@@ -76,7 +76,7 @@ def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
         else:
             interpolator = values.InterpolatorTotal(sample_lsm=sample_lsm, min_values=min_values)
 
-    ## chose date
+    # chose date
     if calculation_kind == 'sample':
         data = interpolator.sample_data_for_lsm(sample_lsm)
     elif calculation_kind == 'interpolated':
@@ -89,13 +89,13 @@ def data(calculation_kind, data_kind, lsm_kind, t_dim, dir='/tmp'):
     if t_dim == 1:
         data = data.mean(axis=0)
 
-    ## prepare file names
+    # prepare file names
     file_prefix = os.path.join(dir, 'po4_-_wod13_-_{data_kind}_-_{calculation_kind}_-_{sample_lsm}_-_min_values_{min_values}_-'.format(data_kind=data_kind, calculation_kind=calculation_kind, sample_lsm=sample_lsm, min_values=min_values))
     file_data = file_prefix + '.png'
     file_histogram = file_prefix + '_{}_histogram.png'.format(t_dim)
     file_depth_mean = file_prefix + '_depth_mean.png'.format()
 
-    ## plot
+    # plot
     util.plot.data(data, file_data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours)
     util.plot.histogram(data[~np.isnan(data)], file_histogram, step_size=histogram_step_size, x_min=v_min, x_max=histogram_v_max, use_log_scale=True)
     if calculation_kind == 'interpolated':
@@ -110,17 +110,17 @@ def stationary_correlation(path='/tmp'):
     dims = 4
     base_mask = np.all(np.isfinite(c), axis=1)
 
-    ## plot correlation for changes in one and in two dims
+    # plot correlation for changes in one and in two dims
     indices_list = [[(i,) for i in range(dim)], [(i,j) for i in range(dim) for j in range(dim) if i<j]]
     for indices in indices_list:
         for i in indices:
-            ## calculate mask where only index i is not zero
+            # calculate mask where only index i is not zero
             mask = base_mask.copy()
             for j in range(dims):
                 if j not in i:
                     mask = np.logical_and(mask, c[:,j] == 0)
 
-            ## scatter plot
+            # scatter plot
             file = os.path.join(path, 'correlation_for_index_{}.png'.format(i))
             util.plot.scatter(c[mask][:,i], c[mask][:,-1], file, point_size=c[mask][:,-2])
 
@@ -131,7 +131,7 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
 
     direction_indices = estimation.get_direction_indices()
 
-    ## get model
+    # get model
     if show_model:
         correlation_model = model.Correlation_Model()
         model_f = lambda d: correlation_model.correlation_by_distance(d)
@@ -139,14 +139,14 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
         model_f = None
 
     for direction_index in direction_indices:
-        ## get estimated data
+        # get estimated data
         direction = estimation.get_direction(direction_index)
         shift = estimation.get_shift(direction_index, min_measurements=min_measurements)
         correlation = estimation.get_correlation(direction_index, min_measurements=min_measurements)
         number = estimation.get_number(direction_index, min_measurements=min_measurements)
         x_max = shift[len(shift)-1]
 
-        ## plot setup
+        # plot setup
         fig = plt.figure(figsize=(15,10), dpi=150)
         plt.xlim((0, x_max))
         plt.ylim((-1, 1))
@@ -174,7 +174,7 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
         title = 'distance: ' + title
         plt.title(title)
 
-        ## plot model
+        # plot model
         if model_f is not None:
             x = np.arange(x_max)
             y = np.empty(x_max, np.float)
@@ -183,17 +183,17 @@ def plot_correlogram(path='/tmp', show_model=True, min_measurements=1):
 
             plt.plot(x, y, color='blue', linewidth=3)
 
-        ## plot zero line
+        # plot zero line
         plt.plot(np.arange(x_max+1), np.arange(x_max+1)*0, color='black', linewidth=2)
 
-        ## plot estimated data
+        # plot estimated data
         size = np.log10(number ** 2) * 10
         plt.scatter(shift, correlation, size, color='red')
 
-        ## set spine lines size
+        # set spine lines size
         util.plot.set_spine_line_size(fig, line_width=2)
 
-        ## save plot
+        # save plot
         file = os.path.join(path, 'po4_wod13_correlogram_min_measurements_' + str(min_measurements) + '_direction_' + str(direction_index) + '.png')
         plt.savefig(file, transparent=True)
         plt.close(fig)

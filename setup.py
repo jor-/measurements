@@ -76,4 +76,11 @@ setuptools.setup(
         'plot' : ['matplotlib', 'utillib[plot]'],
         'sorted_measurements_dict': ['utillib[sorted_multi_dict]'],
     },
+
+    # scripts
+    entry_points={
+        'console_scripts': [
+            'measurements_wod_save = measurements.wod.save:_main',
+        ],
+    }
 )

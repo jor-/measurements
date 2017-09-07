@@ -28,14 +28,14 @@ class MeasurementsDict(util.multi_dict.MultiDict):
             return 1
 
 
-    ## str
+    # str
 
     def __str__(self):
         name = '{name} with {number} measurements'.format(name=self.__class__.__name__, number=len(self))
         return name
 
 
-    ## create
+    # create
 
     def _return_items_as_type(self, keys, values, return_type=None):
         if return_type == 'measurements' or return_type == 'measurements_unsorted':
@@ -45,30 +45,30 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         return super()._return_items_as_type(keys, values, return_type=return_type)
 
 
-    ## transform keys
+    # transform keys
 
     @staticmethod
     def categorize_index(index, separation_values, discard_year=False):
         index = list(index)
 
-        ## discard year
+        # discard year
         if discard_year:
             index[0] = index[0] % self.year_len
 
-        ## remove right bound of last y box
+        # remove right bound of last y box
         if index[2] == 90:
             index[2] = 90 - 10**(-6)
 
-        ## iterate over dimensions
+        # iterate over dimensions
         for i in range(len(separation_values)):
 
-            ## get separation value
+            # get separation value
             try:
                 separation_value = separation_values[i]
             except IndexError:
                 separation_value = None
 
-            ## categorize dimension i
+            # categorize dimension i
             if separation_value is not None:
                 # check if sequence
                 try:
@@ -146,7 +146,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         self.dicard_key_dims((1,2,3))
 
 
-    ## io
+    # io
 
     @overrides.overrides
     def save(self, file):
@@ -154,23 +154,23 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         super().save(file, only_dict=only_dict)
 
 
-    ## transform values
+    # transform values
 
     def normalize(self, same_bounds, min_number_of_values=5):
         util.logging.debug('Normalizing values with same bounds {} and min measurements {}.'.format(same_bounds, min_number_of_values))
 
-        ## save measurements dict
+        # save measurements dict
         value_dict = self.value_dict
 
-        ## get means and standard_deviations
+        # get means and standard_deviations
         self.categorize_indices(same_bounds, discard_year=True)
         means = self.means(min_number_of_values=min_number_of_values, return_type='self_type_unsorted')
         standard_deviations = self.standard_deviations(min_number_of_values=min_number_of_values, return_type='self_type_unsorted')
 
-        ## prepare new measurements dict
+        # prepare new measurements dict
         self.clear()
 
-        ## iterate
+        # iterate
         for (key, value_list) in self._iterate_generator_value_dict(value_dict):
             categorized_key = self.categorize_index(key, same_bounds, discard_year=True)
             try:
@@ -192,7 +192,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         return self.normalize(same_bounds, min_number_of_values=min_number_of_values)
 
 
-    ## filter
+    # filter
 
     def filter_year(self, year, return_type='self'):
         return self.filter_key_range(0, [year, year+self.year_len-10**(-10)], return_type=return_type)
@@ -203,20 +203,20 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
 
     def filter_same_point_with_bounds(self, point, equal_bounds=(0,0,0,0), discard_year=True, only_one_per_year=True):
-        ## equal_bounds is float -> copy values for each dim
+        # equal_bounds is float -> copy values for each dim
         try:
             float(equal_bounds)
             equal_bounds = [equal_bounds]*4
         except TypeError:
             pass
 
-        ## search equal_bound for z if z has sequence
+        # search equal_bound for z if z has sequence
         assert len(equal_bounds) == 4
         equal_bounds = list(equal_bounds)
         try:
             float(equal_bounds[3])
         except TypeError:
-            ## get z bound for point z value
+            # get z bound for point z value
             z_bound_found = False
             i = 0
             while not z_bound_found:
@@ -228,13 +228,13 @@ class MeasurementsDict(util.multi_dict.MultiDict):
             equal_bounds[3] = equal_bounds[3][i, 1]
         equal_bounds = np.array(equal_bounds)
 
-        ## prepare point
+        # prepare point
         point_base = np.array(point, copy=True)
         if discard_year:
             point_base[0] = point_base[0] % self.year_len
 
 
-        ## filter all measurements with point in equal bounds
+        # filter all measurements with point in equal bounds
         filtered_points = []
         filtered_results = []
 
@@ -251,7 +251,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                                             filtered_points.append(point)
                                             filtered_results.append(result)
 
-        ## filter only one per year
+        # filter only one per year
         measurements_filtered = MeasurementsSamePointsDict()
 
         if only_one_per_year:
@@ -276,10 +276,10 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
 
     def filter_same_point_except_year(self, point):
-        ## prepare point
+        # prepare point
         point = list(point)
 
-        ## filter all measurements with same point
+        # filter all measurements with same point
         measurements_filtered = MeasurementsSamePointsDict()
 
         for (t, t_dict) in  self.value_dict.items():
@@ -339,29 +339,29 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         return self.filter_same_points_with_same_function(filter_same_point_function, min_number_of_values=min_number_of_values)
 
 
-    ## lsm related calulations
+    # lsm related calulations
 
     def mean_weighted_by_box_volume(self, lsm):
         util.logging.debug('Calculate mean of values weighted by box volumes of land-sea-mask {}.'.format(lsm))
-        ## copy
+        # copy
         m = self.copy()
-        ## convert to lsm map indices
+        # convert to lsm map indices
         m.categorize_indices_to_lsm(lsm)
         m.coordinates_to_map_indices(lsm, discard_year=True, int_indices=True)
-        ## get indices and values
+        # get indices and values
         items = m.items()
         indices = items[:, :-1]
         values = items[:, -1]
-        ## copy volumes
+        # copy volumes
         volumes = lsm.volume_of_boxes_of_map_indices(indices)
-        ## calculate mean
+        # calculate mean
         mean_weighted = (values * volumes).sum() / volumes.sum()
-        ## return
+        # return
         util.logging.debug('Mean of values weighted by box volumes of land-sea-mask {} is {}.'.format(lsm,mean_weighted))
         return mean_weighted
 
 
-    ## total correlogram and correlation (autocorrelation)
+    # total correlogram and correlation (autocorrelation)
 
     def _get_first_dim_shifted(self, measurements_dict_list, shift, same_bound, wrap_around_range=None):
         util.logging.debug('Getting first dim shifted with shift %f and same bound %f.' % (shift, same_bound))
@@ -372,34 +372,34 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
             shift_list = []
 
-            ## iterate over all dicts
+            # iterate over all dicts
             for (measurements_dict, measurements_dict_shifted) in measurements_dict_list:
 
                 keys_view_shifted = measurements_dict_shifted.keys()
                 keys_view_shifted_len = len(keys_view_shifted)
 
-                ## iterate over all unshifted
+                # iterate over all unshifted
                 for (key, value) in measurements_dict.items():
 
-                    ## calculate desired key bounds
+                    # calculate desired key bounds
                     key_shifted_desired_lower_bound = measurements.util.calculate.wrap_around_index(key + shift - same_bound, wrap_around_range)
                     key_shifted_desired_upper_bound = measurements.util.calculate.wrap_around_index(key + shift + same_bound, wrap_around_range)
                     key_shifted_desired_lower_bound_index = keys_view_shifted.bisect_left(key_shifted_desired_lower_bound)
                     key_shifted_desired_upper_bound_index = keys_view_shifted.bisect_right(key_shifted_desired_upper_bound)
 
 
-                    ## if desired keys are available
+                    # if desired keys are available
                     if key_shifted_desired_lower_bound_index != key_shifted_desired_upper_bound_index:
                         if key_shifted_desired_upper_bound_index >= keys_view_shifted_len or keys_view_shifted[key_shifted_desired_upper_bound_index] > key_shifted_desired_upper_bound:
                             key_shifted_desired_upper_bound_index -= 1
 
-                        ## calculate desired key range
+                        # calculate desired key range
                         if key_shifted_desired_lower_bound_index <= key_shifted_desired_upper_bound_index:
                             key_shifted_desired_index_range = range(key_shifted_desired_lower_bound_index, key_shifted_desired_upper_bound_index + 1)
                         else:
                             key_shifted_desired_index_range = itertools.chain(range(key_shifted_desired_lower_bound_index, keys_view_shifted_len), range(0, key_shifted_desired_upper_bound_index + 1))
 
-                        ## insert values with shifted values
+                        # insert values with shifted values
                         for key_shifted_desired_index in key_shifted_desired_index_range:
                             key_shifted = keys_view_shifted[key_shifted_desired_index]
                             value_shifted = measurements_dict_shifted[key_shifted]
@@ -414,22 +414,22 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
             shift_list = []
 
-            ## iterate over all dicts
+            # iterate over all dicts
             for (measurements_dict, measurements_dict_shifted) in measurements_dict_list:
 
-                ## iterate over all unshifted
+                # iterate over all unshifted
                 for (i, i_dict) in measurements_dict.items():
                     i_shifted_desired = i + shift
                     if wrap_around_range is not None:
                         i_shifted_desired = measurements.util.calculate.wrap_around_index(i_shifted_desired, wrap_around_range)
 
-                    ## iterate over all shifted
+                    # iterate over all shifted
                     for (i_shifted, i_dict_shifted) in measurements_dict_shifted.items():
                         i_diff = abs(i_shifted - i_shifted_desired)
                         if wrap_around_range is not None:
                             i_diff = min(i_diff, wrap_around_len - i_diff)
 
-                        ## insert unshifted in shifted in shift_list
+                        # insert unshifted in shifted in shift_list
                         if i_diff <= same_bound:
                             shift_list.append((i_dict, i_dict_shifted))
 
@@ -443,7 +443,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         dim = len(direction)
         wrap_around_range = (t_range, x_range, None, None)
 
-        ## iterate over dim and search matching shifts
+        # iterate over dim and search matching shifts
         for i in range(dim):
             measurements_dict_list = self._get_first_dim_shifted(measurements_dict_list, factor * direction[i], same_bounds[i], wrap_around_range=wrap_around_range[i])
 
@@ -453,12 +453,12 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
 
     def _get_array_from_shift_list(self, shift_list):
-        ## calculate length
+        # calculate length
         n = 0
         for (result_list, result_shifted_list) in shift_list:
             n += len(result_list) * len(result_shifted_list)
 
-        ## set values
+        # set values
         array = np.empty((n, 2))
         i = 0
         for (result_list, result_shifted_list) in shift_list:
@@ -514,7 +514,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
     def _iterate_over_shift_in_direction(self, calculate_function, direction, same_bounds, dim_ranges, wrap_around_t=False, file=None):
         util.logging.debug('Applying function to shifts by direction %s with same_bounds %s and dim_ranges %s.' % (direction, same_bounds, dim_ranges))
 
-        ## init
+        # init
         function_results_list = []
         direction_array = np.array(direction, dtype=np.float)
         if wrap_around_t:
@@ -523,7 +523,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
             t_range = None
         x_range = (dim_ranges[1][0], dim_ranges[1][1])
 
-        ## calculate max factor
+        # calculate max factor
         if not np.all(direction == 0):
             dim_ranges_array = np.array(dim_ranges, dtype=np.float)
             dim_ranges_diff = dim_ranges_array[:,1] - dim_ranges_array[:,0]
@@ -537,21 +537,21 @@ class MeasurementsDict(util.multi_dict.MultiDict):
 
         util.logging.debug('Max factor is %d.', max_factor)
 
-        ## iterate over all factors
+        # iterate over all factors
         for factor in range(max_factor + 1):
             shift_list = self._get_results_together_with_shifted(factor, direction, same_bounds, x_range, t_range)
 
-            ## apply calculate_function to shift list
+            # apply calculate_function to shift list
             util.logging.debug('Applying calculate function to shifts.')
             function_result = calculate_function(shift_list)
             function_results_list.append(function_result)
 
-            ## save intermediate result
+            # save intermediate result
             if file is not None:
                 function_results_array = np.array(function_results_list)
                 np.save(file, function_results_array)
 
-        ## create array and save results
+        # create array and save results
         function_results_array = np.array(function_results_list)
 
         if file is None:
@@ -588,30 +588,30 @@ class MeasurementsDict(util.multi_dict.MultiDict):
         current_indices = np.zeros(dim, dtype=np.int)
         current_shift = np.zeros(dim)
 
-        ## iterate over all factors
+        # iterate over all factors
         while current_dim >= 0:
 
-            ## iterate over all dimensions
+            # iterate over all dimensions
             while 0 <= current_dim < dim:
                 current_index = current_indices[current_dim]
                 current_factor_list = factor_lists[current_dim]
 
-                ## search matching shifts
+                # search matching shifts
                 current_factor = current_factor_list[current_index]
                 current_shift[current_dim] = direction[current_dim] * current_factor
                 measurements_dict_list[current_dim + 1] = self._get_first_dim_shifted(measurements_dict_list[current_dim], current_shift[current_dim], same_bounds[current_dim], wrap_around_ranges[current_dim])
 
-                ## increase current dim
+                # increase current dim
                 current_dim += 1
 
 
-            ## calculate value and append to list
+            # calculate value and append to list
             (value, number_of_measurements) = calculation_function(measurements_dict_list[dim])
             if number_of_measurements >= minimum_measurements:
                 function_results_list.append(current_shift.tolist() + [value, number_of_measurements])
                 util.logging.debug('Value %f for shift %s calculated and inserted. %d matching measurements where found.' % (value, current_shift, number_of_measurements))
 
-                ## save intermediate result
+                # save intermediate result
                 if file is not None:
                     function_results_array = np.array(function_results_list)
                     np.save(file, function_results_array)
@@ -619,7 +619,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                 util.logging.debug('Value for shift %s not inserted. Only %d matching measurements where found.' % (current_shift, number_of_measurements))
 
 
-            ## increase index
+            # increase index
             current_dim -= 1
             measurements_dict_list[current_dim + 1] = None
             current_indices[current_dim] += 1
@@ -631,7 +631,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                 if current_dim >= 0:
                     current_indices[current_dim] += 1
 
-        ## create array and save results
+        # create array and save results
         function_results_array = np.array(function_results_list)
 
         if file is None:
@@ -660,46 +660,46 @@ class MeasurementsSamePointsDict(MeasurementsDict):
         super().__init__(sorted=sorted)
 
 
-    ## compute values
+    # compute values
 
     def correlation_or_covariance(self, value_type, min_number_of_values=10, stationary=False, max_year_diff=float('inf')):
         util.logging.debug('Calculate {} with at least {} values, stationary {} and max_year_diff {}.'.format(value_type, min_number_of_values, stationary, max_year_diff))
 
-        ## check value type
+        # check value type
         POSSIBLE_VALUE_TYPES = ('correlation', 'covariance')
         if value_type not in POSSIBLE_VALUE_TYPES:
             raise ValueError('Value type has to be in {} but it is {}.'.format(POSSIBLE_VALUE_TYPES, value_type))
         else:
             calculate_correlation = value_type == POSSIBLE_VALUE_TYPES[0]
 
-        ## prepare value measurement dict
+        # prepare value measurement dict
         if stationary:
             value_measurements = MeasurementsCovarianceStationaryDict()
         else:
             value_measurements = MeasurementsCovarianceDict()
 
-        ## calculate values
+        # calculate values
         if len(self) > 0:
 
-            ## check max_year_diff
+            # check max_year_diff
             if max_year_diff is None or max_year_diff == float('inf'):
                 t = self.values()[:,0]
                 max_year_diff = int(np.ceil((t.max() - t.min()) / self.year_len))
                 util.logging.debug('Using max_year_diff {}.'.format(max_year_diff))
 
-            ## iterate over each pair of measurement indices
+            # iterate over each pair of measurement indices
             index_of_measurement = [0, 0]
             for (key_0, transformed_value_list_0) in self.iterator_keys_and_value_lists():
                 index_of_measurement[1] = 0
                 for (key_1, transformed_value_list_1) in self.iterator_keys_and_value_lists():
 
-                    ## skip previous values
+                    # skip previous values
                     if index_of_measurement[1] > index_of_measurement[0] or (index_of_measurement[1] == index_of_measurement[0] and max_year_diff > 1):
 
-                        ## make keys to list
+                        # make keys to list
                         keys = (tuple(key_0), tuple(key_1))
 
-                        ## calculate all desired year offsets
+                        # calculate all desired year offsets
                         desired_year_offsets = tuple(np.arange(1, max_year_diff) * self.year_len)
                         if not np.allclose(keys[0], keys[1]):
                             desired_year_offsets += tuple(np.arange(-max_year_diff+1, 1) * self.year_len)
@@ -710,10 +710,10 @@ class MeasurementsSamePointsDict(MeasurementsDict):
                             else:
                                 desired_year_offsets +=  (-max_year_diff * self.year_len,)
 
-                        ## for all year offsets
+                        # for all year offsets
                         for desired_year_offset in desired_year_offsets:
 
-                            ## get values with desired year offset and t fraction diff
+                            # get values with desired year offset and t fraction diff
                             matching_results = []
                             for (t0, r0) in transformed_value_list_0:
                                 for (t1, r1) in transformed_value_list_1:
@@ -724,10 +724,10 @@ class MeasurementsSamePointsDict(MeasurementsDict):
                             n = len(matching_results)
 
 
-                            ## if enough measurements
+                            # if enough measurements
                             if n >= min_number_of_values:
 
-                                ## calculate auxiliary values
+                                # calculate auxiliary values
                                 x0 = matching_results[:,0]
                                 x1 = matching_results[:,1]
 
@@ -739,7 +739,7 @@ class MeasurementsSamePointsDict(MeasurementsDict):
                                     s1 = np.sqrt(np.sum((x1 - m1)**2))
 
                                 if not calculate_correlation or (s0 > 0 and s1 > 0):
-                                    ## calculate value
+                                    # calculate value
                                     if calculate_correlation:
                                         value = np.sum(((x0 - m0) / s0) * ((x1 - m1) / s1))
                                         assert value >= -1 and value <= 1
@@ -748,14 +748,14 @@ class MeasurementsSamePointsDict(MeasurementsDict):
 
                                     value = (n, value)
 
-                                    ## prepare key pair
+                                    # prepare key pair
                                     value_keys = [list(keys[0]), list(keys[1])]
                                     if desired_year_offset >= 0:
                                         value_keys[0][0] = value_keys[0][0] + desired_year_offset
                                     else:
                                         value_keys[1][0] = value_keys[1][0] - desired_year_offset
 
-                                    ## add value to value dict
+                                    # add value to value dict
                                     assert not value_measurements.has_values(value_keys)
                                     value_measurements.append_value(value_keys, value)
 
@@ -787,18 +787,18 @@ class MeasurementsCovarianceDict(util.multi_dict.MultiDictPermutablePointPairs):
 
 
     def _preprocess_keys(self, keys):
-        ## copy keys
+        # copy keys
         keys = list(keys)
         keys[0] = list(keys[0])
         keys[1] = list(keys[1])
 
-        ## remove lower year offset
+        # remove lower year offset
         year_len = self.year_len
         lower_years = min([int(keys[0][0]/year_len), int(keys[1][0]/year_len)])
         for key in keys:
             key[0] = key[0] - lower_years * year_len
 
-        ## get value
+        # get value
         return super()._preprocess_keys(keys)
 
 
@@ -807,7 +807,7 @@ class MeasurementsCovarianceDict(util.multi_dict.MultiDictPermutablePointPairs):
         return self._year_len
 
 
-    ## transform keys
+    # transform keys
 
     def coordinates_to_map_indices(self, lsm, int_indices=True):
         util.logging.debug('Transforming in {} coordinates to map indices of {} with int_indices {}'.format(self, lsm, int_indices))
@@ -822,7 +822,7 @@ class MeasurementsCovarianceDict(util.multi_dict.MultiDictPermutablePointPairs):
 
 
 
-    ## io
+    # io
     @overrides.overrides
     def save(self, file):
         only_dict = self.year_len != 1

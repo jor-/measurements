@@ -6,16 +6,16 @@ import numpy as np
 import util.math.interpolate
 
 
-## convert point to box index (helper functions)
+# convert point to box index (helper functions)
 
 def get_spatial_float_index(x, y, z, land_sea_mask, z_values_left, x_range=[0, 360], y_range=[-90, 90]):
     logging.debug('Getting spatial float index for {}.'.format((x, y, z)))
 
-    ## adjust x coordinates if negative
+    # adjust x coordinates if negative
     if x < 0:
         x += 360
 
-    ## check input
+    # check input
     if x < x_range[0] or x > x_range[1]:
         raise ValueError('Value {} of x is not in range {}.'.format(x, x_range))
     if y < y_range[0] or y > y_range[1]:
@@ -23,12 +23,12 @@ def get_spatial_float_index(x, y, z, land_sea_mask, z_values_left, x_range=[0, 3
     if z < z_values_left[0]:
         raise ValueError('Value {} of z have to be greater or equal to {}.'.format(z, z_values_left[0]))
 
-    ## linear interpolate x and y index
+    # linear interpolate x and y index
     (x_dim, y_dim) = land_sea_mask.shape
     x_index_float = util.math.interpolate.get_float_index_for_equidistant_values(x, x_range, x_dim)
     y_index_float = util.math.interpolate.get_float_index_for_equidistant_values(y, y_range, y_dim)
 
-    ## lockup z
+    # lockup z
     z_index = bisect.bisect_right(z_values_left, z) - 1
 
     if z_index + 1 < len(z_values_left):
@@ -47,11 +47,11 @@ def get_spatial_float_index(x, y, z, land_sea_mask, z_values_left, x_range=[0, 3
 def get_temporal_float_index(t, t_dim, t_range=[0, 1]):
     logging.debug('Getting temporal float index for {}.'.format(t))
 
-    ## check input
+    # check input
     if t < t_range[0] or t > t_range[1]:
         raise ValueError('Value {} of t is not in range {}.'.format(t, t_range))
 
-    ## interpolate
+    # interpolate
     t_index_float = util.math.interpolate.get_float_index_for_equidistant_values(t, t_range, t_dim)
 
     logging.debug('Temporal float index for {} is {}.'.format(t, t_index_float))
@@ -62,7 +62,7 @@ def get_temporal_float_index(t, t_dim, t_range=[0, 1]):
 def is_water(spatial_indices, land_sea_mask):
     logging.debug('Checking if indices are water.')
 
-    ## check input
+    # check input
     spatial_indices = np.array(spatial_indices, dtype=np.int)
 
     dim = len(spatial_indices.shape)
@@ -79,7 +79,7 @@ def is_water(spatial_indices, land_sea_mask):
         if spatial_len != 3:
             raise ValueError('The second dimension of the spatial_indices array to be 3, but it is {}.'.format(spatial_len))
 
-    ## compute if water
+    # compute if water
     land_sea_mask_indices = spatial_indices[:, :-1]
     land_sea_mask_values = land_sea_mask[land_sea_mask_indices[:, 0], land_sea_mask_indices[:, 1]]
     is_water = np.logical_or(np.isnan(land_sea_mask_values),  land_sea_mask_values >= spatial_indices[:, -1])
@@ -127,12 +127,12 @@ def get_nearest_water_box(land_sea_mask, x_index, y_index, z_index):
 def get_nearest_spatial_water_index(x, y, z, land_sea_mask, z_values_left, x_range=[0, 360], y_range=[-90, 90]):
     (x_index_float, y_index_float, z_index_float) = get_spatial_float_index(x, y, z, land_sea_mask, z_values_left, x_range=x_range, y_range=y_range)
 
-    ## floor indices to int
+    # floor indices to int
     x_index = np.floor(x_index_float)
     y_index = np.floor(y_index_float)
     z_index = np.floor(z_index_float)
 
-    ## get nearest water box if box is land
+    # get nearest water box if box is land
     if not is_water((x_index, y_index, z_index), land_sea_mask):
         logging.debug('Box {} is land.'.format((x_index, y_index, z_index)))
         (x_index, y_index, z_index) = get_nearest_water_box(land_sea_mask, x_index_float, y_index_float, z_index_float)
@@ -168,7 +168,7 @@ def convert_point_to_box_index(t, x, y, z, land_sea_mask, z_values_left, t_range
 
 
 
-## regird
+# regird
 
 def measurements_to_land_sea_mask(measurement_data, land_sea_mask, t_range=[0, 1], x_range=[0, 360], y_range=[-90, 90]):
     assert measurement_data.ndim == 2
@@ -176,17 +176,17 @@ def measurements_to_land_sea_mask(measurement_data, land_sea_mask, t_range=[0, 1
 
     z_values_left = land_sea_mask.z_left
 
-    ## init arrays
+    # init arrays
     nobs = land_sea_mask.masked_map(default_value=0, dtype=np.float64)
     sum_of_values = np.copy(nobs)
     sum_of_squares = np.copy(nobs)
     variances = land_sea_mask.masked_map(default_value=np.inf, dtype=np.float64)
 
-    ## init dim values
+    # init dim values
     number_of_measurements = measurement_data.shape[0]
     data_dim = measurement_data.shape[1]
 
-    ## insert measurements
+    # insert measurements
     for i in range(number_of_measurements):
         t, x, y, z, data_sum_of_values = measurement_data[i, :5]
         if data_dim == 5:
@@ -201,13 +201,13 @@ def measurements_to_land_sea_mask(measurement_data, land_sea_mask, t_range=[0, 1
         sum_of_values[t_index, x_index, y_index, z_index] += data_sum_of_values
         sum_of_squares[t_index, x_index, y_index, z_index] += data_sum_of_squares
 
-    ## calculate mean
+    # calculate mean
     where_measurements = np.where(nobs > 0)
 
     means = np.copy(sum_of_values)
     means[where_measurements] /= nobs[where_measurements]
 
-    ## calculate variance
+    # calculate variance
     where_measurements_over_threshold = np.where(nobs >= 2)
 
     nobs_over_threshold = nobs[where_measurements_over_threshold]

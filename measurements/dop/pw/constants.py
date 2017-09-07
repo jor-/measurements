@@ -4,7 +4,7 @@ import datetime
 from measurements.constants import BASE_DIR
 
 
-## data information
+# data information
 DATA_DIR = os.path.join(BASE_DIR, 'dop', 'data')
 
 LADOLFI_2002_DIR = os.path.join(DATA_DIR, 'Ladolfi2002')
@@ -24,10 +24,10 @@ YOSHIMURA_2007_MEASUREMENT_FILE = os.path.join(YOSHIMURA_2007_DIR, 'Yoshimura200
 
 DATA_FILENAME = 'data.npy'
 
-## sample lsm
+# sample lsm
 from measurements.po4.wod.constants import SAMPLE_LSM
 
-## deviation
+# deviation
 DEVIATION_CONCENTRATION_NOISE_RATIO = 1.5
 
 

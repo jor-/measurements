@@ -5,12 +5,12 @@ DEFAULT_OPTIONS = {'start':50, 'increment_start':20, 'increment_value':10, 'incr
 def diff(i, start=50, increment_start=20, increment_value=10, increment_value_max=50, increment_step=1):
     options = {'start':start, 'increment_start':increment_start, 'increment_value':increment_value, 'increment_value_max':increment_value_max, 'increment_step':increment_step}
 
-    ## skip diff with no increase
+    # skip diff with no increase
     modulo = i % increment_step
     if modulo != 0:
         i = i - modulo
 
-    ## calculate diff
+    # calculate diff
     if i <= 0:
         return start
     else:

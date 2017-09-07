@@ -25,7 +25,7 @@ def normalize_points(points, ranges):
 def get_min_distance(point_1, point_2, t_range=None, x_range=None):
     distance = np.abs(point_1 - point_2)
 
-    ## wrap around
+    # wrap around
     if t_range is not None:
         t_size = t_range[1] - t_range[0]
         if distance[0] > t_size / 2:

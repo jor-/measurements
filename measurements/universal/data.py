@@ -156,7 +156,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         self.max_abs_correlation = max_abs_correlation
 
 
-    ## general sample data
+    # general sample data
 
     @property
     def sample_lsm(self):
@@ -168,7 +168,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         return measurements.universal.sample_data.SampleMeanAndDeviation(self.points, self.values, self.sample_lsm)
 
 
-    ## mean
+    # mean
 
     @property
     def sample_means(self):
@@ -184,7 +184,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
             raise TooFewValuesError('It was not possible to calculate all values from the sample values, because to few sample values are available.')
 
 
-    ## deviation
+    # deviation
 
     @property
     def sample_concentration_standard_deviations(self):
@@ -238,7 +238,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         return standard_deviations
 
 
-    ## correlation
+    # correlation
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
@@ -269,7 +269,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         self._constant_fill_values = {}
 
 
-    ## interpolater
+    # interpolater
 
     def _check_kind(self, kind):
         if kind not in self.POSSIBLE_KINDS:
@@ -305,7 +305,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             self.sample_lsm, scaling_values=self.interpolator_scaling_values)
 
 
-    ## fill strategy
+    # fill strategy
 
     @property
     def fill_strategy(self):
@@ -347,33 +347,33 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
 
     def _fill_strategy_for_kind(self, kind):
-        ## choose fill method
+        # choose fill method
         fill_strategy = self.fill_strategy
         if fill_strategy == 'auto':
             number_of_sample_values = len(self._data_map_indices_dict(kind))
             fill_strategy = self._choose_fill_strategy(number_of_sample_values)
 
-        ## return
+        # return
         util.logging.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
         return fill_strategy
 
 
     def _fill_strategy_with_number_of_sample_values(self, number_of_sample_values):
-        ## choose fill method
+        # choose fill method
         fill_strategy = self.fill_strategy
         if fill_strategy == 'auto':
             fill_strategy = self._choose_fill_strategy(number_of_sample_values)
 
-        ## check number of available sample values
+        # check number of available sample values
         if number_of_sample_values == 0 and fill_strategy != 'constant':
             raise TooFewValuesError('No sample values are available. Fill method {} is not applicable.'.format(fill_strategy))
 
-        ## return
+        # return
         util.logging.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
         return fill_strategy
 
 
-    ## data general
+    # data general
 
     def _data_map_indices_dict(self, kind):
         if kind == 'concentration_means':
@@ -387,20 +387,20 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         return data_map_indices_dict
 
 
-    ## data for sample lsm
+    # data for sample lsm
 
     def _data_for_sample_lsm(self, kind):
         util.logging.debug('{}: Calculating {} data for sample lsm.'.format(self.__class__.__name__, kind))
 
-        ## get data
+        # get data
         data_map_indices_dict = self._data_map_indices_dict(kind)
         map_indices_and_values = data_map_indices_dict.toarray()
 
-        ## choose fill strategy
+        # choose fill strategy
         fill_strategy = self._fill_strategy_with_number_of_sample_values(len(map_indices_and_values))
         util.logging.debug('{}: Filling sample lsm values with fill strategy {}.'.format(self.__class__.__name__, fill_strategy))
 
-        ## apply fill_strategy
+        # apply fill_strategy
         if fill_strategy in ('point_average', 'lsm_average', 'constant'):
 
             if fill_strategy == 'point_average':
@@ -439,12 +439,12 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         return (self.concentration_standard_deviations_for_sample_lsm**2 + self.average_noise_standard_deviations_for_sample_lsm**2)**(1/2)
 
 
-    ## data for sample points
+    # data for sample points
 
     def _data_for_sample_points(self, kind):
         util.logging.debug('{}: Calculating {} data for sample points.'.format(self.__class__.__name__, kind))
 
-        ## get data
+        # get data
         data_map_indices_dict = self._data_map_indices_dict(kind)
         data = self._sample_mean_and_deviation._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
         number_of_values = data.count()
@@ -452,13 +452,13 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
         util.logging.debug('{}: Got values for {:d} of {:d} points with sample data.'.format(self.__class__.__name__, number_of_values, number_of_points))
 
-        ## fill if empty values
+        # fill if empty values
         if number_of_values < number_of_points:
-            ## choose fill strategy
+            # choose fill strategy
             fill_strategy = self._fill_strategy_with_number_of_sample_values(len(data_map_indices_dict))
             util.logging.debug('{}: Filling remaining {:%} sample points values with fill strategy {}.'.format(self.__class__.__name__, 1-number_of_values/number_of_points, fill_strategy))
 
-            ## fill
+            # fill
             if fill_strategy == 'point_average':
                 data[data.mask] = data.mean()
             elif fill_strategy == 'lsm_average':
@@ -507,7 +507,7 @@ class MeasurementsNearWater(Measurements):
         Measurements.__init__(self)
 
 
-    ## properties
+    # properties
     @property
     def tracer(self):
         return self.base_measurements.tracer
@@ -520,7 +520,7 @@ class MeasurementsNearWater(Measurements):
             max_box_distance_to_water=self.max_box_distance_to_water)
 
 
-    ## projection methods
+    # projection methods
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
@@ -544,7 +544,7 @@ class MeasurementsNearWater(Measurements):
         return near_water_matrix.tocsc()
 
 
-    ## other methods
+    # other methods
 
     @property
     @overrides.overrides
@@ -617,10 +617,10 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
         if len(measurements_list) == 0:
             raise ValueError('{} must be initiated with at least one measurement object.'.format(self.__class__.__name__))
 
-        ## sort
+        # sort
         measurements_list = sorted(measurements_list, key=lambda measurement: measurement.data_set_name)
 
-        ## check same tracer and data set name
+        # check same tracer and data set name
         n = len(measurements_list)
         for i in range(n-1):
             if measurements_list[i].tracer != measurements_list[i+1].tracer:
@@ -630,10 +630,10 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
             if measurements_list[i].sample_lsm != measurements_list[i+1].sample_lsm:
                 raise ValueError('Measurements objects with different sample lsm ({} and {}) are not allowed!'.format(measurements_list[i].sample_lsm, measurements_list[i+1].sample_lsm))
 
-        ## store
+        # store
         self.measurements_list = measurements_list
 
-        ## chose values for union
+        # chose values for union
         sample_lsm = measurements_list[0].sample_lsm
         tracer = measurements_list[0].tracer
         data_set_name = ','.join(map(lambda measurement: measurement.data_set_name, measurements_list))
@@ -651,7 +651,7 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
         max_abs_correlation = get_and_set_default_value('max_abs_correlation', max)
         min_measurements_correlation = get_and_set_default_value('min_measurements_correlation', min)
 
-        ## call super init
+        # call super init
         super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_measurements_mean=min_measurements_mean, min_standard_deviation=min_standard_deviation, min_measurements_standard_deviation=min_measurements_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_correlation=min_measurements_correlation)
 
 
@@ -680,20 +680,20 @@ class MeasurementsCollection(Measurements):
         if len(measurements_list) == 0:
             raise ValueError('There are no measurements in the measurements list!')
 
-        ## sort
+        # sort
         measurements_list = sorted(measurements_list, key=lambda measurement: measurement.data_set_name)
         measurements_list = sorted(measurements_list, key=lambda measurement: measurement.tracer)
 
-        ## check same tracer and data set name
+        # check same tracer and data set name
         n = len(measurements_list)
         for i in range(n-1):
             if measurements_list[i].tracer == measurements_list[i+1].tracer and measurements_list[i].data_set_name == measurements_list[i+1].data_set_name:
                 raise ValueError('There is more then one measurements object with tracer {} and data set name {}!'.format(measurements_list[i].tracer, measurements_list[i].data_set_name))
 
-        ## store
+        # store
         self._measurements_list = measurements_list
 
-        ## make tracer and data set name for collection
+        # make tracer and data set name for collection
         tracer = ','.join(map(lambda measurement: measurement.tracer, measurements_list))
         data_set_name = ','.join(map(lambda measurement: measurement.data_set_name, measurements_list))
         if len(measurements_list) > 1:
@@ -702,7 +702,7 @@ class MeasurementsCollection(Measurements):
             data_set_name = measurements_list[0].data_set_name
         super().__init__(tracer=tracer, data_set_name=data_set_name)
 
-        ## correlation constants
+        # correlation constants
         self.min_abs_correlation = min([measurement.min_abs_correlation for measurement in measurements_list])
         self.min_diag_value_decomposition_correlation = min([measurement.min_diag_value_decomposition_correlation for measurement in measurements_list])
         self.permutation_method_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_PERMUTATION_METHOD
@@ -811,7 +811,7 @@ class MeasurementsCollection(Measurements):
 
 
 
-## caches
+# caches
 
 class MeasurementsCache():
 
@@ -831,7 +831,7 @@ class MeasurementsCache():
 
 class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualPeriodicBase):
 
-    ## ids
+    # ids
 
     @property
     @overrides.overrides
@@ -872,31 +872,31 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualP
 
 class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, MeasurementsAnnualPeriodic):
 
-    ## ids
+    # ids
 
     def _fill_strategy_id(self, kind):
-        ## if standrad deviation, use str for concentration and average_noise
+        # if standrad deviation, use str for concentration and average_noise
         if kind == 'standard_deviations':
             concentration_fill_strategy = self._fill_strategy_id('concentration_standard_deviations')
             average_noise_fill_strategy = self._fill_strategy_id('average_noise_standard_deviations')
-            ## if same for both, use only once
+            # if same for both, use only once
             if concentration_fill_strategy == average_noise_fill_strategy:
                 fill_strategy = concentration_fill_strategy
-            ## if both use interpolation, use only once but two interpolator_options
+            # if both use interpolation, use only once but two interpolator_options
             elif concentration_fill_strategy.startswith('interpolate') and average_noise_fill_strategy.startswith('interpolate'):
                 interpolator_options = '+'.join([','.join(map(str, self.get_interpolator_options(kind))) for kind in ('concentration_standard_deviations', 'average_noise_standard_deviations')])
                 fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(scaling_values=','.join(map(str, self.interpolator_scaling_values)), interpolator_options=interpolator_options)
-            ## if different strategies, append both strategies
+            # if different strategies, append both strategies
             else:
                 fill_strategy = util.str.merge([concentration_fill_strategy, average_noise_fill_strategy])
-        ## else, get used fill strategy
+        # else, get used fill strategy
         else:
             if kind == 'noise_standard_deviations':
                 fill_strategy = self._fill_strategy_for_kind('average_' + kind)
             else:
                 fill_strategy = self._fill_strategy_for_kind(kind)
 
-            ## if interpolation, append options for interpolations
+            # if interpolation, append options for interpolations
             if fill_strategy == 'interpolate':
                 fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(
                     scaling_values=','.join(map(str, self.interpolator_scaling_values)),
@@ -916,7 +916,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return super().standard_deviation_id + '_-_fill_' + self._fill_strategy_id('standard_deviations')
 
 
-    ## points and values cache files
+    # points and values cache files
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
@@ -951,7 +951,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return measurements.universal.constants.MEASUREMENTS_DICT_FILE.format(tracer=self.tracer, data_set=self.data_set_name)
 
 
-    ## means
+    # means
 
     def _mean_cache_file(self, target):
         fill_strategy=self._fill_strategy_id('concentration_means')
@@ -985,7 +985,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return self._mean_cache_file(str(self.sample_lsm))
 
 
-    ## deviation
+    # deviation
 
     def _standard_deviations_cache_file(self, deviation_type, target):
         fill_strategy = self._fill_strategy_id(deviation_type)
@@ -1077,7 +1077,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return self._standard_deviations_cache_file('standard_deviations', str(self.sample_lsm))
 
 
-    ## correlation
+    # correlation
 
     @property
     @overrides.overrides
@@ -1157,7 +1157,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
 class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, MeasurementsAnnualPeriodicNearWater):
 
-    ## ids
+    # ids
 
     @property
     @overrides.overrides
@@ -1175,7 +1175,7 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         return self.base_measurements.correlation_id
 
 
-    ## cacheable properties
+    # cacheable properties
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
@@ -1193,7 +1193,7 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         return super().correlations_own_sample_matrix
 
 
-    ## cache files
+    # cache files
 
     def near_water_projection_matrix_cache_file(self):
         return measurements.universal.constants.NEAR_WATER_PROJECTION_MASK_FILE.format(
@@ -1260,7 +1260,7 @@ class MeasurementsAnnualPeriodicUnionCache(MeasurementsAnnualPeriodicUnion, Meas
 
 class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
 
-    ## ids
+    # ids
 
     @property
     @overrides.overrides
@@ -1278,7 +1278,7 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
         return util.str.merge([measurement.correlation_id for measurement in self.measurements_list])
 
 
-    ## cached values
+    # cached values
 
     @property
     @util.cache.file.decorator()
@@ -1299,15 +1299,15 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
         return super().correlations_own
 
 
-    ## files
+    # files
 
     def _merge_files(self, directory, files):
-        ## common dirnames above file
+        # common dirnames above file
         number_of_measurement_dirs_below_base_dir = measurements.universal.constants.MEASUREMENT_DIR[len(measurements.universal.constants.BASE_DIR):].count(os.path.sep)
         filenames = [file[len(measurements.universal.constants.BASE_DIR):] for file in files]
         filenames = [os.path.join(*file.split(os.path.sep)[number_of_measurement_dirs_below_base_dir+1:]) for file in filenames]
 
-        ## join dirs and filename
+        # join dirs and filename
         filename_joined = util.str.merge(filenames)
         file_joined = os.path.join(directory, filename_joined)
         return file_joined
@@ -1330,7 +1330,7 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
 
 
 
-## generic
+# generic
 
 class TooFewValuesError(Exception):
 

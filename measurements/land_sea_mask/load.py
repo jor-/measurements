@@ -7,7 +7,7 @@ import util.logging
 
 
 def _check_land_sea_mask(land_sea_mask):
-    ## check input
+    # check input
     if land_sea_mask.ndim != 2:
         raise ValueError('The land sea mask must have 2 dimensions, but its shape is {}.'.format(land_sea_mask.shape))
 
@@ -40,7 +40,7 @@ def resolution_128x64x15_normalized_volumes():
 
 
 
-## 60x180x138
+# 60x180x138
 
 def resolution_360x180x138():
     from .constants import LSM_360x180x138_TXT_FILE, LSM_360x180x138_NPY_FILE
@@ -50,28 +50,28 @@ def resolution_360x180x138():
         util.logging.debug('Returning land-sea-mask loaded from {} file.'.format(LSM_360x180x138_NPY_FILE))
 
     except (OSError, IOError):
-        ## read values from txt with axis order: x y z
+        # read values from txt with axis order: x y z
         lsm = np.genfromtxt(LSM_360x180x138_TXT_FILE, dtype=float, delimiter=',', comments='#', usecols=(1, 0, 2))
 
-        ## normalize values
+        # normalize values
         min_values = lsm.min(axis=0)
         lsm[:,0] = lsm[:,0] - min_values[0]
         lsm[:,1] = lsm[:,1] - min_values[1]
         lsm[:,2] = lsm[:,2] - 1
 
-        ## convert to int
+        # convert to int
         lsm_int = lsm.astype(np.int16)
 
         assert np.all(lsm_int == lsm)
         assert lsm_int[:,0].min() == 0 and lsm_int[:,0].max() == 359 and lsm_int[:,1].min() == 0 and lsm_int[:,1].max() == 179 and lsm_int[:,2].min() == 0 and lsm_int[:,2].max() == 137
 
-        ## convert in 2 dim
+        # convert in 2 dim
         lsm = np.empty((360, 180), dtype=np.int16)
         for x, y, z in lsm_int:
             lsm[x, y] = z
         assert lsm.min() == 0 and lsm.max() == 137
 
-        ## save lsm as npy
+        # save lsm as npy
         _check_land_sea_mask(lsm)
         util.logging.debug('Saving land-sea-mask to {} file.'.format(LSM_360x180x138_NPY_FILE))
         np.save(LSM_360x180x138_NPY_FILE, lsm)
@@ -83,25 +83,25 @@ def resolution_360x180x138():
 def depth_360x180x138():
     from .constants import DEPTH_360x180x138_TXT_FILE, DEPTH_360x180x138_NPY_FILE
 
-    ## read from cache
+    # read from cache
     try:
         depth = measurements.land_sea_mask.constants.DEPTH_360x180x138
         util.logging.debug('Returning depth levels from cache.')
 
-    ## read from npy file
+    # read from npy file
     except AttributeError:
         try:
             depth = np.load(DEPTH_360x180x138_NPY_FILE)
             util.logging.debug('Returning depth levels loaded from {} file.'.format(DEPTH_360x180x138_NPY_FILE))
             measurements.land_sea_mask.constants.DEPTH_360x180x138 = depth
 
-    ## read from txt file
+    # read from txt file
         except (OSError, IOError):
-            ## read values from txt with axis order: x y z
+            # read values from txt with axis order: x y z
             depth = np.genfromtxt(DEPTH_360x180x138_TXT_FILE, dtype=np.int16, comments='#', usecols=(0,))
             assert depth.ndim == 1 and depth.shape[0] == 138
 
-            ## save depth as npy
+            # save depth as npy
             util.logging.debug('Saving depth to {} file.'.format(DEPTH_360x180x138_NPY_FILE))
             np.save(DEPTH_360x180x138_NPY_FILE, depth)
             util.logging.debug('Returning land-sea-mask loaded from txt file.')

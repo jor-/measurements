@@ -17,7 +17,7 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
 
         util.logging.debug('Initiating time periodic earth interpolator with {} data points, time len {}, wrap around amount {} and {} linear interpolators with single overlapping amount of {}.'.format(len(data_points), t_len, wrap_around_amount, number_of_linear_interpolators, single_overlapping_amount_linear_interpolators))
 
-        ## call super constructor
+        # call super constructor
         self.order = number_of_linear_interpolators
 
         t_scaling = 2 * EARTH_RADIUS / t_len
@@ -32,7 +32,7 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
 
         points = super()._modify_points(points, is_data_points)
 
-        ## if data points, append values for lower and upper bound of depth
+        # if data points, append values for lower and upper bound of depth
         if self.order > 0 and is_data_points:
             lower_depth = 0
             lower_depth_bound = np.min(points[:,3])
@@ -66,7 +66,7 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
             points = np.concatenate((lower_depth_bound_points, points, upper_depth_bound_points), axis=0)
             self._data_indices = self._data_indices[indices]
 
-        ## convert to cartesian
+        # convert to cartesian
         points[:,1:] =  util.math.spherical.to_cartesian(points[:,1:], surface_radius=EARTH_RADIUS)
 
         return points
@@ -76,12 +76,12 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
 def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_values=None, interpolator_options=None):
     util.logging.debug('Interpolating periodic data with coordinates for lsm {} with scaling_values {} and interpolator_options {}.'.format(lsm_base, scaling_values, interpolator_options))
     
-    ## convert coordinates to map indices
+    # convert coordinates to map indices
     data = np.array(data, copy=True)
     data[:, :-1] = lsm_base.coordinates_to_map_indices(data[:, :-1], discard_year=True, int_indices=False)
     interpolation_points = lsm_base.coordinates_to_map_indices(interpolation_points, discard_year=True, int_indices=False)
 
-    ## interpolating
+    # interpolating
     return periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_values=scaling_values, interpolator_options=interpolator_options)
 
 
@@ -94,34 +94,34 @@ def periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_valu
     assert interpolation_points.ndim == 2
     assert interpolation_points.shape[1] == 4
 
-    ## split in points and values
+    # split in points and values
     data_points = data[:, :-1]
     data_values = data[:, -1]
 
-    ## scaling values
+    # scaling values
     if scaling_values is None:
         scaling_values=(lsm_base.x_dim/lsm_base.t_dim, None, None, None)
     
     if interpolator_options is None:
         interpolator_options = (1,1,0,0)
 
-    ## prepare wrap_around_amount
+    # prepare wrap_around_amount
     wrap_around_amount = interpolator_options[0]
     try:
         wrap_around_amount = tuple(wrap_around_amount)
     except TypeError:
         wrap_around_amount = (wrap_around_amount,)
     if len(wrap_around_amount) == 1:
-        ## use same wrap around for t and x
+        # use same wrap around for t and x
         wrap_around_amount = wrap_around_amount * 2
     if len(wrap_around_amount) == 2:
-        ## append wrap around for y and z if missing
+        # append wrap around for y and z if missing
         wrap_around_amount = wrap_around_amount + (0,0)
 
-    ## create interpolator
+    # create interpolator
     interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=(lsm_base.t_dim, lsm_base.x_dim, lsm_base.y_dim, lsm_base.z_dim), scaling_values=scaling_values, wrap_around_amount=wrap_around_amount, number_of_linear_interpolators=interpolator_options[1], single_overlapping_amount_linear_interpolators=interpolator_options[2], parallel=bool(interpolator_options[3]))
 
-    ## interpolating
+    # interpolating
     interpolation_data = interpolator.interpolate(interpolation_points)
     return interpolation_data
 
@@ -202,21 +202,21 @@ class Interpolator_Annual_Periodic:
     def interpolate_data_for_points_from_interpolated_lsm_data(self, interpolated_lsm_data, interpolation_points):
         util.logging.debug('Interpolationg data for points from interpolated data for lsm {}.'.format(self.sample_lsm))
         
-        ## get interpolated points and values
+        # get interpolated points and values
         interpolated_lsm_data_mask = ~np.isnan(interpolated_lsm_data)
         interpolated_lsm_values = interpolated_lsm_data[interpolated_lsm_data_mask]
         interpolated_lsm_indices = np.array(np.where(interpolated_lsm_data_mask)).T
         interpolated_lsm_points = self.sample_lsm.map_indices_to_coordinates(interpolated_lsm_indices)
         interpolated_lsm_points_and_values = np.concatenate([interpolated_lsm_points, interpolated_lsm_values[:,np.newaxis]], axis=1)
         
-        ## prepare interpolation points: convert to (rounded) int map indices -> convert to coordinates
+        # prepare interpolation points: convert to (rounded) int map indices -> convert to coordinates
         interpolation_points_map_indices = self.sample_lsm.coordinates_to_map_indices(interpolation_points, discard_year=True, int_indices=True)
         interpolation_points = self.sample_lsm.map_indices_to_coordinates(interpolation_points_map_indices)
 
-        ## interpolate for points
+        # interpolate for points
         interpolated_points_data = periodic_with_coordinates(interpolated_lsm_points_and_values, interpolation_points, self.sample_lsm, scaling_values=self.scaling_values, interpolator_options=(2/min([self.sample_lsm.t_dim,self.sample_lsm.x_dim]),0,0,0))
         
-        ## return
+        # return
         assert np.all(np.isfinite(interpolated_points_data))
         return interpolated_points_data
 
@@ -225,28 +225,28 @@ class Interpolator_Annual_Periodic:
     def interpolate_data_for_points(self, data, interpolation_points, interpolator_options=None):
         util.logging.debug('Interpolationg data for points with interpolator_options {}.'.format(interpolator_options))
         
-        ## interpolate for sample lsm
+        # interpolate for sample lsm
         interpolated_lsm_data = self.interpolate_data_for_lsm(data, self.sample_lsm, interpolator_options=interpolator_options)
         
-        ## interpolate for points
+        # interpolate for points
         interpolated_points_data = self.interpolate_data_for_points_from_interpolated_lsm_data(interpolated_lsm_data, interpolation_points)
         return interpolated_points_data
         
-        # ## get interpolated points and values
+        # # get interpolated points and values
         # interpolated_lsm_data_mask = ~np.isnan(interpolated_lsm_data)
         # interpolated_lsm_values = interpolated_lsm_data[interpolated_lsm_data_mask]
         # interpolated_lsm_indices = np.array(np.where(interpolated_lsm_data_mask)).T
         # interpolated_lsm_points = self.sample_lsm.map_indices_to_coordinates(interpolated_lsm_indices)
         # interpolated_lsm_points_and_values = np.concatenate([interpolated_lsm_points, interpolated_lsm_values[:,np.newaxis]], axis=1)
         # 
-        # ## prepare interpolation points: convert to (rounded) int map indices -> convert to coordinates
+        # # prepare interpolation points: convert to (rounded) int map indices -> convert to coordinates
         # interpolation_points_map_indices = self.sample_lsm.coordinates_to_map_indices(interpolation_points, discard_year=True, int_indices=True)
         # interpolation_points = self.sample_lsm.map_indices_to_coordinates(interpolation_points_map_indices)
 
-        #   ## interpolate for points
+        #   # interpolate for points
         # interpolated_data = periodic_with_coordinates(interpolated_lsm_points_and_values, interpolation_points, self.sample_lsm, scaling_values=self.scaling_values, interpolator_options=(2/min([self.sample_lsm.t_dim,self.sample_lsm.x_dim]),0,0,0))
         # 
-        # ## return
+        # # return
         # assert np.all(np.isfinite(interpolated_data))
         # return interpolated_data
 

@@ -27,7 +27,7 @@ def save():
     from measurements.po4.constants import DEVIATION_MIN_MEASUREMENTS, DEVIATION_MIN_VALUE
 
 
-    ## concatenate annual and montly WOA data
+    # concatenate annual and montly WOA data
     METOS_Z_LEFT = measurements.land_sea_mask.lsm.LandSeaMaskTMM().z_left
     
     z_index_annual_threshold = bisect.bisect_right(METOS_Z_LEFT, ANNUAL_THRESHOLD)
@@ -52,7 +52,7 @@ def save():
         util.io.np.save(npy_file, data_monthly, make_read_only=True, create_path_if_not_exists=True)
 
 
-    ## revise variance
+    # revise variance
     nobs = np.load(NOBS_FILE)
     vari = np.load(VARIS_FILE)
     variance_min_value = DEVIATION_MIN_VALUE**2
@@ -68,7 +68,7 @@ def save():
     assert len(data_points) == len(data_values)
 
 
-    ## interpolate variance
+    # interpolate variance
     interpolation_index_t, interpolation_index_x, interpolation_index_y, interpolation_index_z = np.where(nobs < DEVIATION_MIN_MEASUREMENTS)
     interpolation_points_indices = (interpolation_index_t, interpolation_index_x, interpolation_index_y, interpolation_index_z)
     interpolation_points = np.array(interpolation_points_indices).swapaxes(0,1)
@@ -82,7 +82,7 @@ def save():
     assert np.all(np.isfinite(np.logical_not(np.isnan(vari))))
 
 
-    ## saving interpolated variance
+    # saving interpolated variance
     logging.debug('Saving interpolated variance.')
     util.io.fs.make_writable(VARIS_FILE)
     util.io.np.save(VARIS_FILE, vari, make_read_only=True, create_path_if_not_exists=True)

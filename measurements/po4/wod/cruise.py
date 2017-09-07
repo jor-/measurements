@@ -38,10 +38,10 @@ class Cruise():
                     raise UnitError(name, var.unit, unit)
                 return var.data
 
-        ## open netcdf file
+        # open netcdf file
         with scipy.io.netcdf.netcdf_file(file, 'r') as file:
 
-            ## read time and data
+            # read time and data
             try:
                 day_offset = value_in_file(file, measurements.po4.wod.constants.DAY_OFFSET, unit=measurements.po4.wod.constants.DAY_OFFSET_UNIT)
             except MissingError:
@@ -61,7 +61,7 @@ class Cruise():
                 dt = measurements.po4.wod.constants.BASE_DATE + dt_offset
                 time = util.datetime.datetime_to_float(dt)
 
-            ## read coordinates and depth
+            # read coordinates and depth
             try:
                 lon = value_in_file(file, measurements.po4.wod.constants.LON, unit=measurements.po4.wod.constants.LON_UNIT)
             except MissingError:
@@ -87,13 +87,13 @@ class Cruise():
             except MissingError:
                 depth = np.array([])
 
-            ## read value
+            # read value
             try:
                 values = value_in_file(file, measurements.po4.wod.constants.PO4, unit=measurements.po4.wod.constants.PO4_UNIT)
             except MissingError:
                 values = np.array([])
 
-            ## remove invalid measurements
+            # remove invalid measurements
             if len(values) > 0:
                 z_flag = value_in_file(file, measurements.po4.wod.constants.DEPTH_FLAG)
                 po4_flag = value_in_file(file, measurements.po4.wod.constants.PO4_FLAG)
@@ -105,7 +105,7 @@ class Cruise():
                 values = values[valid_mask]
 
 
-            ## check values
+            # check values
             if np.any(values < 0):
                 util.logging.warn('Values in {} are lower then 0!'.format(file))
                 valid_mask = values > 0
@@ -117,7 +117,7 @@ class Cruise():
                 depth[depth < 0] = 0
 
 
-        ## save values
+        # save values
         self.time = time
         self.lon = lon
         self.lat = lat
@@ -151,22 +151,22 @@ class CruiseCollection():
     def load_cruises_from_netcdf_files(self, data_dir):
         util.logging.debug('Loading all cruises from netcdf files.')
 
-        ## lookup files
+        # lookup files
         util.logging.debug('Looking up files in %s.' % data_dir)
         files = util.io.fs.get_files(data_dir, use_absolute_filenames=True)
         util.logging.debug('%d files found.' % len(files))
 
-        ## load cruises
+        # load cruises
         util.logging.debug('Loading cruises from found files.')
         cruises = [Cruise(file) for file in files]
         util.logging.debug('%d cruises loaded.' % len(cruises))
 
-        ## remove empty cruises
+        # remove empty cruises
         util.logging.debug('Removing empty cruises.')
         cruises = [cruise for cruise in cruises if cruise.number_of_measurements > 0]
         util.logging.debug('%d not empty cruises found.' % len(cruises))
 
-        ## return cruises
+        # return cruises
         self.cruises = cruises
 
 
