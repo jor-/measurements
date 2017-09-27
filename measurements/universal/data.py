@@ -680,6 +680,9 @@ class MeasurementsCollection(Measurements):
         if len(measurements_list) == 0:
             raise ValueError('There are no measurements in the measurements list!')
 
+        # remove empty measurements
+        measurements_list = (measurements for measurements in measurements_list if measurements.number_of_measurements > 0)
+
         # sort
         measurements_list = sorted(measurements_list, key=lambda measurement: measurement.data_set_name)
         measurements_list = sorted(measurements_list, key=lambda measurement: measurement.tracer)
