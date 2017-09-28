@@ -259,14 +259,14 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
 class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
+    POSSIBLE_FILL_STRATEGIES = ('auto', 'point_average', 'lsm_average', 'constant', 'interpolate')
+    POSSIBLE_KINDS = ('concentration_means', 'concentration_standard_deviations', 'average_noise_standard_deviations')
+
     def __init__(self, *args, **kargs):
-
-        super().__init__(*args, **kargs)
-
-        self.POSSIBLE_FILL_STRATEGIES = ('auto', 'point_average', 'lsm_average', 'constant', 'interpolate')
-        self.POSSIBLE_KINDS = ('concentration_means', 'concentration_standard_deviations', 'average_noise_standard_deviations')
         self._interpolator_options = {}
         self._constant_fill_values = {}
+
+        super().__init__(*args, **kargs)
 
 
     # interpolater
@@ -494,18 +494,11 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
 class MeasurementsNearWater(Measurements):
 
-    def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=0):
+    def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=None):
         self.base_measurements = base_measurements
-        self.max_box_distance_to_water = max_box_distance_to_water
-
-        if water_lsm is None:
-            water_lsm = self.base_measurements.sample_lsm
-        water_lsm = water_lsm.copy()
-        water_lsm.t_dim = 0
         self.water_lsm = water_lsm
-
+        self.max_box_distance_to_water = max_box_distance_to_water
         Measurements.__init__(self)
-
 
     # properties
     @property
@@ -514,11 +507,70 @@ class MeasurementsNearWater(Measurements):
 
     @property
     def data_set_name(self):
-        return measurements.universal.constants.NEAR_WATER_DATA_SET_NAME.format(
-            base_data_set_name=self.base_measurements.data_set_name,
-            water_lsm=self.water_lsm,
-            max_box_distance_to_water=self.max_box_distance_to_water)
+        if self.is_restricted:
+            return measurements.universal.constants.NEAR_WATER_DATA_SET_NAME.format(
+                base_data_set_name=self.base_measurements.data_set_name,
+                water_lsm=self.water_lsm,
+                max_box_distance_to_water=self.max_box_distance_to_water)
+        else:
+            return self.base_measurements.data_set_name
 
+    @property
+    def max_box_distance_to_water(self):
+        try:
+            return self._max_box_distance_to_water
+        except AttributeError:
+            return None
+
+    @max_box_distance_to_water.setter
+    def max_box_distance_to_water(self, max_box_distance_to_water):
+        if max_box_distance_to_water == float('inf'):
+            max_box_distance_to_water = None
+
+        # set value of passed
+        if max_box_distance_to_water is not None:
+            try:
+                max_box_distance_to_water = int(max_box_distance_to_water)
+            except TypeError:
+                raise ValueError('max_box_distance_to_water must be a non-negative integer or inf or None but it is {}.'.format(max_box_distance_to_water))
+            if max_box_distance_to_water < 0:
+                raise ValueError('max_box_distance_to_water must be a non-negative integer but it is {}.'.format(max_box_distance_to_water))
+
+            self._max_box_distance_to_water = max_box_distance_to_water
+
+        # otherwise delete value
+        else:
+            try:
+                del self._max_box_distance_to_water
+            except AttributeError:
+                pass
+
+    @property
+    def is_restricted(self):
+        return self.max_box_distance_to_water is not None
+
+    @property
+    def water_lsm(self):
+        try:
+            return self._water_lsm
+        except AttributeError:
+            self.water_lsm = self.base_measurements.sample_lsm
+            return self.water_lsm
+
+    @water_lsm.setter
+    def water_lsm(self, water_lsm):
+        # set value of passed
+        if water_lsm is not None:
+            water_lsm = water_lsm.copy()
+            water_lsm.t_dim = 0
+            self._water_lsm = water_lsm
+
+        # otherwise delete value
+        else:
+            try:
+                del self._water_lsm
+            except AttributeError:
+                pass
 
     # projection methods
 
@@ -543,69 +595,77 @@ class MeasurementsNearWater(Measurements):
 
         return near_water_matrix.tocsc()
 
+    def _project_left_side(self, value):
+        if self.is_restricted:
+            value = self.near_water_projection_matrix @ value
+        return value
+
+    def _project_both_sides(self, value):
+        if self.is_restricted:
+            value = self.near_water_projection_matrix @ value @ self.near_water_projection_matrix.T
+        return value
 
     # other methods
 
     @property
     @overrides.overrides
     def points(self):
-        return self.near_water_projection_matrix @ self.base_measurements.points
+        return self._project_left_side(self.base_measurements.points)
 
     @property
     @overrides.overrides
     def values(self):
-        return self.near_water_projection_matrix @ self.base_measurements.values
+        return self._project_left_side(self.base_measurements.values)
 
     @property
     @overrides.overrides
     def means(self):
-        return self.near_water_projection_matrix @ self.base_measurements.means
+        return self._project_left_side(self.base_measurements.means)
 
     @property
     @overrides.overrides
     def standard_deviations(self):
-        return self.near_water_projection_matrix @ self.base_measurements.standard_deviations
+        return self._project_left_side(self.base_measurements.standard_deviations)
 
     @property
     @overrides.overrides
     def correlations_own_sample_matrix(self):
-        return self.near_water_projection_matrix @ self.base_measurements.correlations_own_sample_matrix @ self.near_water_projection_matrix.T
+        return self._project_both_sides(self.base_measurements.correlations_own_sample_matrix)
 
     @overrides.overrides
     def correlations_other(self, measurements=None):
-        return self.near_water_projection_matrix @ self.base_measurements.correlations_other(measurements=measurements)
+        return self._project_left_side(self.base_measurements.correlations_other(measurements=measurements))
 
 
 
 
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
 
-    def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=0):
+    def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=None):
         super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
         MeasurementsAnnualPeriodicBase.__init__(
-                self, base_measurements.sample_lsm,
-                min_standard_deviation=base_measurements.min_standard_deviation,
-                min_abs_correlation=base_measurements.min_abs_correlation,
-                max_abs_correlation=base_measurements.max_abs_correlation,
-                min_measurements_mean=base_measurements.min_measurements_mean,
-                min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation,
-                min_measurements_correlation=base_measurements.min_measurements_correlation)
-
+            self, base_measurements.sample_lsm,
+            min_standard_deviation=base_measurements.min_standard_deviation,
+            min_abs_correlation=base_measurements.min_abs_correlation,
+            max_abs_correlation=base_measurements.max_abs_correlation,
+            min_measurements_mean=base_measurements.min_measurements_mean,
+            min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation,
+            min_measurements_correlation=base_measurements.min_measurements_correlation)
 
     @property
     @overrides.overrides
     def concentration_standard_deviations(self):
-        return self.near_water_projection_matrix @ self.base_measurements.concentration_standard_deviations
+        return self._project_left_side(self.base_measurements.concentration_standard_deviations)
 
     @property
     @overrides.overrides
     def noise_standard_deviations(self):
-        return self.near_water_projection_matrix @ self.base_measurements.noise_standard_deviations
+        return self._project_left_side(self.base_measurements.noise_standard_deviations)
 
     @property
     @overrides.overrides
     def average_noise_standard_deviations(self):
-        return self.near_water_projection_matrix @ self.base_measurements.average_noise_standard_deviations
+        return self._project_left_side(self.base_measurements.average_noise_standard_deviations)
 
 
 
@@ -878,7 +938,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     # ids
 
     def _fill_strategy_id(self, kind):
-        # if standrad deviation, use str for concentration and average_noise
+        # if standard deviation, use str for concentration and average_noise
         if kind == 'standard_deviations':
             concentration_fill_strategy = self._fill_strategy_id('concentration_standard_deviations')
             average_noise_fill_strategy = self._fill_strategy_id('average_noise_standard_deviations')
