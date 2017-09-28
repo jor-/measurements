@@ -176,18 +176,26 @@ class LandSeaMask():
 
 
     def is_coordinate_near_water(self, point, max_box_distance_to_water=0):
-        if max_box_distance_to_water < 0:
-            raise ValueError('max_box_distance_to_water must be greater or equal to 0 but it is {}.'.format(max_box_distance_to_water))
-        old_t_dim =  self.t_dim
-        self.t_dim = 0
+        if max_box_distance_to_water is None or max_box_distance_to_water == float('inf'):
+            is_near_water =  True
+        else:
+            # check and convert max_box_distance_to_water
+            try:
+                max_box_distance_to_water = int(max_box_distance_to_water)
+            except TypeError:
+                raise ValueError('max_box_distance_to_water must be a non-negative integer or inf or None but it is {}.'.format(max_box_distance_to_water))
+            if max_box_distance_to_water < 0:
+                raise ValueError('max_box_distance_to_water must be a non-negative integer but it is {}.'.format(max_box_distance_to_water))
 
-        sea_indices = self.sea_indices
-        map_index = np.asarray(self.coordinate_to_map_index(*point, discard_year=True, int_indices=True))
-        distance = np.abs(sea_indices - map_index[np.newaxis, :])
+            # calculate and check distance
+            old_t_dim =  self.t_dim
+            self.t_dim = 0
+            sea_indices = self.sea_indices
+            map_index = np.asarray(self.coordinate_to_map_index(*point, discard_year=True, int_indices=True))
+            distance = np.abs(sea_indices - map_index[np.newaxis, :])
+            self.t_dim = old_t_dim
+            is_near_water = np.any(np.all(distance <= max_box_distance_to_water, axis=1))
 
-        self.t_dim = old_t_dim
-
-        is_near_water = np.any(np.all(distance <= max_box_distance_to_water, axis=1))
         util.logging.debug('Coordinate {} is near water {} with max_box_distance_to_water {}.'.format(point, is_near_water, max_box_distance_to_water))
         return is_near_water
 
