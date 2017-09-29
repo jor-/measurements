@@ -1,16 +1,16 @@
 # measurements: a collection of functions to handel measurements
 # Copyright (C) 2011-2017  Joscha Reimer jor@informatik.uni-kiel.de
-# 
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
@@ -30,17 +30,17 @@ with open(readme_file, mode='r', encoding='utf-8') as f:
 # Setup
 setuptools.setup(
     # general informations
-    name = 'measurements',
-    description = 'measurements functions',
-    long_description = long_description,
-    keywords = 'measurements functions',
+    name='measurements',
+    description='measurements functions',
+    long_description=long_description,
+    keywords='measurements functions',
 
-    url = 'https://github.com/jor-/measurements',
-    author = 'Joscha Reimer',
-    author_email = 'jor@informatik.uni-kiel.de',
-    license = 'AGPLv3+',
+    url='https://github.com/jor-/measurements',
+    author='Joscha Reimer',
+    author_email='jor@informatik.uni-kiel.de',
+    license='AGPLv3+',
 
-    classifiers = [
+    classifiers=[
         # Development Status
         'Development Status :: 3 - Alpha',
         # Intended Audience, Topic
@@ -58,22 +58,22 @@ setuptools.setup(
     cmdclass=versioneer.get_cmdclass(),
 
     # packages to install
-    packages = setuptools.find_packages(),
+    packages=setuptools.find_packages(),
 
     # dependencies
-    setup_requires = [
+    setup_requires=[
         'setuptools>=0.8',
         'pip>=1.4',
     ],
-    install_requires = [
+    install_requires=[
         'numpy',
         'scipy',
         'overrides',
         'matrix-decomposition',
         'utillib[cache,options,interpolate]',
     ],
-    extras_require = {
-        'plot' : ['matplotlib', 'utillib[plot]'],
+    extras_require={
+        'plot': ['matplotlib', 'utillib[plot]'],
         'sorted_measurements_dict': ['utillib[sorted_multi_dict]'],
     },
 
@@ -81,6 +81,7 @@ setuptools.setup(
     entry_points={
         'console_scripts': [
             'measurements_wod_save = measurements.wod.save:_main',
+            'measurements_all_save = measurements.all.save:_main',
         ],
     }
 )
