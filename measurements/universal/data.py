@@ -149,7 +149,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
         if sample_lsm is None:
             sample_lsm = measurements.universal.constants.SAMPLE_LSM
-        self._sample_lsm = sample_lsm
+        self.sample_lsm = sample_lsm
 
         if min_measurements_mean is None:
             min_measurements_mean = measurements.universal.constants.MEAN_MIN_MEASUREMENTS
@@ -176,11 +176,10 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     # general sample data
 
     @property
-    def sample_lsm(self):
-        return self._sample_lsm
-
-    @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name'))
     def _sample_mean_and_deviation(self):
         return measurements.universal.sample_data.SampleMeanAndDeviation(self.points, self.values, self.sample_lsm)
 
@@ -258,7 +257,15 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     # correlation
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.min_measurements_correlation',
+        'self.min_abs_correlation',
+        'self.max_abs_correlation',
+        'self.matrix_format_correlation',
+        'self.dtype_correlation'))
     def _sample_correlation(self):
         return measurements.universal.sample_data.SampleCorrelationMatrix(
             self, self.sample_lsm, self.min_measurements_correlation,
@@ -592,7 +599,11 @@ class MeasurementsNearWater(Measurements):
     # projection methods
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.max_box_distance_to_water',
+        'self.water_lsm.name'))
     def near_water_projection_matrix(self):
         mask = self.water_lsm.coordinates_near_water_mask(
             self.base_measurements.points,
@@ -889,9 +900,7 @@ class MeasurementsCollection(Measurements):
         return subset
 
 
-
-
-# caches
+# *** caches *** #
 
 class MeasurementsCache():
 
@@ -908,10 +917,9 @@ class MeasurementsCache():
         return ''
 
 
-
 class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualPeriodicBase):
 
-    # ids
+    # *** ids *** #
 
     @property
     @overrides.overrides
@@ -948,11 +956,9 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualP
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
 
-
-
 class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, MeasurementsAnnualPeriodic):
 
-    # ids
+    # *** ids *** #
 
     def _fill_strategy_id(self, kind):
         # if standard deviation, use str for concentration and average_noise
@@ -984,7 +990,6 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
         return fill_strategy
 
-
     @property
     @overrides.overrides
     def mean_id(self):
@@ -995,11 +1000,12 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def standard_deviation_id(self):
         return super().standard_deviation_id + '_-_fill_' + self._fill_strategy_id('standard_deviations')
 
-
-    # points and values cache files
+    # *** points and values cache files *** #
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name'))
     @util.cache.file.decorator()
     @overrides.overrides
     def points(self):
@@ -1008,9 +1014,10 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def points_cache_file(self):
         return measurements.universal.constants.POINTS_FILE.format(tracer=self.tracer, data_set=self.data_set_name)
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name'))
     @util.cache.file.decorator()
     @overrides.overrides
     def values(self):
@@ -1019,9 +1026,10 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def values_cache_file(self):
         return measurements.universal.constants.VALUES_FILE.format(tracer=self.tracer, data_set=self.data_set_name)
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name'))
     @util.cache.file.decorator()
     @overrides.overrides
     def measurements_dict(self):
@@ -1030,11 +1038,10 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def measurements_dict_cache_file(self):
         return measurements.universal.constants.MEASUREMENTS_DICT_FILE.format(tracer=self.tracer, data_set=self.data_set_name)
 
-
-    # means
+    # *** means *** #
 
     def _mean_cache_file(self, target):
-        fill_strategy=self._fill_strategy_id('concentration_means')
+        fill_strategy = self._fill_strategy_id('concentration_means')
         return measurements.universal.constants.MEAN_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
@@ -1042,9 +1049,13 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_measurements=self.min_measurements_mean,
             fill_strategy=fill_strategy, target=target)
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_mean'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_mean'))
     @util.cache.file.decorator()
     @overrides.overrides
     def means(self):
@@ -1053,9 +1064,13 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def means_cache_file(self):
         return self._mean_cache_file('sample_points')
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_mean'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_mean'))
     @util.cache.file.decorator()
     @overrides.overrides
     def means_for_sample_lsm(self):
@@ -1064,8 +1079,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def means_for_sample_lsm_cache_file(self):
         return self._mean_cache_file(str(self.sample_lsm))
 
-
-    # deviation
+    # *** deviation *** #
 
     def _standard_deviations_cache_file(self, deviation_type, target):
         fill_strategy = self._fill_strategy_id(deviation_type)
@@ -1082,9 +1096,13 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             deviation_type=deviation_type,
             fill_strategy=fill_strategy, target=target)
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def concentration_standard_deviations(self):
@@ -1094,7 +1112,12 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return self._standard_deviations_cache_file('concentration_standard_deviations', 'sample_points')
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def concentration_standard_deviations_for_sample_lsm(self):
@@ -1103,9 +1126,14 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def concentration_standard_deviations_for_sample_lsm_cache_file(self):
         return self._standard_deviations_cache_file('concentration_standard_deviations', str(self.sample_lsm))
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def average_noise_standard_deviations(self):
@@ -1115,7 +1143,13 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return self._standard_deviations_cache_file('average_noise_standard_deviations', 'sample_points')
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def average_noise_standard_deviations_for_sample_lsm(self):
@@ -1124,9 +1158,14 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def average_noise_standard_deviations_for_sample_lsm_cache_file(self):
         return self._standard_deviations_cache_file('average_noise_standard_deviations', str(self.sample_lsm))
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def noise_standard_deviations(self):
@@ -1135,9 +1174,14 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def noise_standard_deviations_cache_file(self):
         return self._standard_deviations_cache_file('noise_standard_deviations', 'sample_points')
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def standard_deviations(self):
@@ -1147,7 +1191,13 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return self._standard_deviations_cache_file('standard_deviations', 'sample_points')
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def standard_deviations_for_sample_lsm(self):
@@ -1156,8 +1206,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def standard_deviations_for_sample_lsm_cache_file(self):
         return self._standard_deviations_cache_file('standard_deviations', str(self.sample_lsm))
 
-
-    # correlation
+    # *** correlation *** #
 
     @property
     @overrides.overrides
@@ -1170,7 +1219,21 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             dtype=self.dtype_correlation)
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.min_diag_value_decomposition_correlation', 'self.permutation_method_decomposition_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation', 'self.decomposition_type_correlations'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation',
+        'self.min_measurements_correlation',
+        'self.min_abs_correlation',
+        'self.max_abs_correlation',
+        'self.matrix_format_correlation',
+        'self.dtype_correlation',
+        'self.decomposition_type_correlations',
+        'self.permutation_method_decomposition_correlation',
+        'self.min_diag_value_decomposition_correlation'))
     @util.cache.file.decorator(load_function=matrix.decompositions.load, save_function=matrix.decompositions.save)
     @overrides.overrides
     def correlations_own_decomposition(self):
@@ -1189,11 +1252,11 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return measurements.universal.constants.CORRELATION_MATRIX_DECOMPOSITION_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
-            decomposition_type=self.decomposition_type_correlations,
             sample_lsm=self.sample_lsm,
             min_measurements_correlation=self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
             max_abs_correlation=self.max_abs_correlation,
+            decomposition_type=self.decomposition_type_correlations,
             permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
             decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
@@ -1207,12 +1270,27 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_measurements_correlation=self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
             max_abs_correlation=self.max_abs_correlation,
+            decomposition_type=self.decomposition_type_correlations,
             permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
             decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name', 'self.fill_strategy', 'self.min_measurements_standard_deviation', 'self.min_standard_deviation', 'self.min_measurements_correlation', 'self.min_abs_correlation', 'self.max_abs_correlation', 'self.min_diag_value_decomposition_correlation', 'self.permutation_method_decomposition_correlation', 'self.matrix_format_correlation', 'self.dtype_correlation', 'self.decomposition_type_correlations'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation',
+        'self.min_measurements_correlation',
+        'self.min_abs_correlation',
+        'self.max_abs_correlation',
+        'self.matrix_format_correlation',
+        'self.dtype_correlation',
+        'self.decomposition_type_correlations',
+        'self.permutation_method_decomposition_correlation',
+        'self.min_diag_value_decomposition_correlation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own(self):
@@ -1222,11 +1300,11 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
-            decomposition_type=self.decomposition_type_correlations,
             sample_lsm=self.sample_lsm,
             min_measurements_correlation=self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
             max_abs_correlation=self.max_abs_correlation,
+            decomposition_type=self.decomposition_type_correlations,
             permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
             decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
@@ -1234,10 +1312,9 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             matrix_format=self.matrix_format_correlation)
 
 
-
 class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, MeasurementsAnnualPeriodicNearWater):
 
-    # ids
+    # *** ids *** #
 
     @property
     @overrides.overrides
@@ -1254,26 +1331,31 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
     def correlation_id(self):
         return self.base_measurements.correlation_id
 
-
-    # cacheable properties
+    # *** cacheable properties *** #
 
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.max_box_distance_to_water',
+        'self.water_lsm.name'))
     @util.cache.file.decorator()
     @overrides.overrides
     def near_water_projection_matrix(self):
         return super().near_water_projection_matrix
 
-
     @property
-    @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.max_box_distance_to_water',
+        'self.water_lsm.name'))
     @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own_sample_matrix(self):
         return super().correlations_own_sample_matrix
 
-
-    # cache files
+    # *** cache files *** #
 
     def near_water_projection_matrix_cache_file(self):
         return measurements.universal.constants.NEAR_WATER_PROJECTION_MASK_FILE.format(
@@ -1332,10 +1414,8 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         return self.base_measurements.correlations_own_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
 
-
 class MeasurementsAnnualPeriodicUnionCache(MeasurementsAnnualPeriodicUnion, MeasurementsAnnualPeriodicCache):
     pass
-
 
 
 class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
@@ -1357,8 +1437,7 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
     def correlation_id(self):
         return util.str.merge([measurement.correlation_id for measurement in self.measurements_list])
 
-
-    # cached values
+    # *** cached values *** #
 
     @property
     @util.cache.file.decorator()
@@ -1378,14 +1457,13 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
     def correlations_own(self):
         return super().correlations_own
 
-
-    # files
+    # *** files *** #
 
     def _merge_files(self, directory, files):
         # common dirnames above file
         number_of_measurement_dirs_below_base_dir = measurements.universal.constants.MEASUREMENT_DIR[len(measurements.universal.constants.BASE_DIR):].count(os.path.sep)
         filenames = [file[len(measurements.universal.constants.BASE_DIR):] for file in files]
-        filenames = [os.path.join(*file.split(os.path.sep)[number_of_measurement_dirs_below_base_dir+1:]) for file in filenames]
+        filenames = [os.path.join(*file.split(os.path.sep)[number_of_measurement_dirs_below_base_dir + 1:]) for file in filenames]
 
         # join dirs and filename
         filename_joined = util.str.merge(filenames)
@@ -1409,15 +1487,13 @@ class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
         return self._merge_files(self.measurements_dir, [measurement.correlations_own_cache_file() for measurement in self.measurements_list])
 
 
-
-# generic
+# *** generic *** #
 
 class TooFewValuesError(Exception):
 
     def __init__(self):
         message = 'Too few values are available.'
         super().__init__(message)
-
 
 
 def as_measurements_collection(measurements):
