@@ -7,9 +7,6 @@ import util.logging
 
 import measurements.universal.dict
 import measurements.universal.constants
-import measurements.constants
-
-
 
 
 class SampleMeanAndDeviation():
@@ -25,8 +22,7 @@ class SampleMeanAndDeviation():
         measurement_dict.append_values(self.points, self.values)
         return measurement_dict
 
-
-    # general
+    # *** general *** #
 
     def _convert_map_indices_dict_to_array_for_points(self, data_dict, is_discard_year):
         points = self.sample_lsm.coordinates_to_map_indices(self.points, discard_year=is_discard_year, int_indices=True)
@@ -42,11 +38,9 @@ class SampleMeanAndDeviation():
                 point_data[i] = value_list_i[0]
         return point_data
 
-
     def _convert_map_indices_dict_to_points_and_values_array(self, data_dict):
         data_dict.map_indices_to_coordinates(self.sample_lsm)
         return data_dict.toarray()
-
 
     def _sample_data_dict_concentration_based(self, data_function):
         data_dict = self.measurement_dict
@@ -64,72 +58,63 @@ class SampleMeanAndDeviation():
         data_dict.means(min_number_of_values=1, return_type='self')
         return data_dict
 
-
     def _sample_data_dict_noise_based(self, data_function, return_values_at_points=True):
         data_dict = self.measurement_dict
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
         data_function(data_dict)
         return data_dict
 
+    # *** mean *** #
 
-    # mean
-
-    def sample_concentration_means_map_indices_dict(self, min_measurements=measurements.constants.MEAN_MIN_MEASUREMENTS):
+    def sample_concentration_means_map_indices_dict(self, min_measurements=measurements.universal.constants.MEAN_MIN_MEASUREMENTS):
         util.logging.debug('Calculating sample_concentration_means_map_indices_dict with min_measurements {}.'.format(min_measurements))
         data_function = lambda data_dict: data_dict.means(min_number_of_values=min_measurements, return_type='self')
         data = self._sample_data_dict_concentration_based(data_function)
         return data
 
-    def sample_concentration_means(self, min_measurements=measurements.constants.MEAN_MIN_MEASUREMENTS):
+    def sample_concentration_means(self, min_measurements=measurements.universal.constants.MEAN_MIN_MEASUREMENTS):
         util.logging.debug('Calculating sample_concentration_means with min_measurements {}.'.format(min_measurements))
         data_dict = self.sample_concentration_means_map_indices_dict(min_measurements=min_measurements)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
+    # *** deviation *** #
 
-    # deviation
-
-    def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
+    def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_concentration_based(data_function)
         return data_dict
 
-
-    def sample_concentration_standard_deviations(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
+    def sample_concentration_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_dict = self.sample_concentration_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
-
-    def sample_average_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
+    def sample_average_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_average_noise_based(data_function)
         return data_dict
 
-
-    def sample_average_noise_standard_deviations(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
+    def sample_average_noise_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_dict = self.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
-
-    def sample_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
+    def sample_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_noise_based(data_function)
         return data_dict
 
-
-    def sample_noise_standard_deviations(self, min_measurements=measurements.constants.DEVIATION_MIN_MEASUREMENTS, min_value=0):
+    def sample_noise_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
         data_dict = self.sample_noise_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=False)
         return data
-
 
 
 class SampleCorrelationMatrix:
@@ -146,16 +131,14 @@ class SampleCorrelationMatrix:
         self.dtype = np.dtype(dtype)
         self.matrix_format = matrix_format
 
-
-    # properties
+    # *** properties *** #
 
     @property
     def shape(self):
         n = len(self.measurements.points)
         return (n, n)
 
-
-    # standard deviation
+    # *** standard deviation *** #
 
     @property
     def standard_deviations(self):
@@ -163,8 +146,7 @@ class SampleCorrelationMatrix:
         assert np.all(standard_deviations > 0)
         return standard_deviations
 
-
-    #  map index to point index dict
+    # ***  map index to point index dict *** #
 
     def map_indices_to_point_index_dict(self, discard_year=False):
         util.logging.debug('Calculating map index to point index dict with discard year {}.'.format(discard_year))
@@ -179,8 +161,7 @@ class SampleCorrelationMatrix:
 
         return map_indices_to_point_index_dict
 
-
-    # same box correlation
+    # *** same box correlation *** #
 
     @property
     def same_box_correlation_matrix_lower_triangle(self):
@@ -203,7 +184,7 @@ class SampleCorrelationMatrix:
 
                 covariance = same_box_sample_covariance_index_array[point_index_i]
 
-                for j in range(i+1, n):
+                for j in range(i + 1, n):
                     point_index_j = point_index_list[j]
 
                     # calculate correlation
@@ -219,7 +200,6 @@ class SampleCorrelationMatrix:
                         correlation_matrix[point_index_max, point_index_min] = correlation
                         util.logging.debug('Same box correlation {} added to same box lower triangle matrix at ({}, {}).'.format(correlation, point_index_max, point_index_min))
 
-
         # convert to needed format
         if self.matrix_format != 'lil':
             util.logging.debug('Converting matrix to format {} and dtype {}.'.format(self.matrix_format, self.dtype))
@@ -228,8 +208,7 @@ class SampleCorrelationMatrix:
         util.logging.debug('Calculated same box correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, self.min_abs_correlation, self.matrix_format, self.dtype))
         return correlation_matrix
 
-
-    # different_boxes_sample_covariances
+    # *** different_boxes_sample_covariances *** #
 
     @property
     def concentrations_same_points_except_year_dict(self):
@@ -238,13 +217,11 @@ class SampleCorrelationMatrix:
         m.means(return_type='self')
         return m.filter_same_points_except_year(min_number_of_values=self.min_measurements)
 
-
     @property
     def sample_covariance_dict(self):
         ms = self.concentrations_same_points_except_year_dict
         covariance = ms.correlation_or_covariance('covariance', min_number_of_values=self.min_measurements, stationary=False, max_year_diff=None)
         return covariance
-
 
     def different_boxes_sample_covariances_map_indices_iterator(self):
         different_boxes_sample_covariances_dict = self.sample_covariance_dict
@@ -256,7 +233,6 @@ class SampleCorrelationMatrix:
             assert len(values) == 2
             quantity, covariance = values
             yield map_indices, quantity, covariance
-
 
     def different_boxes_sample_covariances_point_indices_iterator(self):
         # get values
@@ -294,8 +270,7 @@ class SampleCorrelationMatrix:
 
                             yield point_index_min, point_index_max, quantity, correlation
 
-
-    # different boxes covariance and quantity matrix
+    # *** different boxes covariance and quantity matrix *** #
 
     @property
     def different_boxes_quantity_lower_triangle_matrix(self):
@@ -330,9 +305,8 @@ class SampleCorrelationMatrix:
             util.logging.debug('quantity matrix converted to format {}.'.format(self.matrix_format))
 
         # return
-        util.logging.debug('Calculated differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {}.'.format(correlation_matrix.nnz, self.min_abs_correlation))
+        util.logging.debug('Calculated differend boxes quantity lower triangle matrix with {} entries for minimal absolute correlation {}.'.format(quantity_matrix.nnz, self.min_abs_correlation))
         return quantity_matrix
-
 
     @property
     def different_boxes_correlation_lower_triangle_matrix(self):
@@ -361,8 +335,7 @@ class SampleCorrelationMatrix:
         util.logging.debug('Calculated differend boxes correlation lower triangle matrix with {} entries for minimal absolute correlation {} in matrix format {} with dtype {}.'.format(correlation_matrix.nnz, self.min_abs_correlation, self.matrix_format, self.dtype))
         return correlation_matrix
 
-
-    # correlation matrix
+    # *** correlation matrix *** #
 
     @property
     def correlation_matrix(self):
@@ -387,11 +360,9 @@ class SampleCorrelationMatrix:
         return correlation_matrix.asformat(self.matrix_format).astype(self.dtype)
 
 
-
-
 class SampleCorrelationMatrixCache(SampleCorrelationMatrix):
 
-    # cachable values
+    # *** cachable values *** #
 
     @util.cache.file.decorator()
     def map_indices_to_point_index_dict(self, discard_year=False):
@@ -427,11 +398,9 @@ class SampleCorrelationMatrixCache(SampleCorrelationMatrix):
     def correlation_matrix(self):
         return super().correlation_matrix
 
+    # *** cache files *** #
 
-    # cache files
-
-    def map_indices_to_point_index_dict_cache_file(self,
-discard_year=False):
+    def map_indices_to_point_index_dict_cache_file(self, discard_year=False):
         return measurements.universal.constants.MAP_INDEX_TO_POINT_INDEX_DICT_FILE.format(
             tracer=self.measurements.tracer,
             data_set=self.measurements.data_set_name,

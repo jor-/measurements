@@ -139,10 +139,12 @@ class MeasurementsAnnualPeriodicBase(Measurements):
                  min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE,
                  max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE,
                  min_measurements_mean=measurements.universal.constants.MEAN_MIN_MEASUREMENTS,
-                 min_measurements_standard_deviation=measurements.universal.constants.DEVIATION_MIN_MEASUREMENTS,
+                 min_measurements_standard_deviation=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS,
                  min_measurements_correlation=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
 
         super().__init__(tracer=tracer, data_set_name=data_set_name)
+
+        # set and save input
 
         self._sample_lsm = sample_lsm
 
@@ -906,7 +908,7 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualP
     @property
     @overrides.overrides
     def standard_deviation_id(self):
-        return measurements.universal.constants.DEVIATION_ID.format(
+        return measurements.universal.constants.STANDARD_DEVIATION_ID.format(
             sample_lsm=self.sample_lsm,
             min_measurements=self.min_measurements_standard_deviation,
             min_standard_deviation=self.min_standard_deviation)
@@ -1056,7 +1058,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_standard_deviation = 0
         else:
             min_standard_deviation = self.min_standard_deviation
-        return measurements.universal.constants.DEVIATION_FILE.format(
+        return measurements.universal.constants.STANDARD_DEVIATION_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
             sample_lsm=self.sample_lsm,

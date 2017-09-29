@@ -49,11 +49,11 @@ MEAN_ID = SEPERATOR.join([
 
 # deviation
 
-DEVIATION_MIN_MEASUREMENTS = 3
+STANDARD_DEVIATION_MIN_MEASUREMENTS = 3
 
-DEVIATION_DIR = os.path.join(MEASUREMENT_DIR, 'deviation')
+STANDARD_DEVIATION_DIR = os.path.join(MEASUREMENT_DIR, 'deviation')
 
-DEVIATION_FILE = os.path.join(DEVIATION_DIR, SEPERATOR.join([
+STANDARD_DEVIATION_FILE = os.path.join(STANDARD_DEVIATION_DIR, SEPERATOR.join([
     '{deviation_type}',
     'for_{target}',
     'sample_{sample_lsm}',
@@ -61,7 +61,7 @@ DEVIATION_FILE = os.path.join(DEVIATION_DIR, SEPERATOR.join([
     'min_{min_standard_deviation:g}',
     'fill_{fill_strategy}.npy']))
 
-DEVIATION_ID = SEPERATOR.join([
+STANDARD_DEVIATION_ID = SEPERATOR.join([
     'sample_{sample_lsm}',
     'min_values_{min_measurements:d}',
     'min_{min_standard_deviation:g}'])
