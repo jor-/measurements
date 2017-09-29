@@ -74,7 +74,6 @@ class Time_Periodic_Earth_Interpolator(util.math.interpolate.Periodic_Interpolat
         return points
 
 
-
 def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_values=None, interpolator_options=None):
     util.logging.debug('Interpolating periodic data with coordinates for lsm {} with scaling_values {} and interpolator_options {}.'.format(lsm_base, scaling_values, interpolator_options))
 
@@ -85,7 +84,6 @@ def periodic_with_coordinates(data, interpolation_points, lsm_base, scaling_valu
 
     # interpolating
     return periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_values=scaling_values, interpolator_options=interpolator_options)
-
 
 
 def periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_values=None, interpolator_options=None):
@@ -102,10 +100,10 @@ def periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_valu
 
     # scaling values
     if scaling_values is None:
-        scaling_values=(lsm_base.x_dim/lsm_base.t_dim, None, None, None)
+        scaling_values = (lsm_base.x_dim / lsm_base.t_dim, None, None, None)
 
     if interpolator_options is None:
-        interpolator_options = (1,1,0,0)
+        interpolator_options = (1, 1, 0, 0)
 
     # prepare wrap_around_amount
     wrap_around_amount = interpolator_options[0]
@@ -118,7 +116,7 @@ def periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_valu
         wrap_around_amount = wrap_around_amount * 2
     if len(wrap_around_amount) == 2:
         # append wrap around for y and z if missing
-        wrap_around_amount = wrap_around_amount + (0,0)
+        wrap_around_amount = wrap_around_amount + (0, 0)
 
     # create interpolator
     interpolator = util.math.interpolate.Periodic_Interpolator(data_points, data_values, point_range_size=(lsm_base.t_dim, lsm_base.x_dim, lsm_base.y_dim, lsm_base.z_dim), scaling_values=scaling_values, wrap_around_amount=wrap_around_amount, number_of_linear_interpolators=interpolator_options[1], single_overlapping_amount_linear_interpolators=interpolator_options[2], parallel=bool(interpolator_options[3]))
@@ -126,7 +124,6 @@ def periodic_with_map_indices(data, interpolation_points, lsm_base, scaling_valu
     # interpolating
     interpolation_data = interpolator.interpolate(interpolation_points)
     return interpolation_data
-
 
 
 def default_scaling_values(sample_lsm):
