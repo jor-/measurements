@@ -92,8 +92,9 @@ CORRELATION_ID = SEPERATOR.join([
     'min_values_{min_measurements_correlation:0>2d}',
     'min_abs_{min_abs_correlation}',
     'max_abs_{max_abs_correlation}',
-    'min_diag_{decomposition_min_diag_value:.0e}',
     'decomposition_{decomposition_type}',
+    'permutation_{permutation_method_decomposition_correlation}',
+    'min_diag_{decomposition_min_diag_value:.0e}',
     'dev:_{standard_deviation_id}'])
 
 CORRELATION_DIR = os.path.join(MEASUREMENT_DIR, 'correlation')
@@ -162,11 +163,12 @@ SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
 CORRELATION_MATRIX_DECOMPOSITION_FILE = os.path.join(
     CORRELATION_DIR,
     'positive_definite_decomposition', SEPERATOR.join([
-        'decomposition_{decomposition_type}',
         'sample_{sample_lsm}',
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
+        'decomposition_{decomposition_type}',
+        'permutation_{permutation_method_decomposition_correlation}',
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}',
         '{dtype}.dec']))
@@ -179,6 +181,8 @@ CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE = os.path.join(
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
+        'decomposition_{decomposition_type}',
+        'permutation_{permutation_method_decomposition_correlation}',
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}.npy']))
 
@@ -186,11 +190,12 @@ CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE = os.path.join(
     CORRELATION_DIR,
     'positive_definite', SEPERATOR.join([
         'correlation',
-        'decomposition_{decomposition_type}',
         'sample_{sample_lsm}',
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
+        'decomposition_{decomposition_type}',
+        'permutation_{permutation_method_decomposition_correlation}',
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}',
         '{dtype}.{matrix_format}.npz']))
