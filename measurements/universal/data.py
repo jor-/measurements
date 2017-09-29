@@ -134,7 +134,8 @@ class Measurements():
 
 class MeasurementsAnnualPeriodicBase(Measurements):
 
-    def __init__(self, sample_lsm, tracer=None, data_set_name=None,
+    def __init__(self, tracer=None, data_set_name=None,
+                 sample_lsm=measurements.universal.constants.SAMPLE_LSM,
                  min_standard_deviation=np.finfo(np.float).resolution,
                  min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE,
                  max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE,
@@ -728,7 +729,7 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
         min_measurements_correlation = get_and_set_default_value('min_measurements_correlation', min)
 
         # call super init
-        super().__init__(sample_lsm, tracer=tracer, data_set_name=data_set_name, min_measurements_mean=min_measurements_mean, min_standard_deviation=min_standard_deviation, min_measurements_standard_deviation=min_measurements_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_correlation=min_measurements_correlation)
+        super().__init__(tracer=tracer, data_set_name=data_set_name, sample_lsm=sample_lsm,min_measurements_mean=min_measurements_mean, min_standard_deviation=min_standard_deviation, min_measurements_standard_deviation=min_measurements_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_correlation=min_measurements_correlation)
 
 
     @property
