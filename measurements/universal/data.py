@@ -146,15 +146,29 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
         # set and save input
 
+        if sample_lsm is None:
+            sample_lsm = measurements.universal.constants.SAMPLE_LSM
         self._sample_lsm = sample_lsm
 
+        if min_measurements_mean is None:
+            min_measurements_mean = measurements.universal.constants.MEAN_MIN_MEASUREMENTS
         self.min_measurements_mean = min_measurements_mean
 
+        if min_measurements_standard_deviation is None:
+            min_measurements_standard_deviation = measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS
         self.min_measurements_standard_deviation = min_measurements_standard_deviation
+        if min_standard_deviation is None:
+            min_standard_deviation = measurements.universal.constants.np.finfo(np.float).resolution
         self.min_standard_deviation = min_standard_deviation
 
+        if min_measurements_correlation is None:
+            min_measurements_correlation = measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS
         self.min_measurements_correlation = min_measurements_correlation
+        if min_abs_correlation is None:
+            min_abs_correlation = measurements.universal.constants.CORRELATION_MIN_ABS_VALUE
         self.min_abs_correlation = min_abs_correlation
+        if max_abs_correlation is None:
+            max_abs_correlation = measurements.universal.constants.CORRELATION_MAX_ABS_VALUE
         self.max_abs_correlation = max_abs_correlation
 
 

@@ -3,6 +3,7 @@ import os.path
 import numpy as np
 
 import matrix.constants
+import measurements.land_sea_mask.lsm
 from measurements.constants import BASE_DIR
 
 # base dir
@@ -27,6 +28,12 @@ NEAR_WATER_DATA_SET_NAME = SEPERATOR.join([
 NEAR_WATER_PROJECTION_MASK_FILE = os.path.join(DATA_DIR, 'near_water_projection_matrix.{matrix_format}.npz')
 
 INTERPOLATION_FILL_STRATEGY = 'interpolate_{scaling_values}_{interpolator_options}'
+
+
+# sample lsm
+
+SAMPLE_T_DIM = 12
+SAMPLE_LSM = measurements.land_sea_mask.lsm.LandSeaMaskWOA13R(t_dim=SAMPLE_T_DIM)
 
 
 # mean
