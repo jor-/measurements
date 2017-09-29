@@ -145,7 +145,8 @@ class LandSeaMask():
             raise ValueError('Length of key has to be in (2, 3, 4), but key is {}.'.format(key))
 
 
-    def __str__(self):
+    @property
+    def name(self):
         try:
             t_dim = self.t_dim_with_value_check
         except ValueError:
@@ -154,6 +155,9 @@ class LandSeaMask():
             return 'lsm_{}'.format(t_dim)
         else:
             return 'lsm'
+
+    def __str__(self):
+        return self.name
 
 
     # indices
@@ -659,8 +663,9 @@ class LandSeaMaskTMM(LandSeaMaskFromFile):
         return depth
 
 
-    def __str__(self):
-        return super().__str__() + '_tmm'
+    @property
+    def name(self):
+        return super().name + '_tmm'
 
 
 
@@ -704,9 +709,9 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
         assert depth.ndim == 1 and depth.shape[0] == 138
         return depth
 
-
-    def __str__(self):
-        return super().__str__() + '_woa13'
+    @property
+    def name(self):
+        return super().name + '_woa13'
 
 
 
@@ -722,8 +727,6 @@ class LandSeaMaskWOA13R(LandSeaMask):
 
         super().__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
 
-    def __str__(self):
-        return super().__str__() + '_woa13r'
-
-
-
+    @property
+    def name(self):
+        return super().name + '_woa13r'
