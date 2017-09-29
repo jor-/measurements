@@ -107,25 +107,25 @@ def results(tracer):
 
 # ***  measurement classes *** #
 
-class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicCache):
+class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicCache):
+
+    def __init__(self, tracer, sample_lsm, min_standard_deviation, min_measurements_correlation):
+        data_set_name = measurements.wod.constants.DATA_SET_NAME
+        super().__init__(tracer=tracer, data_set_name=data_set_name, sample_lsm=sample_lsm, min_standard_deviation=min_standard_deviation, min_measurements_correlation=min_measurements_correlation)
 
     @property
-    @util.cache.memory.method_decorator()
-    @util.cache.file.decorator()
     @overrides.overrides
     def points(self):
         return points(self.tracer)
 
     @property
-    @util.cache.memory.method_decorator()
-    @util.cache.file.decorator()
     @overrides.overrides
     def values(self):
         return results(self.tracer)
 
 
-class MeasurementsNearWater(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
+class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
 
-    def __init__(self, *args, water_lsm=None, max_box_distance_to_water=0, **kargs):
-        measurements = Measurements(*args, **kargs)
+    def __init__(self, tracer, sample_lsm, min_standard_deviation, min_measurements_correlation, water_lsm=None, max_box_distance_to_water=None):
+        measurements = MeasurementsBase(tracer, sample_lsm, min_standard_deviation, min_measurements_correlation)
         super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
