@@ -19,8 +19,6 @@ import util.str
 import util.logging
 
 
-
-
 class Measurements():
 
     def __init__(self, tracer=None, data_set_name=None):
@@ -36,13 +34,15 @@ class Measurements():
 
         util.logging.debug('{}: initialized with tracer {} and data set {}.'.format(self.__class__.__name__, tracer, data_set_name))
 
+    # *** string representations *** #
 
     def __repr__(self):
-        return '<measurements for tracer "{tracer}" with data set "{data_set_name}" and {number_of_measurements} measurements>'.format(tracer=self.tracer, data_set_name=self.data_set_name, number_of_measurements=self.number_of_measurements)
+        return '<measurements for tracer "{tracer}" with data set "{data_set_name}">'.format(tracer=self.tracer, data_set_name=self.data_set_name)
 
     def __str__(self):
         return '{tracer}:{data_set_name}'.format(tracer=self.tracer, data_set_name=self.data_set_name)
 
+    # *** attributes *** #
 
     @property
     def tracer(self):
@@ -58,7 +58,6 @@ class Measurements():
         else:
             return ValueError('Data set name is not set.')
 
-
     @property
     @abc.abstractmethod
     def points(self):
@@ -68,7 +67,6 @@ class Measurements():
     @abc.abstractmethod
     def values(self):
         raise NotImplementedError()
-
 
     @property
     def number_of_measurements(self):
@@ -80,7 +78,6 @@ class Measurements():
         m = measurements.universal.dict.MeasurementsDict()
         m.append_values(self.points, self.values)
         return m
-
 
     @property
     @abc.abstractmethod
@@ -95,7 +92,6 @@ class Measurements():
     @property
     def variances(self):
         return self.standard_deviations ** 2
-
 
     @property
     def correlations_own_sample_matrix(self):
@@ -121,7 +117,6 @@ class Measurements():
 
     def correlations_other(self, measurements=None):
         return scipy.sparse.dia_matrix((self.number_of_measurements, measurements.number_of_measurements))
-
 
     def correlations(self, measurements=None):
         if measurements is None or measurements == self:
