@@ -902,34 +902,17 @@ class MeasurementsCollection(Measurements):
 
 # *** caches *** #
 
-class MeasurementsCache():
-
-    @property
-    def mean_id(self):
-        return ''
-
-    @property
-    def standard_deviation_id(self):
-        return ''
-
-    @property
-    def correlation_id(self):
-        return ''
-
-
-class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualPeriodicBase):
+class MeasurementsAnnualPeriodicBaseCache(MeasurementsAnnualPeriodicBase):
 
     # *** ids *** #
 
     @property
-    @overrides.overrides
     def mean_id(self):
         return measurements.universal.constants.MEAN_ID.format(
             sample_lsm=self.sample_lsm,
             min_measurements=self.min_measurements_mean)
 
     @property
-    @overrides.overrides
     def standard_deviation_id(self):
         return measurements.universal.constants.STANDARD_DEVIATION_ID.format(
             sample_lsm=self.sample_lsm,
@@ -943,7 +926,6 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsCache, MeasurementsAnnualP
         return standard_deviation_id
 
     @property
-    @overrides.overrides
     def correlation_id(self):
         return measurements.universal.constants.CORRELATION_ID.format(
             sample_lsm=self.sample_lsm,
@@ -1418,22 +1400,19 @@ class MeasurementsAnnualPeriodicUnionCache(MeasurementsAnnualPeriodicUnion, Meas
     pass
 
 
-class MeasurementsCollectionCache(MeasurementsCache, MeasurementsCollection):
+class MeasurementsCollectionCache(MeasurementsCollection):
 
     # ids
 
     @property
-    @overrides.overrides
     def mean_id(self):
         return util.str.merge([measurement.mean_id for measurement in self.measurements_list])
 
     @property
-    @overrides.overrides
     def standard_deviation_id(self):
         return util.str.merge([measurement.standard_deviation_id for measurement in self.measurements_list])
 
     @property
-    @overrides.overrides
     def correlation_id(self):
         return util.str.merge([measurement.correlation_id for measurement in self.measurements_list])
 
