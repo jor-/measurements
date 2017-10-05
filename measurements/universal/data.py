@@ -1470,8 +1470,13 @@ class TooFewValuesError(Exception):
         super().__init__(message)
 
 
-def as_measurements_collection(measurements):
-    if isinstance(measurements, MeasurementsCollectionCache):
-        return measurements
+def as_measurements_collection(measurements_object):
+    if isinstance(measurements_object, MeasurementsCollectionCache):
+        return measurements_object
     else:
-        return MeasurementsCollectionCache(*measurements)
+        try:
+            len(measurements_object)
+        except TypeError:
+            return MeasurementsCollectionCache(measurements_object)
+        else:
+            return MeasurementsCollectionCache(*measurements_object)
