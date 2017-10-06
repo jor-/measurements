@@ -125,8 +125,6 @@ class Measurements():
             return self.correlations_other(measurements=measurements)
 
 
-
-
 class MeasurementsAnnualPeriodicBase(Measurements):
 
     def __init__(self, tracer=None, data_set_name=None,
@@ -167,7 +165,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
             max_abs_correlation = measurements.universal.constants.CORRELATION_MAX_ABS_VALUE
         self.max_abs_correlation = max_abs_correlation
 
-
     # general sample data
 
     @property
@@ -177,7 +174,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         'self.sample_lsm.name'))
     def _sample_mean_and_deviation(self):
         return measurements.universal.sample_data.SampleMeanAndDeviation(self.points, self.values, self.sample_lsm)
-
 
     # mean
 
@@ -193,7 +189,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
             return data.data
         else:
             raise TooFewValuesError('It was not possible to calculate all values from the sample values, because to few sample values are available.')
-
 
     # deviation
 
@@ -211,7 +206,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         else:
             raise TooFewValuesError('It was not possible to calculate all values from the sample values, because to few sample values are available.')
 
-
     @property
     def sample_average_noise_standard_deviations(self):
         return self._sample_mean_and_deviation.sample_average_noise_standard_deviations(
@@ -225,7 +219,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
             return data.data
         else:
             raise TooFewValuesError('It was not possible to calculate all values from the sample values, because to few sample values are available.')
-
 
     @property
     def sample_noise_standard_deviations(self):
@@ -241,14 +234,11 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         assert data.count() == len(data)
         return data.data
 
-
     @property
     @overrides.overrides
     def standard_deviations(self):
-        standard_deviations = (self.concentration_standard_deviations**2 + self.noise_standard_deviations**2)**(1/2)
+        standard_deviations = (self.concentration_standard_deviations**2 + self.noise_standard_deviations**2)**(0.5)
         return standard_deviations
-
-
     # correlation
 
     @property
@@ -269,11 +259,9 @@ class MeasurementsAnnualPeriodicBase(Measurements):
             matrix_format=self.matrix_format_correlation,
             dtype=self.dtype_correlation)
 
-
     @property
     def correlations_own_sample_matrix(self):
         return self._sample_correlation.correlation_matrix
-
 
 
 class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
@@ -287,7 +275,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
         super().__init__(*args, **kargs)
 
-
     # interpolater
 
     def _check_kind(self, kind):
@@ -295,16 +282,14 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             raise ValueError('Kind must be in {}, but it is {}.'.format(self.POSSIBLE_KINDS, kind))
         return kind
 
-
     def get_interpolator_options(self, kind):
         try:
             return self._interpolator_options[kind]
         except KeyError:
-            return (1,1,0,0)
+            return (1, 1, 0, 0)
 
     def set_interpolator_options(self, kind, value):
         self._interpolator_options[self._check_kind(kind)] = value
-
 
     @property
     def interpolator_scaling_values(self):
@@ -317,12 +302,10 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     def interpolator_scaling_values(self, value):
         self._interpolator_scaling_values = value
 
-
     @property
     def _interpolator(self):
         return measurements.universal.interpolate.Interpolator_Annual_Periodic(
             self.sample_lsm, scaling_values=self.interpolator_scaling_values)
-
 
     # fill strategy
 
@@ -340,7 +323,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         else:
             raise ValueError('Fill strategy {} is unknown. Only fill strategies {} are supported.'.format(value, self.POSSIBLE_FILL_STRATEGIES))
 
-
     def get_constant_fill_value(self, kind):
         try:
             return self._constant_fill_values[kind]
@@ -349,7 +331,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     def set_constant_fill_value(self, kind, value):
         self._constant_fill_values[self._check_kind(kind)] = value
-
 
     def _choose_fill_strategy(self, number_of_sample_values):
         number_of_lsm_values = self.sample_lsm.number_of_map_indices
@@ -364,7 +345,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         util.logging.debug('{}: Chosen {} as fill strategy, since {:d} sample data are for {:%} of the sampe lsm available.'.format(self.__class__.__name__, fill_strategy, number_of_sample_values, sample_data_fill_amount))
         return fill_strategy
 
-
     def _fill_strategy_for_kind(self, kind):
         # choose fill method
         fill_strategy = self.fill_strategy
@@ -375,7 +355,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         # return
         util.logging.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
         return fill_strategy
-
 
     def _fill_strategy_with_number_of_sample_values(self, number_of_sample_values):
         # choose fill method
@@ -391,7 +370,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         util.logging.debug('{}: Fill startegy to use is {}.'.format(self.__class__.__name__, fill_strategy))
         return fill_strategy
 
-
     # data general
 
     def _data_map_indices_dict(self, kind):
@@ -404,7 +382,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         else:
             raise ValueError('Unknown kind {}.'.format(kind))
         return data_map_indices_dict
-
 
     # data for sample lsm
 
@@ -426,7 +403,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
                 sample_values = self._sample_mean_and_deviation._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
                 fill_value = sample_values.mean()
             elif fill_strategy == 'lsm_average':
-                fill_value = map_indices_and_values[:,-1].mean()
+                fill_value = map_indices_and_values[:, -1].mean()
             elif fill_strategy == 'constant':
                 fill_value = self.get_constant_fill_value(kind)
 
@@ -455,8 +432,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     @property
     def standard_deviations_for_sample_lsm(self):
-        return (self.concentration_standard_deviations_for_sample_lsm**2 + self.average_noise_standard_deviations_for_sample_lsm**2)**(1/2)
-
+        return (self.concentration_standard_deviations_for_sample_lsm**2 + self.average_noise_standard_deviations_for_sample_lsm**2)**(0.5)
 
     # data for sample points
 
@@ -475,7 +451,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         if number_of_values < number_of_points:
             # choose fill strategy
             fill_strategy = self._fill_strategy_with_number_of_sample_values(len(data_map_indices_dict))
-            util.logging.debug('{}: Filling remaining {:%} sample points values with fill strategy {}.'.format(self.__class__.__name__, 1-number_of_values/number_of_points, fill_strategy))
+            util.logging.debug('{}: Filling remaining {:%} sample points values with fill strategy {}.'.format(self.__class__.__name__, 1 - number_of_values / number_of_points, fill_strategy))
 
             # fill
             if fill_strategy == 'point_average':
@@ -492,7 +468,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         assert data.count() == len(data)
         return data.data
 
-
     @property
     @overrides.overrides
     def means(self):
@@ -507,8 +482,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     @overrides.overrides
     def average_noise_standard_deviations(self):
         return self._data_for_sample_points('average_noise_standard_deviations')
-
-
 
 
 class MeasurementsNearWater(Measurements):
@@ -660,13 +633,11 @@ class MeasurementsNearWater(Measurements):
         return self._project_left_side(self.base_measurements.correlations_other(measurements=measurements))
 
 
-
-
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
 
     def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=None):
         super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
-        MeasurementsAnnualPeriodicBase.__init__(
+        MeasurementsAnnualPeriodic.__init__(
             self, base_measurements.sample_lsm,
             min_standard_deviation=base_measurements.min_standard_deviation,
             min_abs_correlation=base_measurements.min_abs_correlation,
@@ -691,7 +662,6 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
         return self._project_left_side(self.base_measurements.average_noise_standard_deviations)
 
 
-
 class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
 
     def __init__(self, *measurements_list):
@@ -705,13 +675,13 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
 
         # check same tracer and data set name
         n = len(measurements_list)
-        for i in range(n-1):
-            if measurements_list[i].tracer != measurements_list[i+1].tracer:
-                raise ValueError('Measurements objects with different tracers ({} and {}) are not allowed!'.format(measurements_list[i].tracer, measurements_list[i+1].tracer))
-            if measurements_list[i].data_set_name == measurements_list[i+1].data_set_name:
+        for i in range(n - 1):
+            if measurements_list[i].tracer != measurements_list[i + 1].tracer:
+                raise ValueError('Measurements objects with different tracers ({} and {}) are not allowed!'.format(measurements_list[i].tracer, measurements_list[i + 1].tracer))
+            if measurements_list[i].data_set_name == measurements_list[i + 1].data_set_name:
                 raise ValueError('Measurements objects with same tracer ({}) and same data set name ({}) are not allowed!'.format(measurements_list[i].tracer, measurements_list[i].data_set_name))
-            if measurements_list[i].sample_lsm != measurements_list[i+1].sample_lsm:
-                raise ValueError('Measurements objects with different sample lsm ({} and {}) are not allowed!'.format(measurements_list[i].sample_lsm, measurements_list[i+1].sample_lsm))
+            if measurements_list[i].sample_lsm != measurements_list[i + 1].sample_lsm:
+                raise ValueError('Measurements objects with different sample lsm ({} and {}) are not allowed!'.format(measurements_list[i].sample_lsm, measurements_list[i + 1].sample_lsm))
 
         # store
         self.measurements_list = measurements_list
@@ -735,8 +705,7 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
         min_measurements_correlation = get_and_set_default_value('min_measurements_correlation', min)
 
         # call super init
-        super().__init__(tracer=tracer, data_set_name=data_set_name, sample_lsm=sample_lsm,min_measurements_mean=min_measurements_mean, min_standard_deviation=min_standard_deviation, min_measurements_standard_deviation=min_measurements_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_correlation=min_measurements_correlation)
-
+        super().__init__(tracer=tracer, data_set_name=data_set_name, sample_lsm=sample_lsm, min_measurements_mean=min_measurements_mean, min_standard_deviation=min_standard_deviation, min_measurements_standard_deviation=min_measurements_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_correlation=min_measurements_correlation)
 
     @property
     @overrides.overrides
@@ -752,7 +721,6 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
     @overrides.overrides
     def number_of_measurements(self):
         return sum(map(lambda measurement: measurement.number_of_measurements, self.measurements_list))
-
 
 
 class MeasurementsCollection(Measurements):
@@ -772,8 +740,8 @@ class MeasurementsCollection(Measurements):
 
         # check same tracer and data set name
         n = len(measurements_list)
-        for i in range(n-1):
-            if measurements_list[i].tracer == measurements_list[i+1].tracer and measurements_list[i].data_set_name == measurements_list[i+1].data_set_name:
+        for i in range(n - 1):
+            if measurements_list[i].tracer == measurements_list[i + 1].tracer and measurements_list[i].data_set_name == measurements_list[i + 1].data_set_name:
                 raise ValueError('There is more then one measurements object with tracer {} and data set name {}!'.format(measurements_list[i].tracer, measurements_list[i].data_set_name))
 
         # store
@@ -795,19 +763,15 @@ class MeasurementsCollection(Measurements):
         self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
         self.dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
 
-
     @property
     def measurements_list(self):
         return self._measurements_list
 
-
     def __str__(self):
         return ','.join(map(str, self.measurements_list))
 
-
     def __iter__(self):
         return self.measurements_list.__iter__()
-
 
     @property
     @overrides.overrides
@@ -818,7 +782,6 @@ class MeasurementsCollection(Measurements):
     @overrides.overrides
     def values(self):
         return np.concatenate(tuple(map(lambda measurement: measurement.values, self.measurements_list)))
-
 
     @property
     @overrides.overrides
@@ -839,17 +802,16 @@ class MeasurementsCollection(Measurements):
         assert len(values) == self.number_of_measurements
         return values
 
-
     @property
     @overrides.overrides
     def correlations_own_sample_matrix(self):
         n = len(self.measurements_list)
-        correlations = np.empty([n,n], dtype=object)
+        correlations = np.empty([n, n], dtype=object)
 
         for i in range(n):
             measurements_i = self.measurements_list[i]
             correlations[i, i] = measurements_i.correlations()
-            for j in range(i+1, n):
+            for j in range(i + 1, n):
                 measurements_j = self.measurements_list[j]
                 correlations[i, j] = measurements_i.correlations(measurements_j)
                 correlations[j, i] = correlations[i, j].T
@@ -858,10 +820,10 @@ class MeasurementsCollection(Measurements):
         assert correlations.shape == (self.number_of_measurements, self.number_of_measurements)
         return correlations
 
-
     def _measurements_dict(self, convert_function=None):
         if convert_function is None:
-            convert_function = lambda x: x
+            def convert_function(x):
+                return x
 
         results = {}
 
@@ -878,16 +840,13 @@ class MeasurementsCollection(Measurements):
 
         return results
 
-
     @property
     def points_dict(self):
         return self._measurements_dict(convert_function=lambda m: m.points)
 
-
     def convert_measurements_dict_to_array(self, measurements_dict):
         value_list = [measurements_dict[measurement.tracer][measurement.data_set_name] for measurement in self.measurements_list]
         return np.concatenate(value_list)
-
 
     def subset(self, tracers):
         measurements_list = [measurement for measurement in self.measurements_list if measurement.tracer in tracers]
