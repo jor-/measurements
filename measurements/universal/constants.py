@@ -58,7 +58,7 @@ MEAN_ID = SEPERATOR.join([
 
 STANDARD_DEVIATION_MIN_MEASUREMENTS = 3
 
-STANDARD_DEVIATION_DIR = os.path.join(MEASUREMENT_DIR, 'deviation')
+STANDARD_DEVIATION_DIR = os.path.join(MEASUREMENT_DIR, 'standard_deviation')
 
 STANDARD_DEVIATION_FILE = os.path.join(STANDARD_DEVIATION_DIR, SEPERATOR.join([
     '{deviation_type}',
