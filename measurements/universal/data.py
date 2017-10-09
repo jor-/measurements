@@ -420,7 +420,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     @property
     def means_for_sample_lsm(self):
-        return self._data_for_sample_lsm('means')
+        return self._data_for_sample_lsm('concentration_means')
 
     @property
     def concentration_standard_deviations_for_sample_lsm(self):
