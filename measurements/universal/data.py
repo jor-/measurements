@@ -661,6 +661,24 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     def average_noise_standard_deviations(self):
         return self._project_left_side(self.base_measurements.average_noise_standard_deviations)
 
+    # data for sample lsm
+
+    @property
+    def means_for_sample_lsm(self):
+        return self.base_measurements.means_for_sample_lsm
+
+    @property
+    def concentration_standard_deviations_for_sample_lsm(self):
+        return self.base_measurements.concentration_standard_deviations_for_sample_lsm
+
+    @property
+    def average_noise_standard_deviations_for_sample_lsm(self):
+        return self.base_measurements.average_noise_standard_deviations_for_sample_lsm
+
+    @property
+    def standard_deviations_for_sample_lsm(self):
+        return self.base_measurements.standard_deviations_for_sample_lsm
+
 
 class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
 
