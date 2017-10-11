@@ -4,8 +4,10 @@ import measurements.wod.po4.data
 import measurements.land_sea_mask.lsm
 import measurements.universal.data
 
+import util.logging
 
-TRACERS = ('dop', 'po4', 'phytoplankton', 'zooplankton')
+
+TRACERS = ('dop', 'po4', 'phytoplankton', 'zooplankton', 'detritus')
 
 
 def all_measurements(tracers=None, min_standard_deviations=None, min_measurements_correlations=None, max_box_distance_to_water=None, near_water_lsm='TMM'):
@@ -66,12 +68,19 @@ def all_measurements(tracers=None, min_standard_deviations=None, min_measurement
             measurements_object = measurements.wod.po4.data.Measurements(**measurements_kargs)
         elif tracer in ('phytoplankton', 'zooplankton'):
             measurements_object = measurements.wod.plankton.data.Measurements(tracer, **measurements_kargs)
+        elif tracer == 'detritus':
+            measurements_object = None
         else:
             raise ValueError('Unkown tracer {}.'.format(tracer))
-        measurements_collection.append(measurements_object)
+        if measurements_object is not None and measurements_object.number_of_measurements > 0:
+            util.logging.debug('Measurements {} used for tracer {} with {} data.'.format(measurements_object, tracer, measurements_object.number_of_measurements))
+            measurements_collection.append(measurements_object)
 
-    if len(measurements_collection) > 1:
+    number_of_measurements_objects = len(measurements_collection)
+    if number_of_measurements_objects > 1:
         return measurements.universal.data.MeasurementsCollectionCache(*measurements_collection)
-    else:
-        assert len(measurements_collection) == 1
+    elif number_of_measurements_objects == 1:
         return measurements_collection[0]
+    else:
+        util.logging.warning('No measurements found for {} tracers.'.format(tracers))
+        return None
