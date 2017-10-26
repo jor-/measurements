@@ -646,6 +646,8 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
             min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation,
             min_measurements_correlation=base_measurements.min_measurements_correlation)
 
+    # data for points
+
     @property
     @overrides.overrides
     def concentration_standard_deviations(self):
@@ -678,6 +680,16 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     @property
     def standard_deviations_for_sample_lsm(self):
         return self.base_measurements.standard_deviations_for_sample_lsm
+
+    # getter and setter from base measurement
+
+    @property
+    def fill_strategy(self):
+        return self.base_measurements.fill_strategy
+
+    @fill_strategy.setter
+    def fill_strategy(self, value):
+        self.base_measurements.fill_strategy = value
 
 
 class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
