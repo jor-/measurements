@@ -124,9 +124,9 @@ class SampleCorrelationMatrix:
         self.measurements = measurements
         self.sample_lsm = sample_lsm
 
-        self.min_measurements = min_measurements
-        self.min_abs_correlation = min_abs_correlation
-        self.max_abs_correlation = max_abs_correlation
+        self.min_measurements = int(min_measurements)
+        self.min_abs_correlation = float(min_abs_correlation)
+        self.max_abs_correlation = float(max_abs_correlation)
 
         self.dtype = np.dtype(dtype)
         self.matrix_format = matrix_format
