@@ -206,9 +206,12 @@ class LandSeaMask():
 
     def coordinates_near_water_mask(self, points, max_box_distance_to_water=0):
         n = len(points)
-        results = np.empty(n, dtype=np.bool)
-        for i in range(n):
-            results[i] = self.is_coordinate_near_water(points[i], max_box_distance_to_water=max_box_distance_to_water)
+        if max_box_distance_to_water is None or max_box_distance_to_water == float('inf'):
+            results = np.ones(n, dtype=np.bool)
+        else:
+            results = np.empty(n, dtype=np.bool)
+            for i in range(n):
+                results[i] = self.is_coordinate_near_water(points[i], max_box_distance_to_water=max_box_distance_to_water)
         return results
 
 
