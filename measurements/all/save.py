@@ -20,6 +20,7 @@ def _main():
     parser.add_argument('--concentration_standard_deviations', action='store_true', help='Calculate and save concentration standard deviations for measurement points.')
     parser.add_argument('--noise_standard_deviations', action='store_true', help='Calculate and save noise standard deviations of measurements.')
     parser.add_argument('--standard_deviations', action='store_true', help='Calculate and save standard deviations of measurements.')
+    parser.add_argument('--sample_correlation', action='store_true', help='Calculate and save sample correlation of measurements.')
     parser.add_argument('--correlation', action='store_true', help='Calculate and save correlation of measurements.')
 
     parser.add_argument('--means_sample_lsm', action='store_true', help='Calculate and save means for points of sample land sea mask.')
@@ -57,6 +58,8 @@ def _main():
             m.noise_standard_deviations
         if args.standard_deviations:
             m.standard_deviations
+        if args.sample_correlation:
+            m.correlations_own_sample_matrix
         if args.correlation:
             m.correlations_own
 
@@ -69,6 +72,7 @@ def _main():
                 min_measurements_correlation = min_measurements_correlations[i]
             except TypeError:
                 min_measurements_correlation = min_measurements_correlations
+
             m = measurements.all.data.all_measurements(
                 tracers=[tracer],
                 min_standard_deviations=min_standard_deviation,
