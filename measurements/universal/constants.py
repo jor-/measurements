@@ -80,7 +80,7 @@ CORRELATION_MIN_MEASUREMENTS = 30
 CORRELATION_MIN_ABS_VALUE = 0.01
 CORRELATION_MAX_ABS_VALUE = 0.99
 CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE = 0.1
-CORRELATION_DECOMPOSITION_PERMUTATION_METHOD = 'fill_reduce_default'
+CORRELATION_DECOMPOSITION_PERMUTATION_METHOD = matrix.constants.BEST_FILL_REDUCE_PERMUTATION_METHOD
 CORRELATION_DECOMPOSITION_TYPE = matrix.constants.LDL_DECOMPOSITION_TYPE
 CORRELATION_DTYPE = np.dtype(np.float32)
 CORRELATION_FORMAT = 'csc'
@@ -173,9 +173,22 @@ CORRELATION_MATRIX_DECOMPOSITION_FILE = os.path.join(
         'dev:_{standard_deviation_id}',
         '{dtype}.dec']))
 
-CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE = os.path.join(
+CORRELATION_MATRIX_DECOMPOSITION_DELTA_FILE = os.path.join(
     CORRELATION_DIR,
-    'positive_definite', SEPERATOR.join([
+    'positive_definite_decomposition_delta', SEPERATOR.join([
+        'reduction_factors',
+        'sample_{sample_lsm}',
+        'min_values_{min_measurements_correlation:0>2d}',
+        'min_abs_{min_abs_correlation}',
+        'max_abs_{max_abs_correlation}',
+        'decomposition_{decomposition_type}',
+        'permutation_{permutation_method_decomposition_correlation}',
+        'min_diag_{decomposition_min_diag_value:.0e}',
+        'dev:_{standard_deviation_id}.npy']))
+
+CORRELATION_MATRIX_DECOMPOSITION_OMEGA_FILE = os.path.join(
+    CORRELATION_DIR,
+    'positive_definite_decomposition_omega', SEPERATOR.join([
         'reduction_factors',
         'sample_{sample_lsm}',
         'min_values_{min_measurements_correlation:0>2d}',

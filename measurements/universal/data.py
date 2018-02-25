@@ -4,7 +4,7 @@ import os.path
 import numpy as np
 import scipy.sparse
 import overrides
-import matrix.calculate
+import matrix.approximate
 import matrix.decompositions
 
 import measurements.universal.dict
@@ -99,12 +99,11 @@ class Measurements():
 
     @property
     def correlations_own_decomposition(self):
-        correlation_matrix_decomposition = matrix.calculate.approximate_decomposition(
+        correlation_matrix_decomposition = matrix.approximate.decomposition(
             self.correlations_own_sample_matrix,
-            min_diag_value=self.min_diag_value_decomposition_correlation,
-            min_abs_value=self.min_abs_correlation,
+            min_diag_B=1, max_diag_B=1,
+            min_diag_D=self.min_diag_value_decomposition_correlation,
             permutation_method=self.permutation_method_decomposition_correlation,
-            check_finite=False,
             return_type=self.decomposition_type_correlations)
         return correlation_matrix_decomposition
 
@@ -1203,16 +1202,18 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @util.cache.file.decorator(load_function=matrix.decompositions.load, save_function=matrix.decompositions.save)
     @overrides.overrides
     def correlations_own_decomposition(self):
-        reduction_factors_file = self.reduction_factors_cache_file()
-        correlation_matrix_decomposition = matrix.calculate.approximate_decomposition_with_reduction_factor_file(
-            self.correlations_own_sample_matrix,
-            min_diag_value=self.min_diag_value_decomposition_correlation,
-            min_abs_value=self.min_abs_correlation,
-            permutation_method=self.permutation_method_decomposition_correlation,
-            check_finite=False,
-            return_type=self.decomposition_type_correlations,
-            reduction_factors_file=reduction_factors_file)
+        correlation_matrix_decomposition = super().correlations_own_decomposition
+        util.cache.file.save(self.correlations_own_decomposition_delta_cache_file(), correlation_matrix_decomposition.delta, np.save)
+        util.cache.file.save(self.correlations_own_decomposition_omega_cache_file(), correlation_matrix_decomposition.omega, np.save)
         return correlation_matrix_decomposition
+
+    @util.cache.file.decorator(load_function=np.load, save_function=np.save)
+    def correlations_own_decomposition_delta(self):
+        return self.correlations_own_decomposition.delta
+
+    @util.cache.file.decorator(load_function=np.load, save_function=np.save)
+    def correlations_own_decomposition_omega(self):
+        return self.correlations_own_decomposition.omega
 
     def correlations_own_decomposition_cache_file(self):
         return measurements.universal.constants.CORRELATION_MATRIX_DECOMPOSITION_FILE.format(
@@ -1228,8 +1229,21 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
             dtype=self.dtype_correlation)
 
-    def reduction_factors_cache_file(self):
-        return measurements.universal.constants.CORRELATION_MATRIX_POSITIVE_DEFINITE_REDUCTION_FACTORS_FILE.format(
+    def correlations_own_decomposition_delta_cache_file(self):
+        return measurements.universal.constants.CORRELATION_MATRIX_DECOMPOSITION_DELTA_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            sample_lsm=self.sample_lsm,
+            min_measurements_correlation=self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            decomposition_type=self.decomposition_type_correlations,
+            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
+
+    def correlations_own_decomposition_omega_cache_file(self):
+        return measurements.universal.constants.CORRELATION_MATRIX_DECOMPOSITION_OMEGA_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
             sample_lsm=self.sample_lsm,
@@ -1372,8 +1386,12 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         return self.base_measurements.correlations_own_decomposition_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
-    def reduction_factors_cache_file(self):
-        return self.base_measurements.reduction_factors_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
+    def correlations_own_decomposition_delta_cache_file(self):
+        return self.base_measurements.correlations_own_decomposition_delta_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
+
+    @overrides.overrides
+    def correlations_own_decomposition_omega_cache_file(self):
+        return self.base_measurements.correlations_own_decomposition_omega_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
     def correlations_own_cache_file(self):
@@ -1443,8 +1461,11 @@ class MeasurementsCollectionCache(MeasurementsCollection):
     def correlations_own_decomposition_cache_file(self):
         return self._merge_files(self.measurements_dir, [measurement.correlations_own_decomposition_cache_file() for measurement in self.measurements_list])
 
-    def reduction_factors_cache_file(self):
-        return self._merge_files(self.measurements_dir, [measurement.reduction_factors_cache_file() for measurement in self.measurements_list])
+    def correlations_own_decomposition_delta_cache_file(self):
+        return self._merge_files(self.measurements_dir, [measurement.correlations_own_decomposition_delta_cache_file() for measurement in self.measurements_list])
+
+    def correlations_own_decomposition_omega_cache_file(self):
+        return self._merge_files(self.measurements_dir, [measurement.correlations_own_decomposition_omega_cache_file() for measurement in self.measurements_list])
 
     def correlations_own_cache_file(self):
         return self._merge_files(self.measurements_dir, [measurement.correlations_own_cache_file() for measurement in self.measurements_list])
