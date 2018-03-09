@@ -485,11 +485,18 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
 class MeasurementsNearWater(Measurements):
 
+    _PROPERTIES_OF_BASE_MEASUREMENTS = (
+        'min_abs_correlation',
+        'min_diag_value_decomposition_correlation',
+        'permutation_method_decomposition_correlation',
+        'decomposition_type_correlations',
+        'matrix_format_correlation',
+        'dtype_correlation')
+
     def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=None):
         self.base_measurements = base_measurements
         self.water_lsm = water_lsm
         self.max_box_distance_to_water = max_box_distance_to_water
-        Measurements.__init__(self)
 
     # properties
     @property
@@ -630,6 +637,20 @@ class MeasurementsNearWater(Measurements):
     @overrides.overrides
     def correlations_other(self, measurements=None):
         return self._project_left_side(self.base_measurements.correlations_other(measurements=measurements))
+
+    # handle properties of base measurement
+
+    def __getattr__(self, name):
+        if name in self._PROPERTIES_OF_BASE_MEASUREMENTS:
+            return getattr(self.base_measurements, name)
+        else:
+            return super().__getattribute__(name)
+
+    def __setattr__(self, name, value):
+        if name in self._PROPERTIES_OF_BASE_MEASUREMENTS:
+            setattr(self.base_measurements, name, value)
+        else:
+            super().__setattr__(name, value)
 
 
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
