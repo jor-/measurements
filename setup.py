@@ -82,6 +82,7 @@ setuptools.setup(
         'console_scripts': [
             'measurements_wod_save = measurements.wod.save:_main',
             'measurements_all_save = measurements.all.save:_main',
+            'measurements_all_plot = measurements.all.plot:_main',
         ],
     }
 )
