@@ -156,4 +156,4 @@ def sample_correlation_histogram(measurements_object, base_file=None, use_abs=Fa
         else:
             x_min = -1
             tick_number = 5
-        util.plot.histogram(data, file, step_size=0.1, x_min=x_min, x_max=1, tick_number=tick_number)
+        util.plot.histogram(data, file, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number)
