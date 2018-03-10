@@ -81,28 +81,28 @@ def _get_file_name(measurements_object, base_file=None, kind=None, plot_name=Non
 
 
 def concentration_means_for_sample_lsm(measurements_object, base_file=None):
-    data = measurements_object.means_for_sample_lsm
     file = _get_file_name(measurements_object,
                           base_file=base_file,
                           kind='mean',
                           plot_name='concentration_means_interpolated')
-    _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
+    data = measurements_object.means_for_sample_lsm
+    # print if not existing
+    if not os.path.exists(file):
+        _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
 
 
 def concentration_standard_deviations_for_sample_lsm(measurements_object, base_file=None):
-    data = measurements_object.concentration_standard_deviations_for_sample_lsm
     file = _get_file_name(measurements_object,
                           base_file=base_file,
                           kind='standard_deviation',
                           plot_name='concentration_standard_deviations_for_sample_lsm')
-    _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
+    # print if not existing
+    if not os.path.exists(file):
+        data = measurements_object.concentration_standard_deviations_for_sample_lsm
+        _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
 
 
 def sample_correlation_sparsity_pattern(measurements_object, base_file=None, permutation_method=None):
-    # get data
-    A = measurements_object.correlations_own_sample_matrix
-    permutation_vector = matrix.permute.permutation_vector(A, permutation_method)
-    A = matrix.permute.symmetric(A, permutation_vector)
     # get file name
     permutation_method_decomposition_correlation_old = measurements_object.permutation_method_decomposition_correlation
     measurements_object.permutation_method_decomposition_correlation = permutation_method
@@ -114,18 +114,18 @@ def sample_correlation_sparsity_pattern(measurements_object, base_file=None, per
         decomposition_type=measurements_object.decomposition_type_correlations,
         seperator=measurements.universal.constants.SEPERATOR), '')
     measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
-    # plot
-    util.plot.spy(A, file, axis_labels=False)
+    # print if not existing
+    if not os.path.exists(file):
+        # get data
+        A = measurements_object.correlations_own_sample_matrix
+        if permutation_method is not None:
+            permutation_vector = matrix.permute.permutation_vector(A, permutation_method)
+            A = matrix.permute.symmetric(A, permutation_vector)
+        # plot
+        util.plot.spy(A, file, axis_labels=False)
 
 
 def sample_correlation_histogram(measurements_object, base_file=None, use_abs=False):
-    # get data
-    A = measurements_object.correlations_own_sample_matrix
-    A.tocsc(copy=False)
-    A.eliminate_zeros()
-    data = A.data
-    if use_abs:
-        data = np.abs(data)
     # get file name
     plot_name = 'sample_correlation_histogram'
     if use_abs:
@@ -140,12 +140,20 @@ def sample_correlation_histogram(measurements_object, base_file=None, use_abs=Fa
     file = file.replace('permutation_{permutation_method_decomposition_correlation}{seperator}'.format(
         permutation_method_decomposition_correlation=measurements_object.permutation_method_decomposition_correlation,
         seperator=measurements.universal.constants.SEPERATOR), '')
-    # plot
-    if use_abs:
-        x_min = 0
-        tick_number = 3
-    else:
-        x_min = -1
-        tick_number = 5
-    util.plot.histogram(data, file, step_size=0.1, x_min=x_min, x_max=1, tick_number=tick_number)
-
+    # print if not existing
+    if not os.path.exists(file):
+        # get data
+        A = measurements_object.correlations_own_sample_matrix
+        A.tocsc(copy=False)
+        A.eliminate_zeros()
+        data = A.data
+        if use_abs:
+            data = np.abs(data)
+        # plot
+        if use_abs:
+            x_min = 0
+            tick_number = 3
+        else:
+            x_min = -1
+            tick_number = 5
+        util.plot.histogram(data, file, step_size=0.1, x_min=x_min, x_max=1, tick_number=tick_number)
