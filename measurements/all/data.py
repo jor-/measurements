@@ -8,6 +8,7 @@ import util.logging
 
 
 TRACERS = ('dop', 'po4', 'phytoplankton', 'zooplankton', 'detritus')
+LAND_SEA_MASKS = ('TMM', 'WOA13', 'WOA13R')
 
 
 def all_measurements(tracers=None, min_standard_deviations=None, min_measurements_correlations=None, max_box_distance_to_water=None, near_water_lsm='TMM'):
