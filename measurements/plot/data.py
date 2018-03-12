@@ -118,6 +118,7 @@ def sample_correlation_sparsity_pattern(measurements_object, base_file=None, per
     if not os.path.exists(file):
         # get data
         A = measurements_object.correlations_own_sample_matrix
+        del measurements_object
         if permutation_method is not None:
             permutation_vector = matrix.permute.permutation_vector(A, permutation_method)
             A = matrix.permute.symmetric(A, permutation_vector)
@@ -144,9 +145,11 @@ def sample_correlation_histogram(measurements_object, base_file=None, use_abs=Fa
     if not os.path.exists(file):
         # get data
         A = measurements_object.correlations_own_sample_matrix
+        del measurements_object
         A.tocsc(copy=False)
         A.eliminate_zeros()
         data = A.data
+        del A
         if use_abs:
             data = np.abs(data)
         # plot
@@ -156,4 +159,6 @@ def sample_correlation_histogram(measurements_object, base_file=None, use_abs=Fa
         else:
             x_min = -1
             tick_number = 5
-        util.plot.histogram(data, file, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number)
+        for use_log_scale in (False, True):
+            file_with_scale = file.replace('.png', '_log_scale_{}.png'.format(False))
+            util.plot.histogram(data, file_with_scale, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
