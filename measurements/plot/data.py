@@ -142,23 +142,22 @@ def sample_correlation_histogram(measurements_object, base_file=None, use_abs=Fa
         permutation_method_decomposition_correlation=measurements_object.permutation_method_decomposition_correlation,
         seperator=measurements.universal.constants.SEPERATOR), '')
     # print if not existing
-    if not os.path.exists(file):
-        # get data
-        A = measurements_object.correlations_own_sample_matrix
-        del measurements_object
-        A.tocsc(copy=False)
-        A.eliminate_zeros()
-        data = A.data
-        del A
-        if use_abs:
-            data = np.abs(data)
-        # plot
-        if use_abs:
-            x_min = 0
-            tick_number = 3
-        else:
-            x_min = -1
-            tick_number = 5
-        for use_log_scale in (False, True):
-            file_with_scale = file.replace('.png', '_log_scale_{}.png'.format(False))
+    for use_log_scale in (False, True):
+        file_with_scale = file.replace('.png', '_log_scale_{}.png'.format(use_log_scale))
+        if not os.path.exists(file_with_scale):
+            # get data
+            A = measurements_object.correlations_own_sample_matrix
+            A.tocsc(copy=False)
+            A.eliminate_zeros()
+            data = A.data
+            del A
+            if use_abs:
+                data = np.abs(data)
+            # plot
+            if use_abs:
+                x_min = 0
+                tick_number = 3
+            else:
+                x_min = -1
+                tick_number = 5
             util.plot.histogram(data, file_with_scale, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)

@@ -20,9 +20,8 @@ def _main():
 
     parser.add_argument('--means_sample_lsm', action='store_true', help='Plot means for points of sample land sea mask.')
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
-    parser.add_argument('--sample_correlation', action='store_true', help='Plot sample correlation of measurements.')
-    parser.add_argument('--sample_correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of sample correlation of measurements.')
-    parser.add_argument('--sample_correlation_histogram', action='store_true', help='Plot histogram of sample correlation of measurements.')
+    parser.add_argument('--sample_correlation_sparsity_pattern', default=None, choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
+    parser.add_argument('--sample_correlation_histogram', default=None, type=bool, choices=(True, False), help='Plot histogram of sample correlation of measurements with passed using abs.')
 
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
@@ -49,11 +48,11 @@ def _main():
         if args.concentration_standard_deviations_sample_lsm:
             measurements.plot.data.concentration_standard_deviations_for_sample_lsm(m)
 
-        if args.sample_correlation:
-            for permutation_method in (matrix.constants.NO_PERMUTATION_METHOD, matrix.constants.BEST_FILL_REDUCE_PERMUTATION_METHOD):
-                measurements.plot.data.sample_correlation_sparsity_pattern(m, permutation_method=permutation_method)
-            for use_abs in (False, True):
-                measurements.plot.data.sample_correlation_histogram(m, use_abs=use_abs)
+        if args.sample_correlation_sparsity_pattern is not None:
+            measurements.plot.data.sample_correlation_sparsity_pattern(m, permutation_method=args.sample_correlation_sparsity_pattern)
+
+        if args.sample_correlation_histogram is not None:
+            measurements.plot.data.sample_correlation_histogram(m, use_abs=args.sample_correlation_histogram)
 
 
 if __name__ == "__main__":
