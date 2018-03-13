@@ -113,18 +113,18 @@ def sample_correlation_sparsity_pattern(measurements_object, base_file=None, per
     file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
         decomposition_type=measurements_object.decomposition_type_correlations,
         seperator=measurements.universal.constants.SEPERATOR), '')
-    measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
     # print if not existing
     if not os.path.exists(file):
         # get data
         A = measurements_object.correlations_own_sample_matrix
-        del measurements_object
         if permutation_method is not None:
-            permutation_vector = matrix.permute.permutation_vector(A, permutation_method)
+            permutation_vector = measurements_object.correlations_own_permutation_vector
             A = A.tocoo(copy=False)
             A = matrix.permute.symmetric(A, permutation_vector)
         # plot
         util.plot.spy(A, file, axis_labels=False)
+    # reset old permutation method
+    measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
 
 
 def sample_correlation_histogram(measurements_object, base_file=None, use_abs=False):

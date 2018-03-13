@@ -4,7 +4,9 @@ import os.path
 import numpy as np
 import scipy.sparse
 import overrides
+
 import matrix.approximate
+import matrix.constants
 import matrix.decompositions
 
 import measurements.universal.dict
@@ -98,12 +100,26 @@ class Measurements():
         return scipy.sparse.eye(self.number_of_measurements)
 
     @property
+    def correlations_own_permutation_vector(self):
+        if self.permutation_method_decomposition_correlation in matrix.constants.APPROXIMATION_ONLY_PERMUTATION_METHODS:
+            permutation_vector = self.correlations_own_decomposition.p
+        else:
+            permutation_vector = matrix.permute.permutation_vector(
+                self.correlations_own_sample_matrix,
+                self.permutation_method_decomposition_correlation)
+        return permutation_vector
+
+    @property
     def correlations_own_decomposition(self):
+        if self.permutation_method_decomposition_correlation in matrix.constants.APPROXIMATION_ONLY_PERMUTATION_METHODS:
+            permutation = self.permutation_method_decomposition_correlation
+        else:
+            permutation = self.correlations_own_permutation_vector
         correlation_matrix_decomposition = matrix.approximate.decomposition(
             self.correlations_own_sample_matrix,
             min_diag_B=1, max_diag_B=1,
             min_diag_D=self.min_diag_value_decomposition_correlation,
-            permutation_method=self.permutation_method_decomposition_correlation,
+            permutation=permutation,
             return_type=self.decomposition_type_correlations)
         return correlation_matrix_decomposition
 
@@ -1311,6 +1327,35 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
             dtype=self.dtype_correlation,
             matrix_format=self.matrix_format_correlation)
+
+    @property
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_standard_deviation',
+        'self.min_standard_deviation',
+        'self.min_measurements_correlation',
+        'self.min_abs_correlation',
+        'self.max_abs_correlation',
+        'self.dtype_correlation',
+        'self.permutation_method_decomposition_correlation'))
+    @util.cache.file.decorator(load_function=np.load, save_function=np.save)
+    def correlations_own_permutation_vector(self):
+        return super().correlations_own_permutation_vector
+
+    def correlations_own_permutation_vector_cache_file(self):
+        return measurements.universal.constants.CORRELATION_MATRIX_PERMUTATION_VECTOR_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            sample_lsm=self.sample_lsm,
+            min_measurements_correlation=self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+            standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
+            dtype=self.dtype_correlation)
 
 
 class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, MeasurementsAnnualPeriodicNearWater):
