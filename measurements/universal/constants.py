@@ -3,6 +3,8 @@ import os.path
 import numpy as np
 
 import matrix.constants
+import matrix.sparse.constants
+
 import measurements.land_sea_mask.lsm
 from measurements.constants import BASE_DIR
 
@@ -80,7 +82,7 @@ CORRELATION_MIN_MEASUREMENTS = 30
 CORRELATION_MIN_ABS_VALUE = 0.01
 CORRELATION_MAX_ABS_VALUE = 0.99
 CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE = 0.1
-CORRELATION_DECOMPOSITION_PERMUTATION_METHOD = matrix.constants.BEST_FILL_REDUCE_PERMUTATION_METHOD
+CORRELATION_DECOMPOSITION_PERMUTATION_METHOD = matrix.sparse.constants.AMD_FILL_REDUCE_PERMUTATION_METHOD
 CORRELATION_DECOMPOSITION_TYPE = matrix.constants.LDL_DECOMPOSITION_TYPE
 CORRELATION_DTYPE = np.dtype(np.float32)
 CORRELATION_FORMAT = 'csc'
