@@ -1541,8 +1541,9 @@ class MeasurementsCollectionCache(MeasurementsCollection):
 
 class TooFewValuesError(Exception):
 
-    def __init__(self):
-        message = 'Too few values are available.'
+    def __init__(self, message=None):
+        if message is None:
+            message = 'Too few values are available.'
         super().__init__(message)
 
 
