@@ -63,23 +63,12 @@ def _main():
         if args.correlation:
             m.correlations_own
 
-        for i, tracer in enumerate(tracers):
-            try:
-                min_standard_deviation = min_standard_deviations[i]
-            except TypeError:
-                min_standard_deviation = min_standard_deviations
-            try:
-                min_measurements_correlation = min_measurements_correlations[i]
-            except TypeError:
-                min_measurements_correlation = min_measurements_correlations
+        try:
+            m_list = m.measurements_list
+        except AttributeError:
+            m_list = [m]
 
-            m = measurements.all.data.all_measurements(
-                tracers=[tracer],
-                min_standard_deviations=min_standard_deviation,
-                min_measurements_correlations=min_measurements_correlation,
-                max_box_distance_to_water=max_box_distance_to_water,
-                near_water_lsm=near_water_lsm)
-
+        for m in m_list:
             if args.means_sample_lsm:
                 m.means_for_sample_lsm
             if args.concentration_standard_deviations_sample_lsm:
