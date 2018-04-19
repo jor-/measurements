@@ -165,24 +165,25 @@ SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
 CORRELATION_MATRIX_PERMUTATION_VECTOR_FILE = os.path.join(
     CORRELATION_DIR,
     'sample_correlation_permutation_vector', SEPERATOR.join([
-        'sample_correlation',
+        'permutation_vector',
         'sample_{sample_lsm}',
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        'permutation_{permutation_method_decomposition_correlation}',
+        '{permutation_method_decomposition_correlation}',
         'dev:_{standard_deviation_id}',
         '{dtype}.npy']))
 
 CORRELATION_MATRIX_DECOMPOSITION_FILE = os.path.join(
     CORRELATION_DIR,
     'positive_definite_decomposition', SEPERATOR.join([
+        'decomposition',
         'sample_{sample_lsm}',
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        'decomposition_{decomposition_type}',
-        'permutation_{permutation_method_decomposition_correlation}',
+        '{decomposition_type}',
+        '{permutation_method_decomposition_correlation}',
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}',
         '{dtype}.dec']))
@@ -190,26 +191,26 @@ CORRELATION_MATRIX_DECOMPOSITION_FILE = os.path.join(
 CORRELATION_MATRIX_DECOMPOSITION_DELTA_FILE = os.path.join(
     CORRELATION_DIR,
     'positive_definite_decomposition_delta', SEPERATOR.join([
-        'reduction_factors',
+        'delta',
         'sample_{sample_lsm}',
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        'decomposition_{decomposition_type}',
-        'permutation_{permutation_method_decomposition_correlation}',
+        '{decomposition_type}',
+        '{permutation_method_decomposition_correlation}',
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}.npy']))
 
 CORRELATION_MATRIX_DECOMPOSITION_OMEGA_FILE = os.path.join(
     CORRELATION_DIR,
     'positive_definite_decomposition_omega', SEPERATOR.join([
-        'reduction_factors',
+        'omega',
         'sample_{sample_lsm}',
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        'decomposition_{decomposition_type}',
-        'permutation_{permutation_method_decomposition_correlation}',
+        '{decomposition_type}',
+        '{permutation_method_decomposition_correlation}',
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}.npy']))
 
@@ -221,8 +222,8 @@ CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE = os.path.join(
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        'decomposition_{decomposition_type}',
-        'permutation_{permutation_method_decomposition_correlation}',
+        '{decomposition_type}',
+        '{permutation_method_decomposition_correlation}',
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}',
         '{dtype}.{matrix_format}.npz']))
