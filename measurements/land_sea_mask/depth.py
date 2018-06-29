@@ -1,9 +1,16 @@
-import numpy as np
+DEFAULT_OPTIONS = {'start': 50,
+                   'increment_start': 20,
+                   'increment_value': 10,
+                   'increment_value_max': 50,
+                   'increment_step': 1}
 
-DEFAULT_OPTIONS = {'start':50, 'increment_start':20, 'increment_value':10, 'increment_value_max':50, 'increment_step':1}
 
 def diff(i, start=50, increment_start=20, increment_value=10, increment_value_max=50, increment_step=1):
-    options = {'start':start, 'increment_start':increment_start, 'increment_value':increment_value, 'increment_value_max':increment_value_max, 'increment_step':increment_step}
+    options = {'start': start,
+               'increment_start': increment_start,
+               'increment_value': increment_value,
+               'increment_value_max': increment_value_max,
+               'increment_step': increment_step}
 
     # skip diff with no increase
     modulo = i % increment_step
@@ -15,7 +22,7 @@ def diff(i, start=50, increment_start=20, increment_value=10, increment_value_ma
         return start
     else:
         previous_diff = diff(i - increment_step, **options)
-        increment = min(increment_start  + (i / increment_step - 1) * increment_value, increment_value_max)
+        increment = min(increment_start + (i / increment_step - 1) * increment_value, increment_value_max)
         return previous_diff + increment
 
 
@@ -23,7 +30,7 @@ def value(i, **options):
     if i <= 0:
         return 0
     else:
-        return value(i-1, **options) + diff(i-1, **options)
+        return value(i - 1, **options) + diff(i - 1, **options)
 
 
 def values_fix_length(length, **options):
@@ -50,4 +57,3 @@ def values_TMM(max_value=9300, increment_step=1):
     increment_value_max = 50 / increment_step
 
     return values_until_max(max_value, start=start, increment_start=increment_start, increment_value=increment_value, increment_value_max=increment_value_max, increment_step=increment_step)
-

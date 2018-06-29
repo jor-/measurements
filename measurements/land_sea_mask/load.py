@@ -22,13 +22,12 @@ def resolution_128x64x15():
 
     except (OSError, IOError):
         land_sea_mask = util.petsc.universal.load_petsc_mat_to_array(LSM_128x64x15_PETSC_FILE, dtype=int)
-        land_sea_mask = land_sea_mask.transpose() # metos3d: x and y are changed
+        land_sea_mask = land_sea_mask.transpose()  # metos3d: x and y are changed
 
         _check_land_sea_mask(land_sea_mask)
         util.logging.debug('Saving land-sea-mask to {} file.'.format(LSM_128x64x15_NPY_FILE))
         np.save(LSM_128x64x15_NPY_FILE, land_sea_mask)
         util.logging.debug('Returning land-sea-mask loaded from petsc file.')
-
 
     return land_sea_mask
 
@@ -37,7 +36,6 @@ def resolution_128x64x15_normalized_volumes():
     from .constants import LSM_128x64x15_NORMALIZED_VLUMES_PETSC_FILE
     util.logging.debug('Loading normalized valumes from petsc file {}.'.format(LSM_128x64x15_NORMALIZED_VLUMES_PETSC_FILE))
     return util.petsc.universal.load_petsc_vec_to_numpy_array(LSM_128x64x15_NORMALIZED_VLUMES_PETSC_FILE)
-
 
 
 # 60x180x138
@@ -55,15 +53,15 @@ def resolution_360x180x138():
 
         # normalize values
         min_values = lsm.min(axis=0)
-        lsm[:,0] = lsm[:,0] - min_values[0]
-        lsm[:,1] = lsm[:,1] - min_values[1]
-        lsm[:,2] = lsm[:,2] - 1
+        lsm[:, 0] = lsm[:, 0] - min_values[0]
+        lsm[:, 1] = lsm[:, 1] - min_values[1]
+        lsm[:, 2] = lsm[:, 2] - 1
 
         # convert to int
         lsm_int = lsm.astype(np.int16)
 
         assert np.all(lsm_int == lsm)
-        assert lsm_int[:,0].min() == 0 and lsm_int[:,0].max() == 359 and lsm_int[:,1].min() == 0 and lsm_int[:,1].max() == 179 and lsm_int[:,2].min() == 0 and lsm_int[:,2].max() == 137
+        assert lsm_int[:, 0].min() == 0 and lsm_int[:, 0].max() == 359 and lsm_int[:, 1].min() == 0 and lsm_int[:, 1].max() == 179 and lsm_int[:, 2].min() == 0 and lsm_int[:, 2].max() == 137
 
         # convert in 2 dim
         lsm = np.empty((360, 180), dtype=np.int16)

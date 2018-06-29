@@ -1,5 +1,4 @@
 import os.path
-import numpy as np
 
 from measurements.constants import BASE_DIR
 
@@ -21,4 +20,3 @@ TMM_NORMALIZED_VOLUMES_PETSC_FILE = os.path.join(TMM_DIR, 'normalized_volumes.pe
 WOA13_DIR = os.path.join(LSM_DIR, 'WOA13')
 WOA13_LSM_TXT_FILE = os.path.join(WOA13_DIR, 'land_sea_mask.msk')
 WOA13_DEPTH_TXT_FILE = os.path.join(WOA13_DIR, 'depth_levels.txt')
-

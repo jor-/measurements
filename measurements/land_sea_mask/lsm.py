@@ -14,8 +14,6 @@ import measurements.land_sea_mask.depth
 import measurements.land_sea_mask.constants
 
 
-
-
 class LandSeaMask():
 
     def __init__(self, lsm, depth_level, t_dim=None, t_centered=True):
@@ -28,7 +26,6 @@ class LandSeaMask():
         self._t_dim = t_dim
         self.t_centered = t_centered
 
-
     # equal
 
     def __eq__(self, other):
@@ -40,7 +37,6 @@ class LandSeaMask():
         if isinstance(other, self.__class__):
             return not self.__eq__(other)
         return NotImplemented
-
 
     # dims
 
@@ -61,7 +57,6 @@ class LandSeaMask():
             raise ValueError('T dim is not set.')
         self.sea_indices.cache_clear()
         self.sea_coordinates.cache_clear()
-
 
     @property
     def x_dim(self):
@@ -89,7 +84,6 @@ class LandSeaMask():
     @property
     def ndim(self):
         return len(self.dim)
-
 
     # z
 
@@ -121,8 +115,7 @@ class LandSeaMask():
 
     @property
     def separation_values(self):
-        return (1/self.t_dim_with_value_check, 360/self.x_dim, 180/self.y_dim, self.z)
-
+        return (1 / self.t_dim_with_value_check, 360 / self.x_dim, 180 / self.y_dim, self.z)
 
     # lsm
 
@@ -144,7 +137,6 @@ class LandSeaMask():
         else:
             raise ValueError('Length of key has to be in (2, 3, 4), but key is {}.'.format(key))
 
-
     @property
     def name(self):
         try:
@@ -159,7 +151,6 @@ class LandSeaMask():
     def __str__(self):
         return self.name
 
-
     # indices
 
     @property
@@ -170,7 +161,6 @@ class LandSeaMask():
         assert sea_indices.ndim == 2
         return sea_indices
 
-
     @property
     @util.cache.memory.method_decorator(dependency='self.t_dim')
     def sea_coordinates(self):
@@ -178,10 +168,9 @@ class LandSeaMask():
         assert sea_coordinates.ndim == 2
         return sea_coordinates
 
-
     def is_coordinate_near_water(self, point, max_box_distance_to_water=0):
         if max_box_distance_to_water is None or max_box_distance_to_water == float('inf'):
-            is_near_water =  True
+            is_near_water = True
         else:
             # check and convert max_box_distance_to_water
             try:
@@ -192,7 +181,7 @@ class LandSeaMask():
                 raise ValueError('max_box_distance_to_water must be a non-negative integer but it is {}.'.format(max_box_distance_to_water))
 
             # calculate and check distance
-            old_t_dim =  self.t_dim
+            old_t_dim = self.t_dim
             self.t_dim = 0
             sea_indices = self.sea_indices
             map_index = np.asarray(self.coordinate_to_map_index(*point, discard_year=True, int_indices=True))
@@ -202,7 +191,6 @@ class LandSeaMask():
 
         util.logging.debug('Coordinate {} is near water {} with max_box_distance_to_water {}.'.format(point, is_near_water, max_box_distance_to_water))
         return is_near_water
-
 
     def coordinates_near_water_mask(self, points, max_box_distance_to_water=0):
         n = len(points)
@@ -214,28 +202,26 @@ class LandSeaMask():
                 results[i] = self.is_coordinate_near_water(points[i], max_box_distance_to_water=max_box_distance_to_water)
         return results
 
-
     def box_bounds_of_map_index(self, map_index):
         map_index = np.asarray(map_index)
         t_centered = self.t_centered and len(map_index) >= 4
 
         map_index = map_index + 0.5
         if not t_centered:
-            map_index[0] = map_index[0] -  0.5
+            map_index[0] = map_index[0] - 0.5
 
         lower_bound = np.floor(map_index)
         lower_bound = lower_bound - 0.5
         if not t_centered:
-            lower_bound[0] = lower_bound[0] +  0.5
+            lower_bound[0] = lower_bound[0] + 0.5
 
         box_bounds = np.array([lower_bound, lower_bound + 1])
         box_bounds = box_bounds.transpose()
 
         assert len(box_bounds) == len(map_index)
         assert box_bounds.shape[1] == 2
-        assert np.all(box_bounds[:,1] - box_bounds[:,0] == 1)
+        assert np.all(box_bounds[:, 1] - box_bounds[:, 0] == 1)
         return box_bounds
-
 
     def box_bounds_of_map_indices(self, map_indices):
         # prepare input
@@ -258,7 +244,6 @@ class LandSeaMask():
         util.logging.debug('Transforming map indices to box bounds done.')
         return box_bounds
 
-
     @property
     @util.cache.memory.method_decorator(dependency='self.t_dim')
     def number_of_map_indices(self):
@@ -266,7 +251,6 @@ class LandSeaMask():
         if t_dim is None:
             t_dim = 1
         return self.lsm.sum() * self.t_dim
-
 
     # volume
 
@@ -289,10 +273,9 @@ class LandSeaMask():
         r = r[::-1]
 
         s = np.pi / (2 * 90)
-        v = 1/3 * s * (alpha[1] - alpha[0]) *  (r[1]**3 - r[0]**3) * (np.sin(s * beta[1]) - np.sin(s * beta[0]))
+        v = 1 / 3 * s * (alpha[1] - alpha[0]) * (r[1]**3 - r[0]**3) * (np.sin(s * beta[1]) - np.sin(s * beta[0]))
         assert v >= 0
         return v
-
 
     @staticmethod
     def volume_of_coordinate_boxes(bounds):
@@ -322,26 +305,24 @@ class LandSeaMask():
         util.logging.debug('Volume of coordinate boxes are calculated.')
         return box_volumes
 
-
     def volume_of_boxes_of_map_indices(self, map_indices):
         util.logging.debug('Calculating volume of boxes of {} map indices.'.format(len(map_indices)))
 
         # calculate box bounds as map indices
         box_bounds = self.box_bounds_of_map_indices(map_indices)
         assert box_bounds.shape[2] == 2
-        assert np.all(box_bounds[:,:,1] > box_bounds[:,:,0])
+        assert np.all(box_bounds[:, :, 1] > box_bounds[:, :, 0])
 
         # calculate box bounds as coordinates
         for i in range(box_bounds.shape[2]):
-           box_bounds[:,:,i] = self.map_indices_to_coordinates(box_bounds[:,:,i], use_modulo_for_x=False)
-        assert np.all(box_bounds[:,:,1] > box_bounds[:,:,0])
+            box_bounds[:, :, i] = self.map_indices_to_coordinates(box_bounds[:, :, i], use_modulo_for_x=False)
+        assert np.all(box_bounds[:, :, 1] > box_bounds[:, :, 0])
 
         # calculate volumes
         volumes = self.volume_of_coordinate_boxes(box_bounds)
 
         # return
         return volumes
-
 
     @property
     def volume_map(self):
@@ -352,12 +333,11 @@ class LandSeaMask():
 
         # calculate volume map
         volumes = self.volume_of_boxes_of_map_indices(sea_indices)
-        volumes_with_indices = np.concatenate([sea_indices, volumes[:,np.newaxis]], axis=1)
+        volumes_with_indices = np.concatenate([sea_indices, volumes[:, np.newaxis]], axis=1)
         volume_map = self.insert_index_values_in_map(volumes_with_indices, no_data_value=np.inf)
 
         # return
         return volume_map
-
 
     @property
     def normalized_volume_weights_map(self):
@@ -365,7 +345,6 @@ class LandSeaMask():
         normalized_volume_map = volume_map / np.nansum(volume_map)
         assert np.isclose(np.nansum(normalized_volume_map), 1)
         return normalized_volume_map
-
 
     # convert map indices and coordinates
 
@@ -387,23 +366,23 @@ class LandSeaMask():
         xi = (x % 360) / 360 * self.x_dim - 0.5
 
         # y (center of the box, no wrap around)
-        yi = (y + 90) / 180 * self.y_dim  - 0.5
+        yi = (y + 90) / 180 * self.y_dim - 0.5
 
         # z (center of the box, no wrap around)
         r = self.z_right
         c = self.z_center
-        m = len(c)-1
+        m = len(c) - 1
 
         zi = bisect.bisect_left(c, z) - 1
         if zi == -1:
             assert z <= c[0]
-            zi = 1/2 * (z / c[0] - 1)
+            zi = 0.5 * (z / c[0] - 1)
         elif zi == m:
             assert z >= c[m]
-            zi = m +  1/2 * (z - c[m]) / (r[m] - c[m])
+            zi = m + 0.5 * (z - c[m]) / (r[m] - c[m])
         else:
-            assert z >= c[zi] and z <= c[zi+1]
-            zi += 1/2 * (min(z, r[zi]) - c[zi]) / (r[zi] - c[zi]) + 1/2 * (max(z, r[zi]) - r[zi]) / (c[zi+1] - r[zi])
+            assert z >= c[zi] and z <= c[zi + 1]
+            zi += 0.5 * (min(z, r[zi]) - c[zi]) / (r[zi] - c[zi]) + 0.5 * (max(z, r[zi]) - r[zi]) / (c[zi + 1] - r[zi])
 
         # concatenate (float) index
         if t_dim is not None:
@@ -433,7 +412,6 @@ class LandSeaMask():
         # return
         return map_index
 
-
     def coordinates_to_map_indices(self, points, discard_year=False, int_indices=True):
         points = np.asanyarray(points)
         result_ndim = points.ndim
@@ -443,9 +421,9 @@ class LandSeaMask():
 
         n = len(points)
         if int_indices:
-            dtype= np.int32
+            dtype = np.int32
         else:
-            dtype= np.float
+            dtype = np.float
         new_points = np.empty((n, self.ndim), dtype=dtype)
 
         for i in range(n):
@@ -456,7 +434,6 @@ class LandSeaMask():
 
         util.logging.debug('Transforming from coordinates to map indices done.')
         return new_points
-
 
     def map_index_to_coordinate(self, ti, xi, yi, zi, use_modulo_for_x=True):
         # t (left or center of the box, wrap around)
@@ -481,7 +458,7 @@ class LandSeaMask():
         # z (center of the box, no wrap around)
         r = self.z_right
         c = self.z_center
-        m = len(c)-1
+        m = len(c) - 1
 
         if zi < 0:
             z = (2 * zi + 1) * c[0]
@@ -497,7 +474,7 @@ class LandSeaMask():
             else:
                 zi_fraction -= 0.5
                 z = 2 * zi_fraction * (c[zi_floor + 1] - r[zi_floor]) + r[zi_floor]
-            assert z >= c[zi_floor] and z <= c[zi_floor+1]
+            assert z >= c[zi_floor] and z <= c[zi_floor + 1]
 
         # concatenate coordinates
         if t_dim is not None:
@@ -512,7 +489,6 @@ class LandSeaMask():
         assert coordinates[-1] >= 0
         assert coordinates[-1] <= measurements.constants.MAX_SEA_DEPTH
         return coordinates
-
 
     def map_indices_to_coordinates(self, points, use_modulo_for_x=True):
         result_ndim = points.ndim
@@ -531,7 +507,6 @@ class LandSeaMask():
         util.logging.debug('Transforming from map indices to coordinates done.')
         return new_points
 
-
     # values to map
 
     def apply_mask(self, array, land_value=np.nan):
@@ -543,23 +518,19 @@ class LandSeaMask():
             array[i][z_max:] = land_value
         return array
 
-
     def masked_map(self, default_value=0, land_value=np.nan, dtype=np.float64):
         masked_map = np.ones(self.dim, dtype=dtype) * default_value
         self.apply_mask(masked_map, land_value=land_value)
         return masked_map
 
-
     @property
     def bool_mask(self):
         return self.masked_map(dtype=np.bool, default_value=True, land_value=False)
 
-
     def insert_coordinate_values_in_map(self, values, no_data_value=0, skip_values_on_land=True):
         values = np.copy(values)
-        values[:,:-1] = self.coordinates_to_map_indices(values[:,:-1], discard_year=True, int_indices=True)
+        values[:, :-1] = self.coordinates_to_map_indices(values[:, :-1], discard_year=True, int_indices=True)
         return self.insert_index_values_in_map(values, no_data_value=no_data_value, skip_values_on_land=skip_values_on_land)
-
 
     def insert_index_values_in_map(self, values, no_data_value=0, skip_values_on_land=True):
         util.logging.debug('Inserting {} values in map with value {} for no data.'.format(len(values), no_data_value))
@@ -605,19 +576,16 @@ class LandSeaMask():
         # return
         return value_map
 
-
     # plot
     def plot(self):
         import util.plot
         file = '/tmp/{}.png'.format(self)
         util.plot.data(self.lsm, file, land_value=0, power_limit=10)
 
-
     # copy
     def copy(self):
         import copy
         return copy.deepcopy(self)
-
 
 
 class LandSeaMaskFromFile(LandSeaMask):
@@ -631,7 +599,6 @@ class LandSeaMaskFromFile(LandSeaMask):
 
         super().__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
 
-
     @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
     def _calculate_lsm(self):
         raise NotImplementedError
@@ -641,21 +608,18 @@ class LandSeaMaskFromFile(LandSeaMask):
         raise NotImplementedError
 
 
-
 class LandSeaMaskTMM(LandSeaMaskFromFile):
 
     def __init__(self, t_dim=None, t_centered=True):
         super().__init__(measurements.land_sea_mask.constants.TMM_DIR, t_dim=t_dim, t_centered=t_centered)
 
-
     @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
     @overrides.overrides
     def _calculate_lsm(self):
         lsm = util.petsc.universal.load_petsc_mat_to_array(measurements.land_sea_mask.constants.TMM_PETSC_FILE, dtype=np.int16)
-        lsm = lsm.transpose() # metos3d: x and y are changed
+        lsm = lsm.transpose()  # metos3d: x and y are changed
         assert lsm.shape == (128, 64) and lsm.min() == 0 and lsm.max() == 15
         return lsm
-
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._depth_file)
     @overrides.overrides
@@ -665,18 +629,15 @@ class LandSeaMaskTMM(LandSeaMaskFromFile):
         assert depth.ndim == 1 and depth.shape[0] == 16
         return depth
 
-
     @property
     def name(self):
         return super().name + '_tmm'
-
 
 
 class LandSeaMaskWOA13(LandSeaMaskFromFile):
 
     def __init__(self, t_dim=None, t_centered=True):
         super().__init__(measurements.land_sea_mask.constants.WOA13_DIR, t_dim=t_dim, t_centered=t_centered)
-
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
     @overrides.overrides
@@ -685,7 +646,7 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
         lsm = np.genfromtxt(measurements.land_sea_mask.constants.WOA13_LSM_TXT_FILE, dtype=float, delimiter=',', comments='#', usecols=(1, 0, 2))
 
         # normalize values
-        lsm[:,0] = lsm[:,0] % 360
+        lsm[:, 0] = lsm[:, 0] % 360
 
         lsm = lsm - lsm.min(axis=0)
 
@@ -693,7 +654,7 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
         lsm_int = lsm.astype(np.int16)
 
         assert np.all(lsm_int == lsm)
-        assert lsm_int[:,0].min() == 0 and lsm_int[:,0].max() == 359 and lsm_int[:,1].min() == 0 and lsm_int[:,1].max() == 179 and lsm_int[:,2].min() == 0 and lsm_int[:,2].max() == 137
+        assert lsm_int[:, 0].min() == 0 and lsm_int[:, 0].max() == 359 and lsm_int[:, 1].min() == 0 and lsm_int[:, 1].max() == 179 and lsm_int[:, 2].min() == 0 and lsm_int[:, 2].max() == 137
 
         # convert in 2 dim
         lsm = np.empty((360, 180), dtype=np.int16)
@@ -702,7 +663,6 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
 
         assert lsm.min() == 0 and lsm.max() == 137
         return lsm
-
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._depth_file)
     @overrides.overrides
@@ -715,7 +675,6 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
     @property
     def name(self):
         return super().name + '_woa13'
-
 
 
 class LandSeaMaskWOA13R(LandSeaMask):
