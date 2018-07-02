@@ -577,10 +577,23 @@ class LandSeaMask():
         return value_map
 
     # plot
-    def plot(self):
+    def plot(self, use_depth=True):
         import util.plot
-        file = '/tmp/{}.png'.format(self)
-        util.plot.data(self.lsm, file, land_value=0, power_limit=10)
+        import matplotlib.pyplot
+
+        # get filename
+        filename = str(self)
+        if use_depth:
+            data = self.z[self.lsm] / 10**3
+            filename += '_with_depth'
+        else:
+            data = self.lsm
+            filename += '_with_depth_level'
+        file = '/tmp/{}.png'.format(filename)
+
+        # plot
+        cm = matplotlib.pyplot.cm.winter_r
+        util.plot.data(data, file, land_value=0, power_limit=10, colormap=cm)
 
     # copy
     def copy(self):
