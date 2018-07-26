@@ -3,6 +3,7 @@ import argparse
 import util.logging
 
 import measurements.all.data
+import measurements.universal.autocorrelation
 
 
 def _main():
@@ -27,6 +28,9 @@ def _main():
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Calculate and save concentration standard deviations for points of sample land sea mask.')
     parser.add_argument('--average_noise_standard_deviations_for_sample_lsm', action='store_true', help='Calculate and save average noise standard deviations for points of sample land sea mask.')
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Calculate and save standard deviations for points of sample land sea mask.')
+
+    parser.add_argument('--autocorrelation_sample_correlation', action='store', nargs='*', help='Calculate and save autocorrelation of sample correlation of measurements.')
+    parser.add_argument('--autocorrelation_correlation', action='store', nargs='*', help='Calculate and save autocorrelation of correlation of measurements.')
 
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
@@ -77,6 +81,24 @@ def _main():
                 m.average_noise_standard_deviations_for_sample_lsm
             if args.standard_deviations_sample_lsm:
                 m.standard_deviations_for_sample_lsm
+
+        if args.autocorrelation_sample_correlation is not None:
+            if len(args.autocorrelation_sample_correlation) == 0:
+                autocorrelation_sample_correlation = None
+            else:
+                autocorrelation_sample_correlation = args.autocorrelation_sample_correlation
+            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
+            ma.autocorrelation(axis=autocorrelation_sample_correlation,
+                               use_sample_correlation=True)
+
+        if args.autocorrelation_correlation is not None:
+            if len(args.autocorrelation_correlation) == 0:
+                autocorrelation_correlation = None
+            else:
+                autocorrelation_correlation = args.autocorrelation_correlation
+            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
+            ma.autocorrelation(axis=autocorrelation_correlation,
+                               use_sample_correlation=False)
 
 
 if __name__ == "__main__":
