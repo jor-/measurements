@@ -67,12 +67,12 @@ setuptools.setup(
     install_requires=[
         'numpy',
         'scipy',
+        'matplotlib',
         'overrides',
         'matrix-decomposition',
-        'utillib[cache,options,interpolate]',
+        'utillib[cache,options,interpolate,plot]',
     ],
     extras_require={
-        'plot': ['matplotlib', 'utillib[plot]'],
         'sorted_measurements_dict': ['utillib[sorted_multi_dict]'],
     },
 
