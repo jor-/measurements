@@ -227,3 +227,30 @@ CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE = os.path.join(
         'min_diag_{decomposition_min_diag_value:.0e}',
         'dev:_{standard_deviation_id}',
         '{dtype}.{matrix_format}.npz']))
+
+AUTOCORRELATION_SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
+    CORRELATION_DIR,
+    'autocorrelation_sample_correlation', SEPERATOR.join([
+        'autocorrelation',
+        'axis_{axis}',
+        'sample_{sample_lsm}',
+        'min_values_{min_measurements_correlation:0>2d}',
+        'min_abs_{min_abs_correlation}',
+        'max_abs_{max_abs_correlation}',
+        'dev:_{standard_deviation_id}',
+        '{dtype}.npz']))
+
+AUTOCORRELATION_CORRELATION_MATRIX_FILE = os.path.join(
+    CORRELATION_DIR,
+    'autocorrelation_correlation', SEPERATOR.join([
+        'autocorrelation',
+        'axis_{axis}',
+        'sample_{sample_lsm}',
+        'min_values_{min_measurements_correlation:0>2d}',
+        'min_abs_{min_abs_correlation}',
+        'max_abs_{max_abs_correlation}',
+        '{decomposition_type}',
+        '{permutation_method_decomposition_correlation}',
+        'min_diag_{decomposition_min_diag_value:.0e}',
+        'dev:_{standard_deviation_id}',
+        '{dtype}.npz']))
