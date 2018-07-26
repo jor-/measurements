@@ -1244,10 +1244,12 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         util.cache.file.save(self.correlations_own_decomposition_omega_cache_file(), correlation_matrix_decomposition.omega, np.save)
         return correlation_matrix_decomposition
 
+    @property
     @util.cache.file.decorator(load_function=np.load, save_function=np.save)
     def correlations_own_decomposition_delta(self):
         return self.correlations_own_decomposition.delta
 
+    @property
     @util.cache.file.decorator(load_function=np.load, save_function=np.save)
     def correlations_own_decomposition_omega(self):
         return self.correlations_own_decomposition.omega
