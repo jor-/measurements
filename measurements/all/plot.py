@@ -6,13 +6,14 @@ import util.logging
 
 import measurements.all.data
 import measurements.plot.data
+import measurements.universal.autocorrelation
 
 
 def _main():
     # parse arguments
     parser = argparse.ArgumentParser(description='Save data from measurements.')
 
-    parser.add_argument('--tracers', nargs='+', default=None, choices=measurements.all.data.TRACERS, help='The tracers for which the data should be saved.')
+    parser.add_argument('--tracers', nargs='+', default=None, choices=measurements.all.data.TRACERS, help='The tracers for which the data should be plotted.')
     parser.add_argument('--min_standard_deviations', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
     parser.add_argument('--min_measurements_correlations', nargs='+', default=None, type=int, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
     parser.add_argument('--max_box_distance_to_water', default=None, type=int, help='The maximal number of boxes allowed as distance to a water box.')
@@ -22,6 +23,9 @@ def _main():
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
     parser.add_argument('--sample_correlation_sparsity_pattern', default=None, choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', default=None, type=bool, choices=(True, False), help='Plot histogram of sample correlation of measurements with passed using abs.')
+
+    parser.add_argument('--autocorrelation_sample_correlation', action='store', default=None, nargs=1, help='Plot autocorrelation of sample correlation of measurements.')
+    parser.add_argument('--autocorrelation_correlation', action='store', default=None, nargs=1, help='Plot autocorrelation of correlation of measurements.')
 
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
@@ -53,6 +57,16 @@ def _main():
 
         if args.sample_correlation_histogram is not None:
             measurements.plot.data.sample_correlation_histogram(m, use_abs=args.sample_correlation_histogram)
+
+        if args.autocorrelation_sample_correlation is not None:
+            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
+            ma.plot(axis=args.autocorrelation_sample_correlation,
+                    use_sample_correlation=True)
+
+        if args.autocorrelation_correlation is not None:
+            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
+            ma.plot(axis=args.autocorrelation_correlation,
+                    use_sample_correlation=False)
 
 
 if __name__ == "__main__":
