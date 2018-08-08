@@ -1,9 +1,12 @@
+import pathlib
+
 import numpy as np
 import scipy.sparse
 
 import overrides
 
 import util.cache
+import util.plot
 import measurements.universal.constants
 
 
@@ -73,6 +76,21 @@ class Autocorrelation():
         # return
         return autocorrelation_array
 
+    def plot(self, axis, file, use_sample_correlation=False):
+        axis = self._prepare_axis(axis)
+        if len(axis) != 1:
+            raise ValueError(f'axis has to be an integer but it is {axis}.')
+        autocorrelation = self.autocorrelation(axis=axis, use_sample_correlation=use_sample_correlation)
+        assert autocorrelation.shape[1] == 2
+        x = autocorrelation[:, 0]
+        reliable_decimals = np.finfo(x.dtype).precision - 4
+        x = np.around(x, decimals=reliable_decimals)
+        y = autocorrelation[:, 1]
+        positions = np.unique(x)
+        dataset = tuple(np.sort(y[x == p]) for p in positions)
+        util.plot.violin(positions, dataset, file)
+        return file
+
 
 class AutocorrelationCache(Autocorrelation):
 
@@ -112,3 +130,15 @@ class AutocorrelationCache(Autocorrelation):
                 standard_deviation_id=m.standard_deviation_id_without_sample_lsm,
                 dtype=m.dtype_correlation,
                 axis=axis_str)
+
+    @overrides.overrides
+    def plot(self, axis, file=None, use_sample_correlation=False):
+        if file is None:
+            file = self.plot_file(axis=axis, use_sample_correlation=use_sample_correlation)
+        return super().plot(axis, file, use_sample_correlation=use_sample_correlation)
+
+    def plot_file(self, axis=None, use_sample_correlation=False):
+        autocorrelation_cache_file = self.autocorrelation_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
+        autocorrelation_cache_file = pathlib.PurePath(autocorrelation_cache_file)
+        plot_file = autocorrelation_cache_file.with_suffix('.svg')
+        return plot_file
