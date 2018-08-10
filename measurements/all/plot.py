@@ -6,7 +6,7 @@ import util.logging
 
 import measurements.all.data
 import measurements.plot.data
-import measurements.universal.autocorrelation
+import measurements.universal.correlation
 
 
 def _main():
@@ -59,14 +59,14 @@ def _main():
             measurements.plot.data.sample_correlation_histogram(m, use_abs=args.sample_correlation_histogram)
 
         if args.autocorrelation_sample_correlation is not None:
-            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
-            ma.plot(axis=args.autocorrelation_sample_correlation,
-                    use_sample_correlation=True)
+            ma = measurements.universal.correlation.CorrelationCache(m)
+            ma.plot_autocorrelation(axis=args.autocorrelation_sample_correlation,
+                                    use_sample_correlation=True)
 
         if args.autocorrelation_correlation is not None:
-            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
-            ma.plot(axis=args.autocorrelation_correlation,
-                    use_sample_correlation=False)
+            ma = measurements.universal.correlation.CorrelationCache(m)
+            ma.plot_autocorrelation(axis=args.autocorrelation_correlation,
+                                    use_sample_correlation=False)
 
 
 if __name__ == "__main__":

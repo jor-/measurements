@@ -3,7 +3,7 @@ import argparse
 import util.logging
 
 import measurements.all.data
-import measurements.universal.autocorrelation
+import measurements.universal.correlation
 
 
 def _main():
@@ -87,18 +87,18 @@ def _main():
                 autocorrelation_sample_correlation = None
             else:
                 autocorrelation_sample_correlation = args.autocorrelation_sample_correlation
-            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
-            ma.autocorrelation(axis=autocorrelation_sample_correlation,
-                               use_sample_correlation=True)
+            ma = measurements.universal.correlation.CorrelationCache(m)
+            ma.autocorrelation_array(axis=autocorrelation_sample_correlation,
+                                     use_sample_correlation=True)
 
         if args.autocorrelation_correlation is not None:
             if len(args.autocorrelation_correlation) == 0:
                 autocorrelation_correlation = None
             else:
                 autocorrelation_correlation = args.autocorrelation_correlation
-            ma = measurements.universal.autocorrelation.AutocorrelationCache(m)
-            ma.autocorrelation(axis=autocorrelation_correlation,
-                               use_sample_correlation=False)
+            ma = measurements.universal.correlation.CorrelationCache(m)
+            ma.autocorrelation_array(axis=autocorrelation_correlation,
+                                     use_sample_correlation=False)
 
 
 if __name__ == "__main__":
