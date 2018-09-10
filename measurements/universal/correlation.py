@@ -109,12 +109,11 @@ class Correlation():
 
     def plot_autocorrelation(self, axis, file, use_sample_correlation=False):
         axis = self._prepare_axis(axis)
-        if len(axis) != 1:
-            raise ValueError(f'axis has to be an integer but it is {axis}.')
         autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
-        assert autocorrelation.shape[1] == 2
-        x = autocorrelation[:, 0]
-        y = autocorrelation[:, 1]
+        assert autocorrelation.shape[1] == len(axis) + 1
+        x = autocorrelation[:, :-1]
+        x = np.linalg.norm(x, ord=2, axis=1)
+        y = autocorrelation[:, -1]
         positions = np.unique(x)
         dataset = tuple(np.sort(y[x == p]) for p in positions)
         util.plot.violin(positions, dataset, file)

@@ -24,8 +24,8 @@ def _main():
     parser.add_argument('--sample_correlation_sparsity_pattern', default=None, choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', default=None, type=bool, choices=(True, False), help='Plot histogram of sample correlation of measurements with passed using abs.')
 
-    parser.add_argument('--autocorrelation_sample_correlation', action='store', default=None, nargs=1, help='Plot autocorrelation of sample correlation of measurements.')
-    parser.add_argument('--autocorrelation_correlation', action='store', default=None, nargs=1, help='Plot autocorrelation of correlation of measurements.')
+    parser.add_argument('--autocorrelation_sample_correlation', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements.')
+    parser.add_argument('--autocorrelation_correlation', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements.')
 
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
