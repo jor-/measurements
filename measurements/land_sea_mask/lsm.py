@@ -348,92 +348,147 @@ class LandSeaMask():
 
     # convert map indices and coordinates
 
-    def coordinate_to_map_index(self, t, x, y, z, discard_year=False, int_indices=True):
+    def _float_index_to_int_index(self, f, int_indices=True):
+        if int_indices:
+            f = np.asanyarray(f)
+            # if 0.5 is fractional part round up (and not round half to even which is numpys default)
+            mask = f % 1 == 0.5
+            f[mask] = f[mask] + 0.5
+            # convert to next integer
+            f = np.round(f)
+        return f
+
+    def t_to_map_index(self, t, discard_year=False, int_indices=True):
         # t (center of the box, wrap around)
         try:
             t_dim = self.t_dim_with_value_check
         except ValueError:
-            t_dim = None
-
-        if t_dim is not None:
+            ti = None
+        else:
             ti = t * t_dim
             if discard_year:
-                ti = (ti % t_dim)
+                ti = ti % t_dim
             if self.t_centered:
                 ti -= 0.5
+            ti = self._float_index_to_int_index(ti, int_indices=int_indices)
+            assert ((not discard_year)
+                    or ((int_indices or (not self.t_centered)) and np.all(np.logical_and(ti >= 0, ti < self.t_dim)))
+                    or (((not int_indices) and self.t_centered) and np.all(np.logical_and(ti >= -0.5, ti < self.t_dim - 0.5))))
+        # return
+        return ti
 
+    def x_to_map_index(self, x, int_indices=True):
         # x (center of the box, wrap around)
         xi = (x % 360) / 360 * self.x_dim - 0.5
+        # to int index
+        xi = self._float_index_to_int_index(xi, int_indices=int_indices)
+        # return
+        assert (int_indices and np.all(np.logical_and(xi >= 0, xi <= self.x_dim))
+                or ((not int_indices) and np.all(np.logical_and(xi >= -0.5, xi <= self.x_dim - 0.5))))
+        return xi
 
+    def y_to_map_index(self, y, int_indices=True):
         # y (center of the box, no wrap around)
         yi = (y + 90) / 180 * self.y_dim - 0.5
+        # to int index
+        yi = self._float_index_to_int_index(yi, int_indices=int_indices)
+        # y = 90 degree
+        if int_indices:
+            yi = np.asanyarray(yi)
+            yi[yi == self.y_dim] = self.y_dim - 1
+        # return
+        assert (int_indices and np.all(np.logical_and(yi >= 0, yi <= self.y_dim))
+                or ((not int_indices) and np.all(np.logical_and(yi >= -0.5, yi <= self.y_dim - 0.5))))
+        return yi
 
+    def z_to_map_index(self, z, int_indices=True):
         # z (center of the box, no wrap around)
         r = self.z_right
         c = self.z_center
         m = len(c) - 1
 
-        zi = bisect.bisect_left(c, z) - 1
-        if zi == -1:
-            assert z <= c[0]
-            zi = 0.5 * (z / c[0] - 1)
-        elif zi == m:
-            assert z >= c[m]
-            zi = m + 0.5 * (z - c[m]) / (r[m] - c[m])
-        else:
-            assert z >= c[zi] and z <= c[zi + 1]
-            zi += 0.5 * (min(z, r[zi]) - c[zi]) / (r[zi] - c[zi]) + 0.5 * (max(z, r[zi]) - r[zi]) / (c[zi + 1] - r[zi])
+        # find index to the left
+        z = np.asanyarray(z)
+        zi = np.searchsorted(c, z, side='left') - 1
+        zi = np.asanyarray(zi)
 
-        # concatenate (float) index
-        if t_dim is not None:
-            map_index = (ti, xi, yi, zi)
-        else:
-            map_index = (xi, yi, zi)
+        # masks
+        mask_below = zi == -1
+        mask_above = zi == m
+        mask_between = np.logical_and(np.logical_not(mask_below),
+                                      np.logical_not(mask_above))
 
-        # convert to int if needed
+        # between centered values
+        assert np.all(np.logical_and(z[mask_between] >= c[zi[mask_between]],
+                                     z[mask_between] <= c[zi[mask_between] + 1]))
+        zi_mask_between_offset = (+ 0.5 * (np.minimum(z[mask_between], r[zi[mask_between]]) - c[zi[mask_between]])
+                                  / (r[zi[mask_between]] - c[zi[mask_between]])
+                                  + 0.5 * (np.maximum(z[mask_between], r[zi[mask_between]]) - r[zi[mask_between]])
+                                  / (c[zi[mask_between] + 1] - r[zi[mask_between]]))
+        zi = zi.astype(np.float, copy=False)
+        zi[mask_between] = zi[mask_between] + zi_mask_between_offset
+
+        # below first centered value
+        assert np.all(z[mask_below] <= c[0])
+        zi[mask_below] = 0.5 * (z[mask_below] / c[0] - 1)
+
+        # above last centered value
+        assert np.all(z[mask_above] >= c[m])
+        zi[mask_above] = m + 0.5 * (z[mask_above] - c[m]) / (r[m] - c[m])
+
+        # to int index
+        zi = self._float_index_to_int_index(zi, int_indices=int_indices)
+
+        # below z bottom
         if int_indices:
-            # round half up (and not round half to even which is numpys default)
-            map_index = np.array(map_index)
-            tie_mask = map_index % 1 == 0.5
-            map_index[tie_mask] = map_index[tie_mask] + 0.5
-            map_index = np.array(np.round(map_index), dtype=np.int32)
-            # check bounds
-            if map_index[-1] > self.z_dim:          # below z bottom
-                map_index[-1] = self.z_dim
-            if map_index[-2] == self.y_dim:         # y = 90 degree
-                map_index[-2] = self.y_dim - 1
-            # convert back to tuple
-            map_index = tuple(map_index)
-            assert len(map_index) == 3 or (not discard_year) or (map_index[0] >= 0 and map_index[0] < self.t_dim)
-            assert (map_index[-3] >= 0 and map_index[-3] < self.x_dim)
-            assert (map_index[-2] >= 0 and map_index[-2] < self.y_dim)
-            assert (map_index[-1] >= 0 and map_index[-1] <= self.z_dim)
+            zi[zi > self.z_dim] = self.z_dim
 
         # return
-        return map_index
+        assert ((int_indices and np.all(np.logical_and(zi >= 0, zi <= self.z_dim)))
+                or ((not int_indices) and np.all(zi >= -0.5)))
+        return zi
 
     def coordinates_to_map_indices(self, points, discard_year=False, int_indices=True):
+        # convert points to 2 dim array
         points = np.asanyarray(points)
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
         util.logging.debug('Transforming {} coordinates to map indices for {} with discard year {} and int_indices {}.'.format(len(points), self, discard_year, int_indices))
 
+        # create map indices array
         n = len(points)
         if int_indices:
             dtype = np.int32
         else:
             dtype = np.float
-        new_points = np.empty((n, self.ndim), dtype=dtype)
+        ndim = self.ndim
+        map_indices = np.empty((n, ndim), dtype=dtype)
 
-        for i in range(n):
-            new_points[i] = self.coordinate_to_map_index(*points[i], discard_year=discard_year, int_indices=int_indices)
+        # convert
+        convert_functions = (lambda t: self.t_to_map_index(t, discard_year=discard_year, int_indices=int_indices),
+                             lambda x: self.x_to_map_index(x, int_indices=int_indices),
+                             lambda y: self.y_to_map_index(y, int_indices=int_indices),
+                             lambda z: self.z_to_map_index(z, int_indices=int_indices))
+        for i in range(-1, -ndim - 1, -1):
+            map_indices[:, i] = convert_functions[i](points[:, i])
 
+        # return
         if result_ndim == 1:
-            new_points = new_points[0]
-
+            map_indices = map_indices[0]
         util.logging.debug('Transforming from coordinates to map indices done.')
-        return new_points
+        return map_indices
+
+    def coordinate_to_map_index(self, t, x, y, z, discard_year=False, int_indices=True):
+        # convert to point
+        if self.t_dim is not None:
+            point = np.array((t, x, y, z))
+        else:
+            point = np.array((x, y, z))
+
+        # return
+        map_index = self.coordinates_to_map_indices(point, discard_year=discard_year, int_indices=int_indices)
+        return map_index
 
     def map_index_to_coordinate(self, ti, xi, yi, zi, use_modulo_for_x=True):
         # t (left or center of the box, wrap around)
