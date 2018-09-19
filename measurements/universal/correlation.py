@@ -189,7 +189,9 @@ class CorrelationCache(Correlation):
     def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False):
         if file is None:
             file = self.plot_autocorrelation_file(axis=axis, use_sample_correlation=use_sample_correlation)
-        return super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
+        if not pathlib.Path(file).exists():
+            super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
+        return file
 
     def plot_autocorrelation_file(self, axis=None, use_sample_correlation=False):
         autocorrelation_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
