@@ -71,16 +71,11 @@ class Correlation():
             point_dim = int(point_dim)
 
             # remove unwanted axes
-            points_1 = correlation_array[:, :point_dim]
-            points_1 = mo.sample_lsm.coordinates_to_map_indices(points_1, discard_year=False, int_indices=True)
-            points_2 = correlation_array[:, point_dim: 2 * point_dim]
-            points_2 = mo.sample_lsm.coordinates_to_map_indices(points_2, discard_year=False, int_indices=True)
             axis = self._prepare_axis(axis)
             for i in range(point_dim):
                 if i not in axis:
-                    mask = points_1[:, i] == points_2[:, i]
-                    points_1 = points_1[mask]
-                    points_2 = points_2[mask]
+                    mask = (mo.sample_lsm.coordinates_to_map_indices_single_axis(correlation_array[:, i], i, discard_year=False, int_indices=True) ==
+                            mo.sample_lsm.coordinates_to_map_indices_single_axis(correlation_array[:, i + point_dim], i, discard_year=False, int_indices=True))
                     correlation_array = correlation_array[mask]
             correlation_array_axes = axis.tolist() + (axis + point_dim).tolist() + [-1]
             correlation_array = correlation_array[:, correlation_array_axes]
