@@ -68,7 +68,7 @@ class LandSeaMask():
 
     @property
     def z_dim(self):
-        return len(self._depth_level) - 1
+        return len(self.z) - 1
 
     @property
     def space_dim(self):
@@ -348,14 +348,15 @@ class LandSeaMask():
 
     # convert map indices and coordinates
 
-    def _float_index_to_int_index(self, f, int_indices=True):
-        if int_indices:
-            f = np.asanyarray(f)
-            # if 0.5 is fractional part round up (and not round half to even which is numpys default)
-            mask = f % 1 == 0.5
-            f[mask] = f[mask] + 0.5
-            # convert to next integer
-            f = np.round(f)
+    def _float_index_to_int_index(self, f, dtype=np.int):
+        f = np.asanyarray(f)
+        # if 0.5 is fractional part round up (and not round half to even which is numpys default)
+        mask = f % 1 == 0.5
+        f[mask] = f[mask] + 0.5
+        # convert to next integer
+        f = np.round(f)
+        # convert to integer array
+        f = f.astype(dtype, casting='unsafe', copy=False)
         return f
 
     def t_to_map_index(self, t, discard_year=False, int_indices=True):
@@ -370,55 +371,67 @@ class LandSeaMask():
                 ti = ti % t_dim
             if self.t_centered:
                 ti -= 0.5
-            ti = self._float_index_to_int_index(ti, int_indices=int_indices)
+            if int_indices:
+                if discard_year:
+                    dtype = np.min_scalar_type(t_dim - 1)
+                else:
+                    dtype = np.int
+                ti = self._float_index_to_int_index(ti, dtype=dtype)
             assert ((not discard_year)
-                    or ((int_indices or (not self.t_centered)) and np.all(np.logical_and(ti >= 0, ti < self.t_dim)))
-                    or (((not int_indices) and self.t_centered) and np.all(np.logical_and(ti >= -0.5, ti < self.t_dim - 0.5))))
+                    or ((int_indices or (not self.t_centered)) and np.all(np.logical_and(ti >= 0, ti < t_dim)))
+                    or (((not int_indices) and self.t_centered) and np.all(np.logical_and(ti >= -0.5, ti < t_dim - 0.5))))
         # return
         return ti
 
     def x_to_map_index(self, x, int_indices=True):
         # x (center of the box, wrap around)
-        xi = (x % 360) / 360 * self.x_dim - 0.5
+        x_dim = self.x_dim
+        xi = (x % 360) / 360 * x_dim - 0.5
         # to int index
-        xi = self._float_index_to_int_index(xi, int_indices=int_indices)
+        if int_indices:
+            xi = self._float_index_to_int_index(xi, dtype=np.min_scalar_type(x_dim - 1))
         # return
-        assert (int_indices and np.all(np.logical_and(xi >= 0, xi <= self.x_dim))
-                or ((not int_indices) and np.all(np.logical_and(xi >= -0.5, xi <= self.x_dim - 0.5))))
+        assert (int_indices and np.all(np.logical_and(xi >= 0, xi < x_dim))
+                or ((not int_indices) and np.all(np.logical_and(xi >= -0.5, xi < x_dim - 0.5))))
         return xi
 
     def y_to_map_index(self, y, int_indices=True):
         # y (center of the box, no wrap around)
-        yi = (y + 90) / 180 * self.y_dim - 0.5
+        y_dim = self.y_dim
+        yi = (y + 90) / 180 * y_dim - 0.5
         # to int index
-        yi = self._float_index_to_int_index(yi, int_indices=int_indices)
+        if int_indices:
+            yi = self._float_index_to_int_index(yi, dtype=np.min_scalar_type(y_dim - 1))
         # y = 90 degree
         if int_indices:
             yi = np.asanyarray(yi)
-            yi[yi == self.y_dim] = self.y_dim - 1
+            yi[yi == y_dim] = y_dim - 1
         # return
-        assert (int_indices and np.all(np.logical_and(yi >= 0, yi <= self.y_dim))
-                or ((not int_indices) and np.all(np.logical_and(yi >= -0.5, yi <= self.y_dim - 0.5))))
+        assert (int_indices and np.all(np.logical_and(yi >= 0, yi < y_dim))
+                or ((not int_indices) and np.all(np.logical_and(yi >= -0.5, yi <= y_dim - 0.5))))
         return yi
 
     def z_to_map_index(self, z, int_indices=True):
         # z (center of the box, no wrap around)
+        z_dim = self.z_dim
         r = self.z_right
         c = self.z_center
-        m = len(c) - 1
+        assert len(c) == len(r)
+        assert len(c) == z_dim
 
         # find index to the left
         z = np.asanyarray(z)
-        zi = np.searchsorted(c, z, side='left') - 1
+        zi = np.searchsorted(c, z, side='left')
         zi = np.asanyarray(zi)
 
         # masks
-        mask_below = zi == -1
-        mask_above = zi == m
+        mask_below = zi == 0
+        mask_above = zi == z_dim
         mask_between = np.logical_and(np.logical_not(mask_below),
                                       np.logical_not(mask_above))
 
         # between centered values
+        zi = zi - 1
         assert np.all(np.logical_and(z[mask_between] >= c[zi[mask_between]],
                                      z[mask_between] <= c[zi[mask_between] + 1]))
         zi_mask_between_offset = (+ 0.5 * (np.minimum(z[mask_between], r[zi[mask_between]]) - c[zi[mask_between]])
@@ -426,27 +439,45 @@ class LandSeaMask():
                                   + 0.5 * (np.maximum(z[mask_between], r[zi[mask_between]]) - r[zi[mask_between]])
                                   / (c[zi[mask_between] + 1] - r[zi[mask_between]]))
         zi = zi.astype(np.float, copy=False)
-        zi[mask_between] = zi[mask_between] + zi_mask_between_offset
+        if len(zi_mask_between_offset) > 0:
+            zi[mask_between] = zi[mask_between] + zi_mask_between_offset
+        del mask_between
 
-        # below first centered value
+        # above first centered value
         assert np.all(z[mask_below] <= c[0])
         zi[mask_below] = 0.5 * (z[mask_below] / c[0] - 1)
+        del mask_below
 
-        # above last centered value
-        assert np.all(z[mask_above] >= c[m])
-        zi[mask_above] = m + 0.5 * (z[mask_above] - c[m]) / (r[m] - c[m])
+        # below last centered value
+        assert np.all(z[mask_above] >= c[-1])
+        zi[mask_above] = z_dim - 1 + 0.5 * (z[mask_above] - c[-1]) / (r[-1] - c[-1])
+        del mask_above
 
         # to int index
-        zi = self._float_index_to_int_index(zi, int_indices=int_indices)
-
-        # below z bottom
         if int_indices:
-            zi[zi > self.z_dim] = self.z_dim
+            zi = self._float_index_to_int_index(zi, dtype=np.min_scalar_type(z_dim))
+            zi[zi > z_dim] = z_dim
 
         # return
-        assert ((int_indices and np.all(np.logical_and(zi >= 0, zi <= self.z_dim)))
+        assert ((int_indices
+                 and np.all(np.logical_and(zi >= 0, zi <= z_dim))
+                 and np.all(self.z[zi] <= z)
+                 and np.all(z[zi < z_dim] < self.z[zi[zi < z_dim] + 1]))
                 or ((not int_indices) and np.all(zi >= -0.5)))
         return zi
+
+    def coordinates_to_map_indices_single_axis(self, values, axis, discard_year=False, int_indices=True):
+        values = np.asanyarray(values)
+        assert values.ndim == 1
+
+        convert_functions = (lambda t: self.t_to_map_index(t, discard_year=discard_year, int_indices=int_indices),
+                             lambda x: self.x_to_map_index(x, int_indices=int_indices),
+                             lambda y: self.y_to_map_index(y, int_indices=int_indices),
+                             lambda z: self.z_to_map_index(z, int_indices=int_indices))
+        convert_function = convert_functions[axis]
+
+        map_indices = convert_function(values)
+        return map_indices
 
     def coordinates_to_map_indices(self, points, discard_year=False, int_indices=True):
         # convert points to 2 dim array
@@ -459,19 +490,18 @@ class LandSeaMask():
         # create map indices array
         n = len(points)
         if int_indices:
-            dtype = np.int32
+            if discard_year or points.shape[1] < 4:
+                dtype = np.min_scalar_type(np.max(self.dim) - 1)
+            else:
+                dtype = np.int
         else:
             dtype = np.float
         ndim = self.ndim
         map_indices = np.empty((n, ndim), dtype=dtype)
 
         # convert
-        convert_functions = (lambda t: self.t_to_map_index(t, discard_year=discard_year, int_indices=int_indices),
-                             lambda x: self.x_to_map_index(x, int_indices=int_indices),
-                             lambda y: self.y_to_map_index(y, int_indices=int_indices),
-                             lambda z: self.z_to_map_index(z, int_indices=int_indices))
         for i in range(-1, -ndim - 1, -1):
-            map_indices[:, i] = convert_functions[i](points[:, i])
+            map_indices[:, i] = self.coordinates_to_map_indices_single_axis(points[:, i], i, discard_year=discard_year, int_indices=int_indices)
 
         # return
         if result_ndim == 1:
