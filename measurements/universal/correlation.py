@@ -102,7 +102,7 @@ class Correlation():
         autocorrelation_array = correlation_array[:, n:]
         return autocorrelation_array
 
-    def plot_autocorrelation(self, axis, file, use_sample_correlation=False):
+    def plot_autocorrelation(self, axis, file, use_sample_correlation=False, mean_only=True):
         axis = self._prepare_axis(axis)
         autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
         assert autocorrelation.shape[1] == len(axis) + 1
@@ -110,8 +110,12 @@ class Correlation():
         x = np.linalg.norm(x, ord=2, axis=1)
         y = autocorrelation[:, -1]
         positions = np.unique(x)
-        dataset = tuple(np.sort(y[x == p]) for p in positions)
-        util.plot.violin(positions, dataset, file)
+        if mean_only:
+            dataset = np.array(tuple(np.mean(np.abs((y[x == p]))) for p in positions))
+            util.plot.scatter(positions, dataset, file)
+        else:
+            dataset = tuple(np.sort(y[x == p]) for p in positions)
+            util.plot.violin(positions, dataset, file)
         return file
 
 
@@ -181,14 +185,22 @@ class CorrelationCache(Correlation):
             return self._format_file_correlation(measurements.universal.constants.AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE, axis)
 
     @overrides.overrides
-    def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False):
+    def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False, mean_only=True):
         if file is None:
-            file = self.plot_autocorrelation_file(axis=axis, use_sample_correlation=use_sample_correlation)
+            file = self.plot_autocorrelation_file(axis=axis,
+                                                  use_sample_correlation=use_sample_correlation,
+                                                  mean_only=mean_only)
         if not pathlib.Path(file).exists():
-            super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
+            super().plot_autocorrelation(axis, file,
+                                         use_sample_correlation=use_sample_correlation,
+                                         mean_only=mean_only)
         return file
 
-    def plot_autocorrelation_file(self, axis=None, use_sample_correlation=False):
+    def plot_autocorrelation_file(self, axis=None, use_sample_correlation=False, mean_only=True):
         autocorrelation_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-        plot_file = measurements.universal.constants.plot_file(autocorrelation_cache_file)
+        plot_file = autocorrelation_cache_file
+        if mean_only:
+            plot_file = pathlib.PurePath(plot_file)
+            plot_file = plot_file.parent.joinpath('average_' + plot_file.name)
+        plot_file = measurements.universal.constants.plot_file(plot_file)
         return plot_file

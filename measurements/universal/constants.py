@@ -292,7 +292,7 @@ PLOT_BASE_DIR = str(pathlib.PurePath(BASE_DIR).parent.joinpath('plots').joinpath
 
 
 def plot_file(file):
-    plot_file = str(file).replace(BASE_DIR, PLOT_BASE_DIR, count=1)
+    plot_file = str(file).replace(BASE_DIR, PLOT_BASE_DIR, 1)
     plot_file = pathlib.PurePath(plot_file)
     plot_file = plot_file.with_suffix('.svg')
     plot_file = str(plot_file)
