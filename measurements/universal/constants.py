@@ -1,4 +1,5 @@
 import os.path
+import pathlib
 
 import numpy as np
 
@@ -283,3 +284,16 @@ AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
         'dev:_{standard_deviation_id}',
         '{dtype}',
         'axis_{axis}.npz']))
+
+
+# *** plots *** #
+
+PLOT_BASE_DIR = str(pathlib.PurePath(BASE_DIR).parent.joinpath('plots').joinpath(pathlib.PurePath(BASE_DIR).name))
+
+
+def plot_file(file):
+    plot_file = str(file).replace(BASE_DIR, PLOT_BASE_DIR, count=1)
+    plot_file = pathlib.PurePath(plot_file)
+    plot_file = plot_file.with_suffix('.svg')
+    plot_file = str(plot_file)
+    return plot_file

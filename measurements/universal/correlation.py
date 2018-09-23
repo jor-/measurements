@@ -190,6 +190,5 @@ class CorrelationCache(Correlation):
 
     def plot_autocorrelation_file(self, axis=None, use_sample_correlation=False):
         autocorrelation_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-        autocorrelation_cache_file = pathlib.PurePath(autocorrelation_cache_file)
-        plot_file = autocorrelation_cache_file.with_suffix('.svg')
+        plot_file = measurements.universal.constants.plot_file(autocorrelation_cache_file)
         return plot_file
