@@ -112,10 +112,10 @@ class Correlation():
         positions = np.unique(x)
         if mean_only:
             dataset = np.array(tuple(np.mean(np.abs((y[x == p]))) for p in positions))
-            util.plot.scatter(positions, dataset, file)
+            util.plot.scatter(file, positions, dataset)
         else:
             dataset = tuple(np.sort(y[x == p]) for p in positions)
-            util.plot.violin(positions, dataset, file)
+            util.plot.violin(file, positions, dataset)
         return file
 
 
