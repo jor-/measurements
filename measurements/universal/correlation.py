@@ -102,24 +102,48 @@ class Correlation():
         autocorrelation_array = correlation_array[:, n:]
         return autocorrelation_array
 
-    def plot_autocorrelation(self, axis, file, use_sample_correlation=False, mean_only=True):
+    def plot_correlation(self, axis, file, use_sample_correlation=False):
         axis = self._prepare_axis(axis)
+        if len(axis) != 1:
+            raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
+
+        correlation = self.correlation_array(axis=axis, use_sample_correlation=use_sample_correlation)
+        assert correlation.shape[1] == 3
+
+        util.plot.scatter_dataset_means(file, correlation, use_abs=True)
+        return file
+
+    def plot_autocorrelation(self, axis, file, use_sample_correlation=False):
+        axis = self._prepare_axis(axis)
+        if len(axis) > 2:
+            raise ValueError(f'The parameter axis has to be one or two integer values but it is {axis}.')
+
         autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
         assert autocorrelation.shape[1] == len(axis) + 1
-        x = autocorrelation[:, :-1]
-        x = np.linalg.norm(x, ord=2, axis=1)
-        y = autocorrelation[:, -1]
+
+        util.plot.scatter_dataset_means(file, autocorrelation, use_abs=True)
+        return file
+
+    def plot_violin_autocorrelation(self, axis, file, use_sample_correlation=False):
+        axis = self._prepare_axis(axis)
+        if len(axis) != 1:
+            raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
+
+        autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
+        assert autocorrelation.shape[1] == 2
+
+        x = autocorrelation[:, 0]
+        y = autocorrelation[:, 1]
         positions = np.unique(x)
-        if mean_only:
-            dataset = np.array(tuple(np.mean(np.abs((y[x == p]))) for p in positions))
-            util.plot.scatter(file, positions, dataset)
-        else:
-            dataset = tuple(np.sort(y[x == p]) for p in positions)
-            util.plot.violin(file, positions, dataset)
+        dataset = tuple(np.sort(y[x == p]) for p in positions)
+
+        util.plot.violin(file, positions, dataset)
         return file
 
 
 class CorrelationCache(Correlation):
+
+    # *** array files *** #
 
     def _format_file_sample_correlation(self, file, axis):
         axis = self._prepare_axis(axis)
@@ -184,23 +208,45 @@ class CorrelationCache(Correlation):
         else:
             return self._format_file_correlation(measurements.universal.constants.AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE, axis)
 
+    # *** plot files *** #
+
     @overrides.overrides
-    def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False, mean_only=True):
+    def plot_correlation(self, axis, file=None, use_sample_correlation=False):
         if file is None:
-            file = self.plot_autocorrelation_file(axis=axis,
-                                                  use_sample_correlation=use_sample_correlation,
-                                                  mean_only=mean_only)
+            file = self.plot_correlation_file(axis, use_sample_correlation=use_sample_correlation)
         if not pathlib.Path(file).exists():
-            super().plot_autocorrelation(axis, file,
-                                         use_sample_correlation=use_sample_correlation,
-                                         mean_only=mean_only)
+            super().plot_correlation(axis, file, use_sample_correlation=use_sample_correlation)
         return file
 
-    def plot_autocorrelation_file(self, axis=None, use_sample_correlation=False, mean_only=True):
-        autocorrelation_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-        plot_file = autocorrelation_cache_file
-        if mean_only:
-            plot_file = pathlib.PurePath(plot_file)
-            plot_file = plot_file.parent.joinpath('average_' + plot_file.name)
-        plot_file = measurements.universal.constants.plot_file(plot_file)
-        return plot_file
+    def plot_correlation_file(self, axis, use_sample_correlation=False):
+        array_cache_file = self.correlation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
+        plot_file = measurements.universal.constants.plot_file(array_cache_file)
+        return str(plot_file)
+
+    @overrides.overrides
+    def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False):
+        if file is None:
+            file = self.plot_autocorrelation_file(axis, use_sample_correlation=use_sample_correlation)
+        if not pathlib.Path(file).exists():
+            super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
+        return file
+
+    def plot_autocorrelation_file(self, axis, use_sample_correlation=False):
+        array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
+        plot_file = measurements.universal.constants.plot_file(array_cache_file)
+        return str(plot_file)
+
+    @overrides.overrides
+    def plot_violin_autocorrelation(self, axis, file=None, use_sample_correlation=False):
+        if file is None:
+            file = self.plot_violin_autocorrelation_file(axis, use_sample_correlation=use_sample_correlation)
+        if not pathlib.Path(file).exists():
+            super().plot_violin_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
+        return file
+
+    def plot_violin_autocorrelation_file(self, axis, use_sample_correlation=False):
+        array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
+        plot_file = measurements.universal.constants.plot_file(array_cache_file)
+        plot_file = pathlib.PurePath(plot_file)
+        plot_file = plot_file.parent.joinpath('violin_' + plot_file.name)
+        return str(plot_file)
