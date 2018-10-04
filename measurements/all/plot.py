@@ -24,8 +24,12 @@ def _main():
     parser.add_argument('--sample_correlation_sparsity_pattern', default=None, choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', default=None, type=bool, choices=(True, False), help='Plot histogram of sample correlation of measurements with passed using abs.')
 
-    parser.add_argument('--autocorrelation_sample_correlation', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements.')
-    parser.add_argument('--autocorrelation_correlation', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements.')
+    parser.add_argument('--sample_correlation_correlations', action='store', default=None, nargs='*', help='Plot correlation of sample correlation of measurements.')
+    parser.add_argument('--sample_correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements.')
+    parser.add_argument('--sample_correlation_violin_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements as violin plot.')
+    parser.add_argument('--correlation_correlations', action='store', default=None, nargs='*', help='Plot correlation of correlation of measurements.')
+    parser.add_argument('--correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements.')
+    parser.add_argument('--correlation_violin_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements as violin plot.')
 
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
@@ -58,15 +62,25 @@ def _main():
         if args.sample_correlation_histogram is not None:
             measurements.plot.data.sample_correlation_histogram(m, use_abs=args.sample_correlation_histogram)
 
-        if args.autocorrelation_sample_correlation is not None:
-            ma = measurements.universal.correlation.CorrelationCache(m)
-            ma.plot_autocorrelation(axis=args.autocorrelation_sample_correlation,
+        mc = measurements.universal.correlation.CorrelationCache(m)
+        if args.sample_correlation_correlations is not None:
+            mc.plot_correlation(axis=args.sample_correlation_correlations,
+                                use_sample_correlation=True)
+        if args.sample_correlation_autocorrelations is not None:
+            mc.plot_autocorrelation(axis=args.sample_correlation_autocorrelations,
                                     use_sample_correlation=True)
-
-        if args.autocorrelation_correlation is not None:
-            ma = measurements.universal.correlation.CorrelationCache(m)
-            ma.plot_autocorrelation(axis=args.autocorrelation_correlation,
+        if args.sample_correlation_violin_autocorrelations is not None:
+            mc.plot_violin_autocorrelation(axis=args.sample_correlation_violin_autocorrelations,
+                                           use_sample_correlation=True)
+        if args.correlation_correlations is not None:
+            mc.plot_correlation(axis=args.correlation_correlations,
+                                use_sample_correlation=False)
+        if args.correlation_autocorrelations is not None:
+            mc.plot_autocorrelation(axis=args.correlation_autocorrelations,
                                     use_sample_correlation=False)
+        if args.correlation_violin_autocorrelations is not None:
+            mc.plot_violin_autocorrelation(axis=args.correlation_violin_autocorrelations,
+                                           use_sample_correlation=False)
 
 
 if __name__ == "__main__":
