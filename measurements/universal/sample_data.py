@@ -9,7 +9,7 @@ import measurements.universal.dict
 import measurements.universal.constants
 
 
-class SampleMeanAndDeviation():
+class SampleData():
 
     def __init__(self, points, values, sample_lsm):
         self.points = points

@@ -187,14 +187,14 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         'self.tracer',
         'self.data_set_name',
         'self.sample_lsm.name'))
-    def _sample_mean_and_deviation(self):
-        return measurements.universal.sample_data.SampleMeanAndDeviation(self.points, self.values, self.sample_lsm)
+    def _sample_data(self):
+        return measurements.universal.sample_data.SampleData(self.points, self.values, self.sample_lsm)
 
     # mean
 
     @property
     def sample_means(self):
-        return self._sample_mean_and_deviation.sample_concentration_means(min_measurements=self.min_measurements_mean)
+        return self._sample_data.sample_concentration_means(min_measurements=self.min_measurements_mean)
 
     @property
     @overrides.overrides
@@ -209,7 +209,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_concentration_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_concentration_standard_deviations(
+        return self._sample_data.sample_concentration_standard_deviations(
             min_measurements=self.min_measurements_standard_deviation,
             min_value=0)
 
@@ -223,7 +223,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_average_noise_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_average_noise_standard_deviations(
+        return self._sample_data.sample_average_noise_standard_deviations(
             min_measurements=self.min_measurements_standard_deviation,
             min_value=self.min_standard_deviation)
 
@@ -237,7 +237,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def sample_noise_standard_deviations(self):
-        return self._sample_mean_and_deviation.sample_noise_standard_deviations(
+        return self._sample_data.sample_noise_standard_deviations(
             min_measurements=self.min_measurements_standard_deviation,
             min_value=self.min_standard_deviation)
 
@@ -389,11 +389,11 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     def _data_map_indices_dict(self, kind):
         if kind == 'concentration_means':
-            data_map_indices_dict = self._sample_mean_and_deviation.sample_concentration_means_map_indices_dict(min_measurements=self.min_measurements_mean)
+            data_map_indices_dict = self._sample_data.sample_concentration_means_map_indices_dict(min_measurements=self.min_measurements_mean)
         elif kind == 'concentration_standard_deviations':
-            data_map_indices_dict = self._sample_mean_and_deviation.sample_concentration_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=0)
+            data_map_indices_dict = self._sample_data.sample_concentration_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=0)
         elif kind == 'average_noise_standard_deviations':
-            data_map_indices_dict = self._sample_mean_and_deviation.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
+            data_map_indices_dict = self._sample_data.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
         else:
             raise ValueError('Unknown kind {}.'.format(kind))
         return data_map_indices_dict
@@ -415,7 +415,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         if fill_strategy in ('point_average', 'lsm_average', 'constant'):
 
             if fill_strategy == 'point_average':
-                sample_values = self._sample_mean_and_deviation._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
+                sample_values = self._sample_data._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
                 fill_value = sample_values.mean()
             elif fill_strategy == 'lsm_average':
                 fill_value = map_indices_and_values[:, -1].mean()
@@ -456,7 +456,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
         # get data
         data_map_indices_dict = self._data_map_indices_dict(kind)
-        data = self._sample_mean_and_deviation._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
+        data = self._sample_data._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
         number_of_values = data.count()
         number_of_points = len(data)
 
