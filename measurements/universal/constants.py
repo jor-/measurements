@@ -57,6 +57,11 @@ MEAN_ID = SEPERATOR.join([
     'min_values_{min_measurements:d}'])
 
 
+# quantile
+
+QUANTILE_MIN_MEASUREMENTS = 1
+
+
 # deviation
 
 STANDARD_DEVIATION_MIN_MEASUREMENTS = 3

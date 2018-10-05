@@ -78,6 +78,20 @@ class SampleMeanAndDeviation():
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
+    # *** quantile *** #
+
+    def sample_concentration_quantiles_map_indices_dict(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        util.logging.debug(f'Calculating sample_concentration_quantiles_map_indices_dict with quantile {quantile}, min_measurements {min_measurements} and min_value {self.min_value}.')
+        data_function = lambda data_dict: data_dict.quantiles(quantile, min_number_of_values=min_measurements, min_value=0, return_type='self')
+        data = self._sample_data_dict_concentration_based(data_function)
+        return data
+
+    def sample_concentration_quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        util.logging.debug(f'Calculating sample_concentration_quantiles with quantile {quantile}, min_measurements {min_measurements} and min_value {self.min_value}.')
+        data_dict = self.sample_concentration_quantiles_map_indices_dict(quantile, min_measurements=min_measurements)
+        data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
+        return data
+
     # *** deviation *** #
 
     def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
