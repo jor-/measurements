@@ -45,7 +45,7 @@ class SampleMeanAndDeviation():
     def _sample_data_dict_concentration_based(self, data_function):
         data_dict = self.measurement_dict
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
-        data_dict.means(min_number_of_values=1, return_type='self')
+        data_dict.means(min_number_of_values=1, min_value=0, return_type='self')
         data_dict.discard_year()
         data_function(data_dict)
         return data_dict
@@ -55,7 +55,7 @@ class SampleMeanAndDeviation():
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
         data_function(data_dict)
         data_dict.discard_year()
-        data_dict.means(min_number_of_values=1, return_type='self')
+        data_dict.means(min_number_of_values=1, min_value=0, return_type='self')
         return data_dict
 
     def _sample_data_dict_noise_based(self, data_function, return_values_at_points=True):
@@ -68,7 +68,7 @@ class SampleMeanAndDeviation():
 
     def sample_concentration_means_map_indices_dict(self, min_measurements=measurements.universal.constants.MEAN_MIN_MEASUREMENTS):
         util.logging.debug('Calculating sample_concentration_means_map_indices_dict with min_measurements {}.'.format(min_measurements))
-        data_function = lambda data_dict: data_dict.means(min_number_of_values=min_measurements, return_type='self')
+        data_function = lambda data_dict: data_dict.means(min_number_of_values=min_measurements, min_value=0, return_type='self')
         data = self._sample_data_dict_concentration_based(data_function)
         return data
 
@@ -214,7 +214,7 @@ class SampleCorrelationMatrix:
     def concentrations_same_points_except_year_dict(self):
         m = self.measurements.measurements_dict
         m.categorize_indices_to_lsm(self.sample_lsm, discard_year=False)
-        m.means(return_type='self')
+        m.means(min_number_of_values=1, min_value=0, return_type='self')
         return m.filter_same_points_except_year(min_number_of_values=self.min_measurements)
 
     @property
