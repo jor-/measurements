@@ -17,20 +17,21 @@ def _main():
     parser.add_argument('--near_water_lsm', default='TMM', choices=measurements.all.data.LAND_SEA_MASKS, help='The land sea mask used to calculate the distances to water boxes.')
 
     parser.add_argument('--points_and_values', action='store_true', help='Calculate and save points and values of measurements.')
+
     parser.add_argument('--means', action='store_true', help='Calculate and save means for measurement points.')
     parser.add_argument('--concentration_standard_deviations', action='store_true', help='Calculate and save concentration standard deviations for measurement points.')
     parser.add_argument('--noise_standard_deviations', action='store_true', help='Calculate and save noise standard deviations of measurements.')
     parser.add_argument('--standard_deviations', action='store_true', help='Calculate and save standard deviations of measurements.')
-    parser.add_argument('--sample_correlation', action='store_true', help='Calculate and save sample correlation of measurements.')
-    parser.add_argument('--correlation', action='store_true', help='Calculate and save correlation of measurements.')
 
     parser.add_argument('--means_sample_lsm', action='store_true', help='Calculate and save means for points of sample land sea mask.')
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Calculate and save concentration standard deviations for points of sample land sea mask.')
     parser.add_argument('--average_noise_standard_deviations_for_sample_lsm', action='store_true', help='Calculate and save average noise standard deviations for points of sample land sea mask.')
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Calculate and save standard deviations for points of sample land sea mask.')
 
-    parser.add_argument('--autocorrelation_sample_correlation', action='store', nargs='*', help='Calculate and save autocorrelation of sample correlation of measurements.')
-    parser.add_argument('--autocorrelation_correlation', action='store', nargs='*', help='Calculate and save autocorrelation of correlation of measurements.')
+    parser.add_argument('--sample_correlation', action='store_true', help='Calculate and save sample correlation of measurements.')
+    parser.add_argument('--correlation', action='store_true', help='Calculate and save correlation of measurements.')
+    parser.add_argument('--sample_correlation_autocorrelation', action='store', nargs='*', help='Calculate and save autocorrelation of sample correlation of measurements.')
+    parser.add_argument('--correlation_autocorrelation', action='store', nargs='*', help='Calculate and save autocorrelation of correlation of measurements.')
 
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
@@ -82,22 +83,22 @@ def _main():
             if args.standard_deviations_sample_lsm:
                 m.standard_deviations_for_sample_lsm
 
-        if args.autocorrelation_sample_correlation is not None:
-            if len(args.autocorrelation_sample_correlation) == 0:
-                autocorrelation_sample_correlation = None
+        if args.sample_correlation_autocorrelation is not None:
+            if len(args.sample_correlation_autocorrelation) == 0:
+                sample_correlation_autocorrelation = None
             else:
-                autocorrelation_sample_correlation = args.autocorrelation_sample_correlation
+                sample_correlation_autocorrelation = args.sample_correlation_autocorrelation
             ma = measurements.universal.correlation.CorrelationCache(m)
-            ma.autocorrelation_array(axis=autocorrelation_sample_correlation,
+            ma.autocorrelation_array(axis=sample_correlation_autocorrelation,
                                      use_sample_correlation=True)
 
-        if args.autocorrelation_correlation is not None:
-            if len(args.autocorrelation_correlation) == 0:
-                autocorrelation_correlation = None
+        if args.correlation_autocorrelation is not None:
+            if len(args.correlation_autocorrelation) == 0:
+                correlation_autocorrelation = None
             else:
-                autocorrelation_correlation = args.autocorrelation_correlation
+                correlation_autocorrelation = args.correlation_autocorrelation
             ma = measurements.universal.correlation.CorrelationCache(m)
-            ma.autocorrelation_array(axis=autocorrelation_correlation,
+            ma.autocorrelation_array(axis=correlation_autocorrelation,
                                      use_sample_correlation=False)
 
 
