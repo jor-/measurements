@@ -181,7 +181,6 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                 match = False
 
             if match and standard_deviation > 0:
-                new_value_list = []
                 for value in value_list:
                     value_normalized = (value - mean) / standard_deviation
                     self.append_value(key, value_normalized)
