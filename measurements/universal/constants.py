@@ -41,7 +41,7 @@ SAMPLE_LSM = measurements.land_sea_mask.lsm.LandSeaMaskWOA13R(t_dim=SAMPLE_T_DIM
 
 # mean
 
-MEAN_MIN_MEASUREMENTS = 2
+MEAN_MIN_MEASUREMENTS = 1
 
 MEAN_DIR = os.path.join(MEASUREMENT_DIR, 'mean')
 
