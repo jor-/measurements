@@ -86,6 +86,10 @@ class Measurements():
     def means(self):
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def quantiles(self, quantile):
+        raise NotImplementedError()
+
     @property
     @abc.abstractmethod
     def standard_deviations(self):
@@ -148,6 +152,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
                  min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE,
                  max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE,
                  min_measurements_mean=measurements.universal.constants.MEAN_MIN_MEASUREMENTS,
+                 min_measurements_quantile=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS,
                  min_measurements_standard_deviation=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS,
                  min_measurements_correlation=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
 
@@ -162,6 +167,10 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         if min_measurements_mean is None:
             min_measurements_mean = measurements.universal.constants.MEAN_MIN_MEASUREMENTS
         self.min_measurements_mean = min_measurements_mean
+
+        if min_measurements_quantile is None:
+            min_measurements_quantile = measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS
+        self.min_measurements_quantile = min_measurements_quantile
 
         if min_measurements_standard_deviation is None:
             min_measurements_standard_deviation = measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS
@@ -200,6 +209,19 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     @overrides.overrides
     def means(self):
         data = self.sample_means
+        if data.count() == len(data):
+            return data.data
+        else:
+            raise TooFewValuesError('It was not possible to calculate all values from the sample values, because to few sample values are available.')
+
+    # quantiles
+
+    def sample_quantiles(self, quantile):
+        return self._sample_data.sample_concentration_quantiles(quantile, min_measurements=self.min_measurements_quantile)
+
+    @overrides.overrides
+    def quantiles(self, quantile):
+        data = self.sample_quantiles(quantile)
         if data.count() == len(data):
             return data.data
         else:
@@ -282,7 +304,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     POSSIBLE_FILL_STRATEGIES = ('auto', 'point_average', 'lsm_average', 'constant', 'interpolate')
-    POSSIBLE_KINDS = ('concentration_means', 'concentration_standard_deviations', 'average_noise_standard_deviations')
+    POSSIBLE_KINDS = ('concentration_means', 'concentration_quantiles', 'concentration_standard_deviations', 'average_noise_standard_deviations')
 
     def __init__(self, *args, **kargs):
         self._interpolator_options = {}
@@ -387,24 +409,26 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     # data general
 
-    def _data_map_indices_dict(self, kind):
+    def _data_map_indices_dict(self, kind, *args, **kargs):
         if kind == 'concentration_means':
-            data_map_indices_dict = self._sample_data.sample_concentration_means_map_indices_dict(min_measurements=self.min_measurements_mean)
+            data_map_indices_dict = self._sample_data.sample_concentration_means_map_indices_dict(*args, min_measurements=self.min_measurements_mean, **kargs)
+        elif kind == 'concentration_quantiles':
+            data_map_indices_dict = self._sample_data.sample_concentration_quantiles_map_indices_dict(*args, min_measurements=self.min_measurements_quantile, **kargs)
         elif kind == 'concentration_standard_deviations':
-            data_map_indices_dict = self._sample_data.sample_concentration_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=0)
+            data_map_indices_dict = self._sample_data.sample_concentration_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=0, **kargs)
         elif kind == 'average_noise_standard_deviations':
-            data_map_indices_dict = self._sample_data.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation)
+            data_map_indices_dict = self._sample_data.sample_average_noise_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation, **kargs)
         else:
             raise ValueError('Unknown kind {}.'.format(kind))
         return data_map_indices_dict
 
     # data for sample lsm
 
-    def _data_for_sample_lsm(self, kind):
-        util.logging.debug('{}: Calculating {} data for sample lsm.'.format(self.__class__.__name__, kind))
+    def _data_for_sample_lsm(self, kind, *args, **kargs):
+        util.logging.debug('{}: Calculating {} data for sample lsm with args {} and kargs {}.'.format(self.__class__.__name__, kind, args, kargs))
 
         # get data
-        data_map_indices_dict = self._data_map_indices_dict(kind)
+        data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kargs)
         map_indices_and_values = data_map_indices_dict.toarray()
 
         # choose fill strategy
@@ -413,7 +437,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
         # apply fill_strategy
         if fill_strategy in ('point_average', 'lsm_average', 'constant'):
-
             if fill_strategy == 'point_average':
                 sample_values = self._sample_data._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
                 fill_value = sample_values.mean()
@@ -421,13 +444,10 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
                 fill_value = map_indices_and_values[:, -1].mean()
             elif fill_strategy == 'constant':
                 fill_value = self.get_constant_fill_value(kind)
-
             lsm_values = self.sample_lsm.insert_index_values_in_map(map_indices_and_values, no_data_value=fill_value, skip_values_on_land=False)
-
         elif fill_strategy == 'interpolate':
             interpolator_options = self.get_interpolator_options(kind)
             lsm_values = self._interpolator.interpolate_data_for_sample_lsm_with_map_indices(map_indices_and_values, interpolator_options)
-
         else:
             raise ValueError('Unknown fill method {}.'.format(fill_strategy))
 
@@ -436,6 +456,9 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     @property
     def means_for_sample_lsm(self):
         return self._data_for_sample_lsm('concentration_means')
+
+    def quantiles_for_sample_lsm(self, quantile):
+        return self._data_for_sample_lsm('concentration_quantiles', quantile)
 
     @property
     def concentration_standard_deviations_for_sample_lsm(self):
@@ -451,11 +474,11 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     # data for sample points
 
-    def _data_for_sample_points(self, kind):
-        util.logging.debug('{}: Calculating {} data for sample points.'.format(self.__class__.__name__, kind))
+    def _data_for_sample_points(self, kind, *args, **kargs):
+        util.logging.debug('{}: Calculating {} data for sample points with args {} and kargs {}.'.format(self.__class__.__name__, kind, args, kargs))
 
         # get data
-        data_map_indices_dict = self._data_map_indices_dict(kind)
+        data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kargs)
         data = self._sample_data._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
         number_of_values = data.count()
         number_of_points = len(data)
@@ -474,7 +497,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             elif fill_strategy == 'lsm_average':
                 data[data.mask] = data_map_indices_dict.values().mean()
             elif fill_strategy == 'interpolate':
-                data[data.mask] = self._interpolator.interpolate_data_for_points_from_interpolated_lsm_data(self._data_for_sample_lsm(kind), self.points[data.mask])
+                data[data.mask] = self._interpolator.interpolate_data_for_points_from_interpolated_lsm_data(self._data_for_sample_lsm(kind, *args, **kargs), self.points[data.mask])
             elif fill_strategy == 'constant':
                 data[data.mask] = self.get_constant_fill_value(kind)
             else:
@@ -487,6 +510,10 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     @overrides.overrides
     def means(self):
         return self._data_for_sample_points('concentration_means')
+
+    @overrides.overrides
+    def quantiles(self, quantile):
+        return self._data_for_sample_points('concentration_quantiles', quantile)
 
     @property
     @overrides.overrides
@@ -640,6 +667,10 @@ class MeasurementsNearWater(Measurements):
     def means(self):
         return self._project_left_side(self.base_measurements.means)
 
+    @overrides.overrides
+    def quantiles(self, quantile):
+        return self._project_left_side(self.base_measurements.quantiles(quantile))
+
     @property
     @overrides.overrides
     def standard_deviations(self):
@@ -679,6 +710,7 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
             min_abs_correlation=base_measurements.min_abs_correlation,
             max_abs_correlation=base_measurements.max_abs_correlation,
             min_measurements_mean=base_measurements.min_measurements_mean,
+            min_measurements_quantile=base_measurements.min_measurements_quantile,
             min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation,
             min_measurements_correlation=base_measurements.min_measurements_correlation)
 
@@ -704,6 +736,9 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     @property
     def means_for_sample_lsm(self):
         return self.base_measurements.means_for_sample_lsm
+
+    def quantiles_for_sample_lsm(self, quantile):
+        return self.base_measurements.quantiles_for_sample_lsm(quantile)
 
     @property
     def concentration_standard_deviations_for_sample_lsm(self):
@@ -858,6 +893,12 @@ class MeasurementsCollection(Measurements):
     @overrides.overrides
     def means(self):
         values = np.concatenate(tuple(map(lambda measurement: measurement.means, self.measurements_list)))
+        assert len(values) == self.number_of_measurements
+        return values
+
+    @overrides.overrides
+    def quantiles(self, quantile):
+        values = np.concatenate(tuple(map(lambda measurement: measurement.quantiles(quantile), self.measurements_list)))
         assert len(values) == self.number_of_measurements
         return values
 
@@ -1047,9 +1088,10 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         return measurements.universal.constants.MEAN_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
+            target=target,
             sample_lsm=self.sample_lsm,
             min_measurements=self.min_measurements_mean,
-            fill_strategy=fill_strategy, target=target)
+            fill_strategy=fill_strategy)
 
     @property
     @util.cache.memory.method_decorator(dependency=(
@@ -1080,6 +1122,47 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
     def means_for_sample_lsm_cache_file(self):
         return self._mean_cache_file(str(self.sample_lsm))
+
+    # *** quantiles *** #
+
+    def _quantile_cache_file(self, target, quantile):
+        fill_strategy = self._fill_strategy_id('concentration_quantiles')
+        return measurements.universal.constants.QUANTILE_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            target=target,
+            sample_lsm=self.sample_lsm,
+            min_measurements=self.min_measurements_quantile,
+            fill_strategy=fill_strategy,
+            quantile=quantile)
+
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_quantile'))
+    @util.cache.file.decorator()
+    @overrides.overrides
+    def quantiles(self, quantile):
+        return super().quantiles(quantile)
+
+    def quantiles_cache_file(self, quantile):
+        return self._quantile_cache_file('sample_points', quantile)
+
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy',
+        'self.min_measurements_quantile'))
+    @util.cache.file.decorator()
+    @overrides.overrides
+    def quantiles_for_sample_lsm(self, quantile):
+        return super().quantiles_for_sample_lsm(quantile)
+
+    def quantiles_for_sample_lsm_cache_file(self, quantile):
+        return self._quantile_cache_file(str(self.sample_lsm), quantile)
 
     # *** deviation *** #
 
@@ -1429,6 +1512,10 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
     @overrides.overrides
     def means_cache_file(self):
         return self.base_measurements.means_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
+
+    @overrides.overrides
+    def quantiles_cache_file(self, quantile):
+        return self.base_measurements.quantiles_cache_file(quantile).replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
     def concentration_standard_deviations_cache_file(self):
