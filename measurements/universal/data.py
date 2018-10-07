@@ -453,24 +453,20 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
         return lsm_values
 
-    @property
     def means_for_sample_lsm(self):
         return self._data_for_sample_lsm('concentration_means')
 
     def quantiles_for_sample_lsm(self, quantile):
         return self._data_for_sample_lsm('concentration_quantiles', quantile)
 
-    @property
     def concentration_standard_deviations_for_sample_lsm(self):
         return self._data_for_sample_lsm('concentration_standard_deviations')
 
-    @property
     def average_noise_standard_deviations_for_sample_lsm(self):
         return self._data_for_sample_lsm('average_noise_standard_deviations')
 
-    @property
     def standard_deviations_for_sample_lsm(self):
-        return (self.concentration_standard_deviations_for_sample_lsm**2 + self.average_noise_standard_deviations_for_sample_lsm**2)**(0.5)
+        return (self.concentration_standard_deviations_for_sample_lsm()**2 + self.average_noise_standard_deviations_for_sample_lsm()**2)**(0.5)
 
     # data for sample points
 
@@ -734,24 +730,20 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
 
     # data for sample lsm
 
-    @property
     def means_for_sample_lsm(self):
-        return self.base_measurements.means_for_sample_lsm
+        return self.base_measurements.means_for_sample_lsm()
 
     def quantiles_for_sample_lsm(self, quantile):
         return self.base_measurements.quantiles_for_sample_lsm(quantile)
 
-    @property
     def concentration_standard_deviations_for_sample_lsm(self):
-        return self.base_measurements.concentration_standard_deviations_for_sample_lsm
+        return self.base_measurements.concentration_standard_deviations_for_sample_lsm()
 
-    @property
     def average_noise_standard_deviations_for_sample_lsm(self):
-        return self.base_measurements.average_noise_standard_deviations_for_sample_lsm
+        return self.base_measurements.average_noise_standard_deviations_for_sample_lsm()
 
-    @property
     def standard_deviations_for_sample_lsm(self):
-        return self.base_measurements.standard_deviations_for_sample_lsm
+        return self.base_measurements.standard_deviations_for_sample_lsm()
 
     # getter and setter from base measurement
 
@@ -1109,7 +1101,6 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def means_cache_file(self):
         return self._mean_cache_file('sample_points')
 
-    @property
     @util.cache.memory.method_decorator(dependency=(
         'self.tracer',
         'self.data_set_name',
@@ -1119,7 +1110,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @util.cache.file.decorator()
     @overrides.overrides
     def means_for_sample_lsm(self):
-        return super().means_for_sample_lsm
+        return super().means_for_sample_lsm()
 
     def means_for_sample_lsm_cache_file(self):
         return self._mean_cache_file(str(self.sample_lsm))
@@ -1197,7 +1188,6 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def concentration_standard_deviations_cache_file(self):
         return self._standard_deviations_cache_file('concentration_standard_deviations', 'sample_points')
 
-    @property
     @util.cache.memory.method_decorator(dependency=(
         'self.tracer',
         'self.data_set_name',
@@ -1207,7 +1197,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @util.cache.file.decorator()
     @overrides.overrides
     def concentration_standard_deviations_for_sample_lsm(self):
-        return super().concentration_standard_deviations_for_sample_lsm
+        return super().concentration_standard_deviations_for_sample_lsm()
 
     def concentration_standard_deviations_for_sample_lsm_cache_file(self):
         return self._standard_deviations_cache_file('concentration_standard_deviations', str(self.sample_lsm))
@@ -1228,7 +1218,6 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def average_noise_standard_deviations_cache_file(self):
         return self._standard_deviations_cache_file('average_noise_standard_deviations', 'sample_points')
 
-    @property
     @util.cache.memory.method_decorator(dependency=(
         'self.tracer',
         'self.data_set_name',
@@ -1239,7 +1228,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @util.cache.file.decorator()
     @overrides.overrides
     def average_noise_standard_deviations_for_sample_lsm(self):
-        return super().average_noise_standard_deviations_for_sample_lsm
+        return super().average_noise_standard_deviations_for_sample_lsm()
 
     def average_noise_standard_deviations_for_sample_lsm_cache_file(self):
         return self._standard_deviations_cache_file('average_noise_standard_deviations', str(self.sample_lsm))
@@ -1276,7 +1265,6 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     def standard_deviations_cache_file(self):
         return self._standard_deviations_cache_file('standard_deviations', 'sample_points')
 
-    @property
     @util.cache.memory.method_decorator(dependency=(
         'self.tracer',
         'self.data_set_name',
@@ -1287,7 +1275,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @util.cache.file.decorator()
     @overrides.overrides
     def standard_deviations_for_sample_lsm(self):
-        return super().standard_deviations_for_sample_lsm
+        return super().standard_deviations_for_sample_lsm()
 
     def standard_deviations_for_sample_lsm_cache_file(self):
         return self._standard_deviations_cache_file('standard_deviations', str(self.sample_lsm))

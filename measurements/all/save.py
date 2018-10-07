@@ -79,15 +79,15 @@ def _main():
 
         for m in m_list:
             if args.means_sample_lsm:
-                m.means_for_sample_lsm
+                m.means_for_sample_lsm()
             if args.quantiles_sample_lsm is not None:
                 m.quantiles_for_sample_lsm(args.quantiles_sample_lsm)
             if args.concentration_standard_deviations_sample_lsm:
-                m.concentration_standard_deviations_for_sample_lsm
+                m.concentration_standard_deviations_for_sample_lsm()
             if args.average_noise_standard_deviations_for_sample_lsm:
-                m.average_noise_standard_deviations_for_sample_lsm
+                m.average_noise_standard_deviations_for_sample_lsm()
             if args.standard_deviations_sample_lsm:
-                m.standard_deviations_for_sample_lsm
+                m.standard_deviations_for_sample_lsm()
 
         if args.sample_correlation_autocorrelation is not None:
             if len(args.sample_correlation_autocorrelation) == 0:

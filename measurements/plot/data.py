@@ -85,7 +85,7 @@ def concentration_means_for_sample_lsm(measurements_object, base_file=None):
                           base_file=base_file,
                           kind='mean',
                           plot_name='concentration_means_interpolated')
-    data = measurements_object.means_for_sample_lsm
+    data = measurements_object.means_for_sample_lsm()
     # print if not existing
     if not os.path.exists(file):
         _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
@@ -98,7 +98,7 @@ def concentration_standard_deviations_for_sample_lsm(measurements_object, base_f
                           plot_name='concentration_standard_deviations_for_sample_lsm')
     # print if not existing
     if not os.path.exists(file):
-        data = measurements_object.concentration_standard_deviations_for_sample_lsm
+        data = measurements_object.concentration_standard_deviations_for_sample_lsm()
         _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
 
 

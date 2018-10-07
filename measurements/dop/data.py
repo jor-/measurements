@@ -260,12 +260,11 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUni
 
     # standard_deviation_concentration_noise_ratio
 
-    @property
     @util.cache.memory.method_decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
     @util.cache.file.decorator()
     @overrides.overrides
     def concentration_standard_deviations_for_sample_lsm(self):
-        return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations_for_sample_lsm
+        return self.standard_deviation_concentration_noise_ratio * self.average_noise_standard_deviations_for_sample_lsm()
 
     @property
     @util.cache.memory.method_decorator(dependency=('self.fill_strategy', 'self.min_measurements_standard_deviation'))
