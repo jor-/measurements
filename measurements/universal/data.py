@@ -81,7 +81,7 @@ class Measurements():
         m.append_values(self.points, self.values)
         return m
 
-    @property
+    @property  # TODO no property
     @abc.abstractmethod
     def means(self):
         raise NotImplementedError()
@@ -90,20 +90,20 @@ class Measurements():
     def quantiles(self, quantile):
         raise NotImplementedError()
 
-    @property
+    @property  # TODO no property
     @abc.abstractmethod
     def standard_deviations(self):
         raise NotImplementedError()
 
-    @property
+    @property  # TODO no property
     def variances(self):
         return self.standard_deviations ** 2
 
-    @property
+    @property  # TODO no property
     def correlations_own_sample_matrix(self):
         return scipy.sparse.eye(self.number_of_measurements)
 
-    @property
+    @property  # TODO no property
     def correlations_own_permutation_vector(self):
         if self.permutation_method_decomposition_correlation in matrix.constants.APPROXIMATION_ONLY_PERMUTATION_METHODS:
             permutation_vector = self.correlations_own_decomposition.p
@@ -113,7 +113,7 @@ class Measurements():
                 self.permutation_method_decomposition_correlation)
         return permutation_vector
 
-    @property
+    @property  # TODO no property
     def correlations_own_decomposition(self):
         if self.permutation_method_decomposition_correlation in matrix.constants.APPROXIMATION_ONLY_PERMUTATION_METHODS:
             permutation = self.permutation_method_decomposition_correlation
@@ -127,7 +127,7 @@ class Measurements():
             return_type=self.decomposition_type_correlations)
         return correlation_matrix_decomposition
 
-    @property
+    @property  # TODO no property
     def correlations_own(self):
         correlation_matrix_decomposition = self.correlations_own_decomposition
         correlation_matrix = correlation_matrix_decomposition.composed_matrix
@@ -497,6 +497,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             elif fill_strategy == 'lsm_average':
                 data[data.mask] = data_map_indices_dict.values().mean()
             elif fill_strategy == 'interpolate':
+                #TODO: call self.*_for_sample_lsm instead of _data_for_sample_lsm for caching
                 data[data.mask] = self._interpolator.interpolate_data_for_points_from_interpolated_lsm_data(self._data_for_sample_lsm(kind, *args, **kargs), self.points[data.mask])
             elif fill_strategy == 'constant':
                 data[data.mask] = self.get_constant_fill_value(kind)
