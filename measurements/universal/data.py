@@ -426,6 +426,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     def _data_for_sample_lsm(self, kind, *args, **kargs):
         util.logging.debug('{}: Calculating {} data for sample lsm with args {} and kargs {}.'.format(self.__class__.__name__, kind, args, kargs))
+        self._check_kind(kind)
 
         # get data
         data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kargs)
@@ -472,6 +473,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     def _data_for_sample_points(self, kind, *args, **kargs):
         util.logging.debug('{}: Calculating {} data for sample points with args {} and kargs {}.'.format(self.__class__.__name__, kind, args, kargs))
+        self._check_kind(kind)
 
         # get data
         data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kargs)
@@ -493,8 +495,15 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             elif fill_strategy == 'lsm_average':
                 data[data.mask] = data_map_indices_dict.values().mean()
             elif fill_strategy == 'interpolate':
-                #TODO: call self.*_for_sample_lsm instead of _data_for_sample_lsm for caching
-                data[data.mask] = self._interpolator.interpolate_data_for_points_from_interpolated_lsm_data(self._data_for_sample_lsm(kind, *args, **kargs), self.points[data.mask])
+                if kind == 'concentration_means':
+                    data_for_sample_lsm = self.means_for_sample_lsm(*args, **kargs)
+                elif kind == 'concentration_quantiles':
+                    data_for_sample_lsm = self.quantiles_for_sample_lsm(*args, **kargs)
+                elif kind == 'concentration_standard_deviations':
+                    data_for_sample_lsm = self.concentration_standard_deviations_for_sample_lsm(*args, **kargs)
+                elif kind == 'average_noise_standard_deviations':
+                    data_for_sample_lsm = self.average_noise_standard_deviations_for_sample_lsm(*args, **kargs)
+                data[data.mask] = self._interpolator.interpolate_data_for_points_from_interpolated_lsm_data(data_for_sample_lsm, self.points[data.mask])
             elif fill_strategy == 'constant':
                 data[data.mask] = self.get_constant_fill_value(kind)
             else:
