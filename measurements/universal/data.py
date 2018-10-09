@@ -87,7 +87,7 @@ class Measurements():
         raise NotImplementedError()
 
     @abc.abstractmethod
-    def quantiles(self, quantile):
+    def quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
         raise NotImplementedError()
 
     @property  # TODO no property
@@ -152,7 +152,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
                  min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE,
                  max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE,
                  min_measurements_mean=measurements.universal.constants.MEAN_MIN_MEASUREMENTS,
-                 min_measurements_quantile=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS,
                  min_measurements_standard_deviation=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS,
                  min_measurements_correlation=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
 
@@ -167,10 +166,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         if min_measurements_mean is None:
             min_measurements_mean = measurements.universal.constants.MEAN_MIN_MEASUREMENTS
         self.min_measurements_mean = min_measurements_mean
-
-        if min_measurements_quantile is None:
-            min_measurements_quantile = measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS
-        self.min_measurements_quantile = min_measurements_quantile
 
         if min_measurements_standard_deviation is None:
             min_measurements_standard_deviation = measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS
@@ -216,11 +211,11 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     # quantiles
 
-    def sample_quantiles(self, quantile):
-        return self._sample_data.sample_concentration_quantiles(quantile, min_measurements=self.min_measurements_quantile)
+    def sample_quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self._sample_data.sample_concentration_quantiles(quantile, min_measurements=min_measurements)
 
     @overrides.overrides
-    def quantiles(self, quantile):
+    def quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
         data = self.sample_quantiles(quantile)
         if data.count() == len(data):
             return data.data
@@ -413,7 +408,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         if kind == 'concentration_means':
             data_map_indices_dict = self._sample_data.sample_concentration_means_map_indices_dict(*args, min_measurements=self.min_measurements_mean, **kargs)
         elif kind == 'concentration_quantiles':
-            data_map_indices_dict = self._sample_data.sample_concentration_quantiles_map_indices_dict(*args, min_measurements=self.min_measurements_quantile, **kargs)
+            data_map_indices_dict = self._sample_data.sample_concentration_quantiles_map_indices_dict(*args, **kargs)
         elif kind == 'concentration_standard_deviations':
             data_map_indices_dict = self._sample_data.sample_concentration_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=0, **kargs)
         elif kind == 'average_noise_standard_deviations':
@@ -457,8 +452,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     def means_for_sample_lsm(self):
         return self._data_for_sample_lsm('concentration_means')
 
-    def quantiles_for_sample_lsm(self, quantile):
-        return self._data_for_sample_lsm('concentration_quantiles', quantile)
+    def quantiles_for_sample_lsm(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self._data_for_sample_lsm('concentration_quantiles', quantile, min_measurements=min_measurements)
 
     def concentration_standard_deviations_for_sample_lsm(self):
         return self._data_for_sample_lsm('concentration_standard_deviations')
@@ -518,8 +513,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         return self._data_for_sample_points('concentration_means')
 
     @overrides.overrides
-    def quantiles(self, quantile):
-        return self._data_for_sample_points('concentration_quantiles', quantile)
+    def quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self._data_for_sample_points('concentration_quantiles', quantile, min_measurements=min_measurements)
 
     @property
     @overrides.overrides
@@ -674,8 +669,8 @@ class MeasurementsNearWater(Measurements):
         return self._project_left_side(self.base_measurements.means)
 
     @overrides.overrides
-    def quantiles(self, quantile):
-        return self._project_left_side(self.base_measurements.quantiles(quantile))
+    def quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self._project_left_side(self.base_measurements.quantiles(quantile, min_measurements=min_measurements))
 
     @property
     @overrides.overrides
@@ -716,7 +711,6 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
             min_abs_correlation=base_measurements.min_abs_correlation,
             max_abs_correlation=base_measurements.max_abs_correlation,
             min_measurements_mean=base_measurements.min_measurements_mean,
-            min_measurements_quantile=base_measurements.min_measurements_quantile,
             min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation,
             min_measurements_correlation=base_measurements.min_measurements_correlation)
 
@@ -742,8 +736,8 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     def means_for_sample_lsm(self):
         return self.base_measurements.means_for_sample_lsm()
 
-    def quantiles_for_sample_lsm(self, quantile):
-        return self.base_measurements.quantiles_for_sample_lsm(quantile)
+    def quantiles_for_sample_lsm(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self.base_measurements.quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
 
     def concentration_standard_deviations_for_sample_lsm(self):
         return self.base_measurements.concentration_standard_deviations_for_sample_lsm()
@@ -899,8 +893,8 @@ class MeasurementsCollection(Measurements):
         return values
 
     @overrides.overrides
-    def quantiles(self, quantile):
-        values = np.concatenate(tuple(map(lambda measurement: measurement.quantiles(quantile), self.measurements_list)))
+    def quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        values = np.concatenate(tuple(map(lambda measurement: measurement.quantiles(quantile, min_measurements=min_measurements), self.measurements_list)))
         assert len(values) == self.number_of_measurements
         return values
 
@@ -1126,14 +1120,14 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
     # *** quantiles *** #
 
-    def _quantile_cache_file(self, target, quantile):
+    def _quantile_cache_file(self, target, quantile, min_measurements):
         fill_strategy = self._fill_strategy_id('concentration_quantiles')
         return measurements.universal.constants.QUANTILE_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
             target=target,
             sample_lsm=self.sample_lsm,
-            min_measurements=self.min_measurements_quantile,
+            min_measurements=min_measurements,
             fill_strategy=fill_strategy,
             quantile=quantile)
 
@@ -1141,29 +1135,27 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         'self.tracer',
         'self.data_set_name',
         'self.sample_lsm.name',
-        'self.fill_strategy',
-        'self.min_measurements_quantile'))
+        'self.fill_strategy'))
     @util.cache.file.decorator()
     @overrides.overrides
-    def quantiles(self, quantile):
-        return super().quantiles(quantile)
+    def quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return super().quantiles(quantile, min_measurements=min_measurements)
 
-    def quantiles_cache_file(self, quantile):
-        return self._quantile_cache_file('sample_points', quantile)
+    def quantiles_cache_file(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self._quantile_cache_file('sample_points', quantile, min_measurements)
 
     @util.cache.memory.method_decorator(dependency=(
         'self.tracer',
         'self.data_set_name',
         'self.sample_lsm.name',
-        'self.fill_strategy',
-        'self.min_measurements_quantile'))
+        'self.fill_strategy'))
     @util.cache.file.decorator()
     @overrides.overrides
-    def quantiles_for_sample_lsm(self, quantile):
+    def quantiles_for_sample_lsm(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
         return super().quantiles_for_sample_lsm(quantile)
 
-    def quantiles_for_sample_lsm_cache_file(self, quantile):
-        return self._quantile_cache_file(str(self.sample_lsm), quantile)
+    def quantiles_for_sample_lsm_cache_file(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self._quantile_cache_file(str(self.sample_lsm), quantile, min_measurements)
 
     # *** deviation *** #
 
@@ -1512,8 +1504,8 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         return self.base_measurements.means_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
-    def quantiles_cache_file(self, quantile):
-        return self.base_measurements.quantiles_cache_file(quantile).replace(self.base_measurements.data_set_name, self.data_set_name)
+    def quantiles_cache_file(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        return self.base_measurements.quantiles_cache_file(quantile, min_measurements=min_measurements).replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
     def concentration_standard_deviations_cache_file(self):
