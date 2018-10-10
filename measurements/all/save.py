@@ -13,7 +13,7 @@ def _main():
 
     parser.add_argument('--tracers', nargs='+', default=None, choices=measurements.all.data.TRACERS, help='The tracers for which the data should be saved.')
     parser.add_argument('--min_standard_deviations', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
-    parser.add_argument('--min_measurements_quantiles', type=int, default=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS, help='The minimal number of measurements used to calculate quantiles.')
+    parser.add_argument('--min_measurements_quantiles', type=int, default=None, help='The minimal number of measurements used to calculate quantiles.')
     parser.add_argument('--min_measurements_correlations', nargs='+', default=None, type=int, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
     parser.add_argument('--max_box_distance_to_water', default=None, type=int, help='The maximal number of boxes allowed as distance to a water box.')
     parser.add_argument('--near_water_lsm', default='TMM', choices=measurements.all.data.LAND_SEA_MASKS, help='The land sea mask used to calculate the distances to water boxes.')
