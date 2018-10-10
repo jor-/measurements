@@ -23,17 +23,15 @@ import util.logging
 
 class Measurements():
 
+    min_diag_value_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE
+    permutation_method_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_PERMUTATION_METHOD
+    decomposition_type_correlations = measurements.universal.constants.CORRELATION_DECOMPOSITION_TYPE
+    matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
+    dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
+
     def __init__(self, tracer=None, data_set_name=None):
         self._tracer = tracer
         self._data_set_name = data_set_name
-
-        self.min_abs_correlation = measurements.universal.constants.CORRELATION_MIN_ABS_VALUE
-        self.min_diag_value_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE
-        self.permutation_method_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_PERMUTATION_METHOD
-        self.decomposition_type_correlations = measurements.universal.constants.CORRELATION_DECOMPOSITION_TYPE
-        self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
-        self.dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
-
         util.logging.debug('{}: initialized with tracer {} and data set {}.'.format(self.__class__.__name__, tracer, data_set_name))
 
     # *** string representations *** #
@@ -146,7 +144,14 @@ class Measurements():
 
 class MeasurementsAnnualPeriodicBase(Measurements):
 
+    sample_lsm = measurements.universal.constants.SAMPLE_LSM
+    min_measurements_mean = measurements.universal.constants.MEAN_MIN_MEASUREMENTS
     min_measurements_quantile = measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS
+    min_measurements_standard_deviation = measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS
+    min_measurements_correlation = measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS
+    min_standard_deviation = measurements.universal.constants.np.finfo(np.float).resolution
+    min_abs_correlation = measurements.universal.constants.CORRELATION_MIN_ABS_VALUE
+    max_abs_correlation = measurements.universal.constants.CORRELATION_MAX_ABS_VALUE
 
     def __init__(self, tracer=None, data_set_name=None,
                  sample_lsm=measurements.universal.constants.SAMPLE_LSM,
@@ -160,31 +165,20 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         super().__init__(tracer=tracer, data_set_name=data_set_name)
 
         # set and save input
-
-        if sample_lsm is None:
-            sample_lsm = measurements.universal.constants.SAMPLE_LSM
-        self.sample_lsm = sample_lsm
-
-        if min_measurements_mean is None:
-            min_measurements_mean = measurements.universal.constants.MEAN_MIN_MEASUREMENTS
-        self.min_measurements_mean = min_measurements_mean
-
-        if min_measurements_standard_deviation is None:
-            min_measurements_standard_deviation = measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS
-        self.min_measurements_standard_deviation = min_measurements_standard_deviation
-        if min_standard_deviation is None:
-            min_standard_deviation = measurements.universal.constants.np.finfo(np.float).resolution
-        self.min_standard_deviation = min_standard_deviation
-
-        if min_measurements_correlation is None:
-            min_measurements_correlation = measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS
-        self.min_measurements_correlation = min_measurements_correlation
-        if min_abs_correlation is None:
-            min_abs_correlation = measurements.universal.constants.CORRELATION_MIN_ABS_VALUE
-        self.min_abs_correlation = min_abs_correlation
-        if max_abs_correlation is None:
-            max_abs_correlation = measurements.universal.constants.CORRELATION_MAX_ABS_VALUE
-        self.max_abs_correlation = max_abs_correlation
+        if sample_lsm is not None:
+            self.sample_lsm = sample_lsm
+        if min_measurements_mean is not None:
+            self.min_measurements_mean = min_measurements_mean
+        if min_measurements_standard_deviation is not None:
+            self.min_measurements_standard_deviation = min_measurements_standard_deviation
+        if min_standard_deviation is not None:
+            self.min_standard_deviation = min_standard_deviation
+        if min_measurements_correlation is not None:
+            self.min_measurements_correlation = min_measurements_correlation
+        if min_abs_correlation is not None:
+            self.min_abs_correlation = min_abs_correlation
+        if max_abs_correlation is not None:
+            self.max_abs_correlation = max_abs_correlation
 
     # general sample data
 
@@ -542,7 +536,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 class MeasurementsNearWater(Measurements):
 
     _PROPERTIES_OF_BASE_MEASUREMENTS = (
-        'min_abs_correlation',
         'min_diag_value_decomposition_correlation',
         'permutation_method_decomposition_correlation',
         'decomposition_type_correlations',
@@ -714,6 +707,16 @@ class MeasurementsNearWater(Measurements):
 
 
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
+
+    _PROPERTIES_OF_BASE_MEASUREMENTS = (MeasurementsNearWater._PROPERTIES_OF_BASE_MEASUREMENTS
+                                        + ('sample_lsm',
+                                           'min_measurements_mean',
+                                           'min_measurements_quantile',
+                                           'min_measurements_standard_deviation',
+                                           'min_measurements_correlation',
+                                           'min_standard_deviation',
+                                           'min_abs_correlation',
+                                           'max_abs_correlation'))
 
     def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=None):
         super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
