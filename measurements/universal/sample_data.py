@@ -11,10 +11,11 @@ import measurements.universal.constants
 
 class SampleData():
 
-    def __init__(self, points, values, sample_lsm):
+    def __init__(self, points, values, sample_lsm, min_value=0):
         self.points = points
         self.values = values
         self.sample_lsm = sample_lsm
+        self.min_value = min_value
 
     @property
     def measurement_dict(self):
@@ -45,7 +46,7 @@ class SampleData():
     def _sample_data_dict_concentration_based(self, data_function):
         data_dict = self.measurement_dict
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
-        data_dict.means(min_number_of_values=1, min_value=0, return_type='self')
+        data_dict.means(min_number_of_values=1, min_value=self.min_value, return_type='self')
         data_dict.discard_year()
         data_function(data_dict)
         return data_dict
@@ -55,7 +56,7 @@ class SampleData():
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
         data_function(data_dict)
         data_dict.discard_year()
-        data_dict.means(min_number_of_values=1, min_value=0, return_type='self')
+        data_dict.means(min_number_of_values=1, min_value=self.min_value, return_type='self')
         return data_dict
 
     def _sample_data_dict_noise_based(self, data_function, return_values_at_points=True):
@@ -67,14 +68,14 @@ class SampleData():
     # *** mean *** #
 
     def sample_concentration_means_map_indices_dict(self, min_measurements=measurements.universal.constants.MEAN_MIN_MEASUREMENTS):
-        util.logging.debug('Calculating sample_concentration_means_map_indices_dict with min_measurements {}.'.format(min_measurements))
-        data_function = lambda data_dict: data_dict.means(min_number_of_values=min_measurements, min_value=0, return_type='self')
+        util.logging.debug(f'Calculating sample_concentration_means_map_indices_dict with min_measurements {min_measurements} and min_value {self.min_value}.')
+        data_function = lambda data_dict: data_dict.means(min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
         data = self._sample_data_dict_concentration_based(data_function)
         return data
 
     def sample_concentration_means(self, min_measurements=measurements.universal.constants.MEAN_MIN_MEASUREMENTS):
-        util.logging.debug('Calculating sample_concentration_means with min_measurements {}.'.format(min_measurements))
-        data_dict = self.sample_concentration_means_map_indices_dict(min_measurements=min_measurements)
+        util.logging.debug(f'Calculating sample_concentration_means with min_measurements {min_measurements} and min_value {self.min_value}.')
+        data_dict = self.sample_concentration_means_map_indices_dict(min_measurements=min_measurements, min_value=self.min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
@@ -82,50 +83,50 @@ class SampleData():
 
     def sample_concentration_quantiles_map_indices_dict(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
         util.logging.debug(f'Calculating sample_concentration_quantiles_map_indices_dict with quantile {quantile}, min_measurements {min_measurements} and min_value {self.min_value}.')
-        data_function = lambda data_dict: data_dict.quantiles(quantile, min_number_of_values=min_measurements, min_value=0, return_type='self')
+        data_function = lambda data_dict: data_dict.quantiles(quantile, min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
         data = self._sample_data_dict_concentration_based(data_function)
         return data
 
     def sample_concentration_quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
         util.logging.debug(f'Calculating sample_concentration_quantiles with quantile {quantile}, min_measurements {min_measurements} and min_value {self.min_value}.')
-        data_dict = self.sample_concentration_quantiles_map_indices_dict(quantile, min_measurements=min_measurements)
+        data_dict = self.sample_concentration_quantiles_map_indices_dict(quantile, min_measurements=min_measurements, min_value=self.min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
     # *** deviation *** #
 
     def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        util.logging.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug(f'Calculating sample_concentration_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_concentration_based(data_function)
         return data_dict
 
     def sample_concentration_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        util.logging.debug('Calculating sample_concentration_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug(f'Calculating sample_concentration_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
         data_dict = self.sample_concentration_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
     def sample_average_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        util.logging.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug(f'Calculating sample_average_noise_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_average_noise_based(data_function)
         return data_dict
 
     def sample_average_noise_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        util.logging.debug('Calculating sample_average_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug(f'Calculating sample_average_noise_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
         data_dict = self.sample_average_noise_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
     def sample_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        util.logging.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug(f'Calculating sample_noise_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
         data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_noise_based(data_function)
         return data_dict
 
     def sample_noise_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
-        util.logging.debug('Calculating sample_noise_standard_deviations with min_measurements {} and min_value {}.'.format(min_measurements, min_value))
+        util.logging.debug(f'Calculating sample_noise_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
         data_dict = self.sample_noise_standard_deviations_map_indices_dict(min_measurements=min_measurements, min_value=min_value)
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=False)
         return data
