@@ -68,7 +68,7 @@ QUANTILE_FILE = os.path.join(QUANTILE_DIR, SEPERATOR.join([
     'for_{target}',
     'sample_{sample_lsm}',
     'min_values_{min_measurements:d}',
-    'quantile_{quantile}',
+    'quantile_{quantile:0<4}',
     'fill_{fill_strategy}.npy']))
 
 

@@ -1143,6 +1143,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
     def _quantile_cache_file(self, target, quantile, min_measurements):
         fill_strategy = self._fill_strategy_id('concentration_quantiles')
+        quantile = float(quantile)
         return measurements.universal.constants.QUANTILE_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
