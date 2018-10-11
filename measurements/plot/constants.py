@@ -6,7 +6,7 @@ from measurements.constants import BASE_DIR
 
 BASE_DIR = os.path.join(os.path.dirname(BASE_DIR), 'plots')
 
-MEASUREMENT_DIR = os.path.join(BASE_DIR, '{tracer}', '{data_set}')
+MEASUREMENT_DIR = os.path.join(BASE_DIR, 'measurements', '{tracer}', '{data_set}')
 
 KIND_DIR = os.path.join(MEASUREMENT_DIR, '{kind}', '{kind_id}')
 
