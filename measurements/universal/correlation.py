@@ -110,7 +110,7 @@ class Correlation():
         correlation = self.correlation_array(axis=axis, use_sample_correlation=use_sample_correlation)
         assert correlation.shape[1] == 3
 
-        util.plot.scatter_dataset_means(file, correlation, use_abs=True)
+        util.plot.imshow_dataset_means(file, correlation, use_abs=True)
         return file
 
     def plot_autocorrelation(self, axis, file, use_sample_correlation=False):
