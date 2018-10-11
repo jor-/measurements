@@ -170,3 +170,27 @@ def sample_correlation_histogram(measurements_object, base_file=None, use_abs=Fa
                 x_min = -1
                 tick_number = 5
             util.plot.histogram(data, file_with_scale, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
+
+
+def correlation_and_sample_correlation_sparsity_pattern(measurements_object, base_file=None):
+    # get file name
+    file = _get_file_name(measurements_object,
+                          'correlation',
+                          'correlation',
+                          'sparsity_pattern',
+                          base_file=base_file,
+                          plot_name='correlation_and_sample_correlation_sparsity_pattern')
+    file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
+        decomposition_type=measurements_object.decomposition_type_correlations,
+        seperator=measurements.universal.constants.SEPERATOR), '')
+    # prepare data
+    min_abs_value = 10**-4
+    A = measurements_object.correlations_own_sample_matrix.tocsc(copy=False)
+    A.data[np.abs(A.data) < min_abs_value] = 0
+    B = measurements_object.correlations_own.tocsc(copy=False)
+    B.data[np.abs(B.data) < min_abs_value] = 0
+    # plot
+    util.plot.sparse_matrices_patterns_with_differences(
+        file, A, B,
+        colors=((1, 0, 0), (1, 1, 1), (1, 0, 1), (0, 0, 1)),
+        labels=('removed', 'inserted', 'changed', 'unchanged'),)

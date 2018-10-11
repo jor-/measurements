@@ -21,8 +21,10 @@ def _main():
 
     parser.add_argument('--means_sample_lsm', action='store_true', help='Plot means for points of sample land sea mask.')
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
+
     parser.add_argument('--sample_correlation_sparsity_pattern', default=None, choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', default=None, type=bool, choices=(True, False), help='Plot histogram of sample correlation of measurements with passed using abs.')
+    parser.add_argument('--correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of correlation and sample correlation of measurements in one plot.')
 
     parser.add_argument('--sample_correlation_correlations', action='store', default=None, nargs='*', help='Plot correlation of sample correlation of measurements.')
     parser.add_argument('--sample_correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements.')
@@ -61,6 +63,9 @@ def _main():
 
         if args.sample_correlation_histogram is not None:
             measurements.plot.data.sample_correlation_histogram(m, use_abs=args.sample_correlation_histogram)
+
+        if args.correlation_sparsity_pattern:
+            measurements.plot.data.correlation_and_sample_correlation_sparsity_pattern(m)
 
         mc = measurements.universal.correlation.CorrelationCache(m)
         if args.sample_correlation_correlations is not None:
