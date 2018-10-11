@@ -196,6 +196,10 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         else:
             return default_min_measurements
 
+    @property
+    def _min_value(self):
+        return self._sample_data.min_value
+
     # mean
 
     @property
@@ -448,6 +452,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         elif fill_strategy == 'interpolate':
             interpolator_options = self.get_interpolator_options(kind)
             lsm_values = self._interpolator.interpolate_data_for_sample_lsm_with_map_indices(map_indices_and_values, interpolator_options)
+            lsm_values = np.maximum(lsm_values, self._min_value)
         else:
             raise ValueError('Unknown fill method {}.'.format(fill_strategy))
 
@@ -504,6 +509,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
                 elif kind == 'average_noise_standard_deviations':
                     data_for_sample_lsm = self.average_noise_standard_deviations_for_sample_lsm(*args, **kargs)
                 data[data.mask] = self._interpolator.interpolate_data_for_points_from_interpolated_lsm_data(data_for_sample_lsm, self.points[data.mask])
+                data[data.mask] = np.maximum(data[data.mask], self._min_value)
             elif fill_strategy == 'constant':
                 data[data.mask] = self.get_constant_fill_value(kind)
             else:
