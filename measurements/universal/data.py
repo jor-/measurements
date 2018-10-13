@@ -49,14 +49,14 @@ class Measurements():
         if self._tracer is not None:
             return self._tracer
         else:
-            return ValueError('Tracer is not set.')
+            raise ValueError('Tracer is not set.')
 
     @property
     def data_set_name(self):
         if self._data_set_name is not None:
             return self._data_set_name
         else:
-            return ValueError('Data set name is not set.')
+            raise ValueError('Data set name is not set.')
 
     @property
     @abc.abstractmethod
