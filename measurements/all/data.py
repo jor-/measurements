@@ -11,13 +11,20 @@ TRACERS = ('dop', 'po4', 'phytoplankton', 'zooplankton', 'detritus')
 LAND_SEA_MASKS = ('TMM', 'WOA13', 'WOA13R')
 
 
-def all_measurements(tracers=None, min_standard_deviations=None, min_measurements_correlations=None, max_box_distance_to_water=None, near_water_lsm='TMM'):
+def all_measurements(tracers=None,
+                     min_measurements_mean=None,
+                     min_measurements_quantile=None,
+                     min_measurements_standard_deviation=None,
+                     min_measurements_correlation=None,
+                     min_standard_deviation=None,
+                     max_box_distance_to_water=None,
+                     water_lsm='TMM'):
     # check and prepare tracers
     if tracers is None:
         tracers = TRACERS
     n = len(tracers)
 
-    # check and prepare min_standard_deviations and min_measurements_correlations
+    # check and prepare parameters
     def prepare_value_list(values, values_name):
         if values is None:
             values = (None,) * n
@@ -33,11 +40,13 @@ def all_measurements(tracers=None, min_standard_deviations=None, min_measurement
                     raise ValueError('{values_name} must be an iterable with the same number of values as tracers ({tracers_len}) or one value but it has {values_len} values.'.format(values_name=values_name, tracers_len=n, values_len=m))
         return values
 
-    min_standard_deviation = prepare_value_list(min_standard_deviations, 'min_standard_deviations')
-    min_measurements_correlation = prepare_value_list(min_measurements_correlations, 'min_measurements_correlations')
+    min_standard_deviation = prepare_value_list(min_standard_deviation, 'min_standard_deviation')
+    min_measurements_mean = prepare_value_list(min_measurements_mean, 'min_measurements_mean')
+    min_measurements_quantile = prepare_value_list(min_measurements_quantile, 'min_measurements_quantile')
+    min_measurements_standard_deviation = prepare_value_list(min_measurements_standard_deviation, 'min_measurements_standard_deviation')
+    min_measurements_correlation = prepare_value_list(min_measurements_correlation, 'min_measurements_correlation')
 
-    # prepate near water lsm
-    water_lsm = near_water_lsm
+    # prepate water lsm
     if water_lsm is not None:
         water_lsm = water_lsm.upper()
 
@@ -75,6 +84,12 @@ def all_measurements(tracers=None, min_standard_deviations=None, min_measurement
             if max_box_distance_to_water is not None:
                 measurements_object.max_box_distance_to_water = max_box_distance_to_water
 
+            if min_measurements_mean[i] is not None:
+                measurements_object.min_measurements_mean = min_measurements_mean[i]
+            if min_measurements_quantile[i] is not None:
+                measurements_object.min_measurements_quantile = min_measurements_quantile[i]
+            if min_measurements_standard_deviation[i] is not None:
+                measurements_object.min_measurements_standard_deviation = min_measurements_standard_deviation[i]
             if min_measurements_correlation[i] is not None:
                 measurements_object.min_measurements_correlation = min_measurements_correlation[i]
 

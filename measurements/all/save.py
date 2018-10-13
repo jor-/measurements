@@ -11,12 +11,16 @@ def _main():
     # parse arguments
     parser = argparse.ArgumentParser(description='Save data from measurements.')
 
-    parser.add_argument('--tracers', nargs='+', default=None, choices=measurements.all.data.TRACERS, help='The tracers for which the data should be saved.')
-    parser.add_argument('--min_standard_deviations', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
-    parser.add_argument('--min_measurements_quantiles', type=int, default=None, help='The minimal number of measurements used to calculate quantiles.')
-    parser.add_argument('--min_measurements_correlations', nargs='+', default=None, type=int, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
-    parser.add_argument('--max_box_distance_to_water', default=None, type=int, help='The maximal number of boxes allowed as distance to a water box.')
-    parser.add_argument('--near_water_lsm', default='TMM', choices=measurements.all.data.LAND_SEA_MASKS, help='The land sea mask used to calculate the distances to water boxes.')
+    parser.add_argument('--tracers', nargs='+', choices=measurements.all.data.TRACERS, default=None, help='The tracers for which the data should be saved.')
+    parser.add_argument('--max_box_distance_to_water', type=int, default=None, help='The maximal number of boxes allowed as distance to a water box.')
+    parser.add_argument('--water_lsm', choices=measurements.all.data.LAND_SEA_MASKS, default='TMM', help='The land sea mask used to calculate the distances to water boxes.')
+
+    parser.add_argument('--min_measurements_mean', type=int, default=None, help='The minimal number of measurements used to calculate means applied to each tracer.')
+    parser.add_argument('--min_measurements_quantile', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate quantiles applied to each tracer.')
+    parser.add_argument('--min_measurements_standard_deviation', type=int, default=None, help='The minimal number of measurements used to calculate standard deviations applied to each tracer.')
+    parser.add_argument('--min_measurements_correlation', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
+
+    parser.add_argument('--min_standard_deviation', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
 
     parser.add_argument('--points_and_values', action='store_true', help='Calculate and save points and values of measurements.')
 
@@ -41,28 +45,26 @@ def _main():
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
     args = parser.parse_args()
 
-    tracers = args.tracers
-    min_standard_deviations = args.min_standard_deviations
-    min_measurements_correlations = args.min_measurements_correlations
-    max_box_distance_to_water = args.max_box_distance_to_water
-    near_water_lsm = args.near_water_lsm
-
-    # call functions
     with util.logging.Logger(level=args.debug_level):
+        # init measurements object
         m = measurements.all.data.all_measurements(
-            tracers=tracers,
-            min_standard_deviations=min_standard_deviations,
-            min_measurements_correlations=min_measurements_correlations,
-            max_box_distance_to_water=max_box_distance_to_water,
-            near_water_lsm=near_water_lsm)
+            tracers=args.tracers,
+            min_measurements_mean=args.min_measurements_mean,
+            min_measurements_quantile=args.min_measurements_quantile,
+            min_measurements_standard_deviation=args.min_measurements_standard_deviation,
+            min_measurements_correlation=args.min_measurements_correlation,
+            min_standard_deviation=args.min_standard_deviation,
+            max_box_distance_to_water=args.max_box_distance_to_water,
+            water_lsm=args.water_lsm)
 
+        # calculate
         if args.points_and_values:
             m.points
             m.values
         if args.means:
             m.means
         if args.quantiles is not None:
-            m.quantiles(args.quantiles, min_measurements=args.min_measurements_quantiles)
+            m.quantiles(args.quantiles)
         if args.concentration_standard_deviations:
             m.concentration_standard_deviations
         if args.noise_standard_deviations:
@@ -83,7 +85,7 @@ def _main():
             if args.means_sample_lsm:
                 m.means_for_sample_lsm()
             if args.quantiles_sample_lsm is not None:
-                m.quantiles_for_sample_lsm(args.quantiles_sample_lsm, min_measurements=args.min_measurements_quantiles)
+                m.quantiles_for_sample_lsm(args.quantiles_sample_lsm)
             if args.concentration_standard_deviations_sample_lsm:
                 m.concentration_standard_deviations_for_sample_lsm()
             if args.average_noise_standard_deviations_for_sample_lsm:
