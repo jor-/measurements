@@ -153,33 +153,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     min_abs_correlation = measurements.universal.constants.CORRELATION_MIN_ABS_VALUE
     max_abs_correlation = measurements.universal.constants.CORRELATION_MAX_ABS_VALUE
 
-    def __init__(self, tracer=None, data_set_name=None,
-                 sample_lsm=measurements.universal.constants.SAMPLE_LSM,
-                 min_standard_deviation=np.finfo(np.float).resolution,
-                 min_abs_correlation=measurements.universal.constants.CORRELATION_MIN_ABS_VALUE,
-                 max_abs_correlation=measurements.universal.constants.CORRELATION_MAX_ABS_VALUE,
-                 min_measurements_mean=measurements.universal.constants.MEAN_MIN_MEASUREMENTS,
-                 min_measurements_standard_deviation=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS,
-                 min_measurements_correlation=measurements.universal.constants.CORRELATION_MIN_MEASUREMENTS):
-
-        super().__init__(tracer=tracer, data_set_name=data_set_name)
-
-        # set and save input
-        if sample_lsm is not None:
-            self.sample_lsm = sample_lsm
-        if min_measurements_mean is not None:
-            self.min_measurements_mean = min_measurements_mean
-        if min_measurements_standard_deviation is not None:
-            self.min_measurements_standard_deviation = min_measurements_standard_deviation
-        if min_standard_deviation is not None:
-            self.min_standard_deviation = min_standard_deviation
-        if min_measurements_correlation is not None:
-            self.min_measurements_correlation = min_measurements_correlation
-        if min_abs_correlation is not None:
-            self.min_abs_correlation = min_abs_correlation
-        if max_abs_correlation is not None:
-            self.max_abs_correlation = max_abs_correlation
-
     # general sample data
 
     @property
@@ -312,7 +285,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     def __init__(self, *args, **kargs):
         self._interpolator_options = {}
         self._constant_fill_values = {}
-
         super().__init__(*args, **kargs)
 
     # interpolater
@@ -548,10 +520,8 @@ class MeasurementsNearWater(Measurements):
         'matrix_format_correlation',
         'dtype_correlation')
 
-    def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=None):
+    def __init__(self, base_measurements):
         self.base_measurements = base_measurements
-        self.water_lsm = water_lsm
-        self.max_box_distance_to_water = max_box_distance_to_water
 
     # properties
     @property
@@ -732,16 +702,9 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
                                            'min_abs_correlation',
                                            'max_abs_correlation'))
 
-    def __init__(self, base_measurements, water_lsm=None, max_box_distance_to_water=None):
-        super().__init__(base_measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
-        MeasurementsAnnualPeriodic.__init__(
-            self, base_measurements.sample_lsm,
-            min_standard_deviation=base_measurements.min_standard_deviation,
-            min_abs_correlation=base_measurements.min_abs_correlation,
-            max_abs_correlation=base_measurements.max_abs_correlation,
-            min_measurements_mean=base_measurements.min_measurements_mean,
-            min_measurements_standard_deviation=base_measurements.min_measurements_standard_deviation,
-            min_measurements_correlation=base_measurements.min_measurements_correlation)
+    def __init__(self, base_measurements):
+        MeasurementsNearWater.__init__(self, base_measurements)
+        MeasurementsAnnualPeriodic.__init__(self)
 
     # data for points
 
@@ -806,32 +769,14 @@ class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
                 raise ValueError('Measurements objects with different tracers ({} and {}) are not allowed!'.format(measurements_list[i].tracer, measurements_list[i + 1].tracer))
             if measurements_list[i].data_set_name == measurements_list[i + 1].data_set_name:
                 raise ValueError('Measurements objects with same tracer ({}) and same data set name ({}) are not allowed!'.format(measurements_list[i].tracer, measurements_list[i].data_set_name))
-            if measurements_list[i].sample_lsm != measurements_list[i + 1].sample_lsm:
-                raise ValueError('Measurements objects with different sample lsm ({} and {}) are not allowed!'.format(measurements_list[i].sample_lsm, measurements_list[i + 1].sample_lsm))
 
         # store
         self.measurements_list = measurements_list
 
         # chose values for union
-        sample_lsm = measurements_list[0].sample_lsm
         tracer = measurements_list[0].tracer
         data_set_name = ','.join(map(lambda measurement: measurement.data_set_name, measurements_list))
-
-        def get_and_set_default_value(value_name, reduce_function):
-            default_value = reduce_function(map(lambda measurement: getattr(measurement, value_name), measurements_list))
-            for measurement in measurements_list:
-                setattr(measurement, value_name, default_value)
-            return default_value
-
-        min_measurements_mean = get_and_set_default_value('min_measurements_mean', min)
-        min_standard_deviation = get_and_set_default_value('min_standard_deviation', min)
-        min_measurements_standard_deviation = get_and_set_default_value('min_measurements_standard_deviation', min)
-        min_abs_correlation = get_and_set_default_value('min_abs_correlation', min)
-        max_abs_correlation = get_and_set_default_value('max_abs_correlation', max)
-        min_measurements_correlation = get_and_set_default_value('min_measurements_correlation', min)
-
-        # call super init
-        super().__init__(tracer=tracer, data_set_name=data_set_name, sample_lsm=sample_lsm, min_measurements_mean=min_measurements_mean, min_standard_deviation=min_standard_deviation, min_measurements_standard_deviation=min_measurements_standard_deviation, min_abs_correlation=min_abs_correlation, max_abs_correlation=max_abs_correlation, min_measurements_correlation=min_measurements_correlation)
+        super().__init__(tracer=tracer, data_set_name=data_set_name)
 
     @property
     @overrides.overrides
@@ -881,13 +826,6 @@ class MeasurementsCollection(Measurements):
         else:
             data_set_name = measurements_list[0].data_set_name
         super().__init__(tracer=tracer, data_set_name=data_set_name)
-
-        # correlation constants
-        self.min_abs_correlation = min([measurement.min_abs_correlation for measurement in measurements_list])
-        self.min_diag_value_decomposition_correlation = min([measurement.min_diag_value_decomposition_correlation for measurement in measurements_list])
-        self.permutation_method_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_PERMUTATION_METHOD
-        self.matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
-        self.dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
 
     @property
     def measurements_list(self):

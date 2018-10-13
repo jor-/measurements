@@ -27,10 +27,6 @@ DATA_FILENAME = 'data.npy'
 
 # sample informations
 
-from measurements.universal.constants import SAMPLE_LSM
-
 STANDARD_DEVIATION_CONCENTRATION_NOISE_RATIO = 1.5
-
 STANDARD_DEVIATION_MIN_VALUE = 0.5
-
 CORRELATION_MIN_MEASUREMENTS = 40

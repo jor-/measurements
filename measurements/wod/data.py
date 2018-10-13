@@ -109,9 +109,9 @@ def results(tracer):
 
 class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicCache):
 
-    def __init__(self, tracer, sample_lsm, min_standard_deviation, min_measurements_correlation):
+    def __init__(self, tracer):
         data_set_name = measurements.wod.constants.DATA_SET_NAME
-        super().__init__(tracer=tracer, data_set_name=data_set_name, sample_lsm=sample_lsm, min_standard_deviation=min_standard_deviation, min_measurements_correlation=min_measurements_correlation)
+        super().__init__(tracer=tracer, data_set_name=data_set_name)
 
     @property
     @overrides.overrides
@@ -126,6 +126,6 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicCac
 
 class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
 
-    def __init__(self, tracer, sample_lsm, min_standard_deviation, min_measurements_correlation, water_lsm=None, max_box_distance_to_water=None):
-        measurements = MeasurementsBase(tracer, sample_lsm, min_standard_deviation, min_measurements_correlation)
-        super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+    def __init__(self, tracer):
+        measurements = MeasurementsBase(tracer)
+        super().__init__(measurements)

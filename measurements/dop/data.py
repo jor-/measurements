@@ -144,29 +144,17 @@ def load_yoshimura_2007():
 
 class MeasurementsSingleBase(measurements.universal.data.MeasurementsAnnualPeriodicCache):
 
-    def __init__(self, data_set_name, load_data_function,
-                 sample_lsm=measurements.dop.constants.SAMPLE_LSM,
-                 min_standard_deviation=measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE,
-                 min_measurements_correlation=measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS):
+    min_standard_deviation = measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE,
+    min_measurements_correlation = measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS
+
+    def __init__(self, data_set_name, load_data_function):
 
         self._load_data_function = load_data_function
 
         tracer = 'dop'
         data_set_name = data_set_name
 
-        if sample_lsm is None:
-            sample_lsm = measurements.dop.constants.SAMPLE_LSM
-        if min_standard_deviation is None:
-            min_standard_deviation = measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE
-        if min_measurements_correlation is None:
-            min_measurements_correlation = measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS
-
-        super().__init__(
-            tracer=tracer,
-            data_set_name=data_set_name,
-            sample_lsm=sample_lsm,
-            min_standard_deviation=min_standard_deviation,
-            min_measurements_correlation=min_measurements_correlation)
+        super().__init__(tracer=tracer, data_set_name=data_set_name)
 
     @property
     def points_and_results(self):
@@ -187,73 +175,24 @@ class MeasurementsSingleBase(measurements.universal.data.MeasurementsAnnualPerio
 
 
 class MeasurementsLadolfi2002(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
-
-    def __init__(self,
-                 sample_lsm=measurements.dop.constants.SAMPLE_LSM,
-                 min_standard_deviation=measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE,
-                 min_measurements_correlation=measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS,
-                 water_lsm=None,
-                 max_box_distance_to_water=None):
-
-        measurements_base = MeasurementsSingleBase(
-            'ladolfi_2002', load_ladolfi_2002,
-            sample_lsm=sample_lsm,
-            min_standard_deviation=min_standard_deviation,
-            min_measurements_correlation=min_measurements_correlation)
-
-        super().__init__(measurements_base,
-                         water_lsm=water_lsm,
-                         max_box_distance_to_water=max_box_distance_to_water)
+    def __init__(self):
+        super().__init__(MeasurementsSingleBase('ladolfi_2002', load_ladolfi_2002))
 
 
 class MeasurementsLadolfi2004(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
-
-    def __init__(self,
-                 sample_lsm=measurements.dop.constants.SAMPLE_LSM,
-                 min_standard_deviation=measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE,
-                 min_measurements_correlation=measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS,
-                 water_lsm=None,
-                 max_box_distance_to_water=None):
-
-        measurements_base = MeasurementsSingleBase(
-            'ladolfi_2004', load_ladolfi_2004,
-            sample_lsm=sample_lsm,
-            min_standard_deviation=min_standard_deviation,
-            min_measurements_correlation=min_measurements_correlation)
-
-        super().__init__(measurements_base,
-                         water_lsm=water_lsm,
-                         max_box_distance_to_water=max_box_distance_to_water)
+    def __init__(self):
+        super().__init__(MeasurementsSingleBase('ladolfi_2004', load_ladolfi_2004))
 
 
 class MeasurementsYoshimura2007(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
-
-    def __init__(self,
-                 sample_lsm=measurements.dop.constants.SAMPLE_LSM,
-                 min_standard_deviation=measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE,
-                 min_measurements_correlation=measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS,
-                 water_lsm=None,
-                 max_box_distance_to_water=None):
-
-        measurements_base = MeasurementsSingleBase(
-            'yoshimura_2007', load_yoshimura_2007,
-            sample_lsm=sample_lsm,
-            min_standard_deviation=min_standard_deviation,
-            min_measurements_correlation=min_measurements_correlation)
-
-        super().__init__(measurements_base,
-                         water_lsm=water_lsm,
-                         max_box_distance_to_water=max_box_distance_to_water)
+    def __init__(self):
+        super().__init__(MeasurementsSingleBase('yoshimura_2007', load_yoshimura_2007))
 
 
 class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUnionCache):
 
-    def __init__(self,
-                 sample_lsm=measurements.dop.constants.SAMPLE_LSM,
-                 min_standard_deviation=measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE,
-                 min_measurements_correlation=measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS):
-        measurement_list = [measurement_class(sample_lsm=sample_lsm, min_standard_deviation=min_standard_deviation, min_measurements_correlation=min_measurements_correlation)
-                            for measurement_class in [MeasurementsLadolfi2002, MeasurementsLadolfi2004, MeasurementsYoshimura2007]]
+    def __init__(self):
+        measurement_list = [measurement_class() for measurement_class in [MeasurementsLadolfi2002, MeasurementsLadolfi2004, MeasurementsYoshimura2007]]
         super().__init__(*measurement_list)
         self.standard_deviation_concentration_noise_ratio = measurements.dop.constants.STANDARD_DEVIATION_CONCENTRATION_NOISE_RATIO
         self.fill_strategy = 'point_average'
@@ -282,12 +221,5 @@ class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicUni
 
 
 class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
-
-    def __init__(self,
-                 sample_lsm=measurements.dop.constants.SAMPLE_LSM,
-                 min_standard_deviation=measurements.dop.constants.STANDARD_DEVIATION_MIN_VALUE,
-                 min_measurements_correlation=measurements.dop.constants.CORRELATION_MIN_MEASUREMENTS,
-                 water_lsm=None,
-                 max_box_distance_to_water=None):
-        measurements = MeasurementsBase(sample_lsm=sample_lsm, min_standard_deviation=min_standard_deviation, min_measurements_correlation=min_measurements_correlation)
-        super().__init__(measurements, water_lsm=water_lsm, max_box_distance_to_water=max_box_distance_to_water)
+    def __init__(self):
+        super().__init__(MeasurementsBase())
