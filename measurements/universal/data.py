@@ -707,8 +707,8 @@ class MeasurementsNearWater(Measurements):
 
     # handle properties of base measurement
 
-    def __getattr__(self, name):
-        if name in self._PROPERTIES_OF_BASE_MEASUREMENTS:
+    def __getattribute__(self, name):
+        if name in super().__getattribute__('_PROPERTIES_OF_BASE_MEASUREMENTS'):
             return getattr(self.base_measurements, name)
         else:
             return super().__getattribute__(name)
