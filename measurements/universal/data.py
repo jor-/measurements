@@ -598,6 +598,10 @@ class MeasurementsNearWater(Measurements):
             except AttributeError:
                 pass
 
+    @max_box_distance_to_water.deleter
+    def max_box_distance_to_water(self):
+        del self._max_box_distance_to_water
+
     @property
     def is_restricted(self):
         return self.max_box_distance_to_water is not None
@@ -621,9 +625,13 @@ class MeasurementsNearWater(Measurements):
         # otherwise delete value
         else:
             try:
-                del self._water_lsm
+                del self.water_lsm
             except AttributeError:
                 pass
+
+    @water_lsm.deleter
+    def water_lsm(self):
+        del self._water_lsm
 
     # projection methods
 
