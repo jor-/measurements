@@ -604,7 +604,7 @@ class MeasurementsNearWater(Measurements):
 
     @property
     def is_restricted(self):
-        return self.max_box_distance_to_water is not None
+        return self.max_box_distance_to_water is not None and self.max_box_distance_to_water != np.inf
 
     @property
     def water_lsm(self):
