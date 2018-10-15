@@ -9,13 +9,14 @@ import measurements.universal.constants
 import util.plot
 
 
-def _calculate_v_max(data):
-    v_max = np.percentile(data, 99)
-    v_max = np.round(v_max * 100) / 100
-    return v_max
-
 
 def _values_for_sample_lsm(data, base_file, sample_lsm):
+    def _calculate_v_max(data):
+        data = data[~np.isnan(data)]
+        v_max = np.percentile(data, 99)
+        v_max = np.round(v_max * 100) / 100
+        return v_max
+
     # plot data
     file_root, file_extension = os.path.splitext(base_file)
     file = file_root + '_-_data' + file_extension
