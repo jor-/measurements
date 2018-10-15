@@ -936,6 +936,13 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsAnnualPeriodicBase):
             sample_lsm=self.sample_lsm,
             min_measurements=self.min_measurements_mean)
 
+    def quantile_id(self, quantile, min_measurements=None):
+        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
+        return measurements.universal.constants.QUANTILE_ID.format(
+            sample_lsm=self.sample_lsm,
+            quantile=float(quantile),
+            min_measurements=min_measurements)
+
     @property
     def standard_deviation_id(self):
         return measurements.universal.constants.STANDARD_DEVIATION_ID.format(
@@ -967,7 +974,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     # *** ids *** #
 
     def _fill_strategy_id(self, kind):
-        # if standard deviation, use str for concentration and average_noise
+        # if standard deviation, merge fill strategy string for concentration and average_noise
         if kind == 'standard_deviations':
             concentration_fill_strategy = self._fill_strategy_id('concentration_standard_deviations')
             average_noise_fill_strategy = self._fill_strategy_id('average_noise_standard_deviations')
@@ -1000,6 +1007,10 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @overrides.overrides
     def mean_id(self):
         return super().mean_id + '_-_fill_' + self._fill_strategy_id('concentration_means')
+
+    @overrides.overrides
+    def quantile_id(self, quantile, min_measurements=None):
+        return super().quantile_id(quantile, min_measurements=min_measurements) + '_-_fill_' + self._fill_strategy_id('concentration_quantiles')
 
     @property
     @overrides.overrides
@@ -1414,6 +1425,10 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
     def mean_id(self):
         return self.base_measurements.mean_id
 
+    @overrides.overrides
+    def quantile_id(self, quantile, min_measurements=None):
+        return self.base_measurements.quantile_id(quantile, min_measurements=min_measurements)
+
     @property
     @overrides.overrides
     def standard_deviation_id(self):
@@ -1526,6 +1541,9 @@ class MeasurementsCollectionCache(MeasurementsCollection):
     @property
     def mean_id(self):
         return util.str.merge([measurement.mean_id for measurement in self.measurements_list])
+
+    def quantile_id(self, quantile, min_measurements=None):
+        return util.str.merge([measurement.quantile_id(quantile, min_measurements=min_measurements) for measurement in self.measurements_list])
 
     @property
     def standard_deviation_id(self):
