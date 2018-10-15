@@ -10,4 +10,4 @@ MEASUREMENT_DIR = os.path.join(BASE_DIR, 'measurements', '{tracer}', '{data_set}
 
 KIND_DIR = os.path.join(MEASUREMENT_DIR, '{kind}', '{kind_id}')
 
-PLOT_FILE = os.path.join(KIND_DIR, '{plot_name}.png')
+PLOT_FILE = os.path.join(KIND_DIR, '{plot_name}.svg')
