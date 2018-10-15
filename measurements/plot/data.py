@@ -46,49 +46,14 @@ def _values_for_sample_lsm(data, base_file, sample_lsm):
     util.plot.line(sample_lsm.z_center, data_averaged_all_but_depth, file, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000)
 
 
-def _get_file_name(measurements_object, *kinds, plot_name=None):
-    if len(kinds) > 0:
-        kind = kinds[0]
-        kinds = os.path.join(*kinds)
-        if kind == 'mean':
-            try:
-                kind_id = measurements_object.mean_id
-            except AttributeError:
-                kind_id = ''
-        elif kind == 'standard_deviation':
-            try:
-                kind_id = measurements_object.standard_deviation_id
-            except AttributeError:
-                kind_id = ''
-        elif kind == 'correlation':
-            try:
-                kind_id = measurements_object.correlation_id
-            except AttributeError:
-                kind_id = ''
-        else:
-            raise ValueError('Unknown kind {}.'.format(kind))
-    else:
-        kind_id = ''
-        kinds = ''
-
-    if plot_name is None:
-        plot_name = ''
-
-    file = measurements.plot.constants.PLOT_FILE.format(
-        tracer=measurements_object.tracer,
-        data_set=measurements_object.data_set_name,
-        kind=kinds,
-        kind_id=kind_id,
-        plot_name=plot_name)
-
-    return file
-
-
 def concentration_means_for_sample_lsm(measurements_object, file=None):
     if file is None:
-        file = _get_file_name(measurements_object,
-                              'mean',
-                              plot_name='concentration_means_interpolated')
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind='mean',
+            kind_id=measurements_object.mean_id,
+            plot_name='concentration_means_for_sample_lsm')
     data = measurements_object.means_for_sample_lsm()
     # print if not existing
     if not os.path.exists(file):
@@ -97,13 +62,14 @@ def concentration_means_for_sample_lsm(measurements_object, file=None):
 
 def concentration_standard_deviations_for_sample_lsm(measurements_object, file=None):
     if file is None:
-        file = _get_file_name(measurements_object,
-                              'standard_deviation',
-                              plot_name='concentration_standard_deviations_for_sample_lsm')
-    # print if not existing
-    if not os.path.exists(file):
-        data = measurements_object.concentration_standard_deviations_for_sample_lsm()
-        _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind='standard_deviation',
+            kind_id=measurements_object.standard_deviation_id,
+            plot_name='concentration_standard_deviations_for_sample_lsm')
+    data = measurements_object.concentration_standard_deviations_for_sample_lsm()
+    _values_for_sample_lsm(data, file, measurements_object.sample_lsm)
 
 
 def sample_correlation_sparsity_pattern(measurements_object, file=None, permutation_method=None):
@@ -112,11 +78,14 @@ def sample_correlation_sparsity_pattern(measurements_object, file=None, permutat
     measurements_object.permutation_method_decomposition_correlation = permutation_method
     # get file name
     if file is None:
-        file = _get_file_name(measurements_object,
-                              'correlation',
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('correlation',
                               'sample_correlation',
-                              'sparsity_pattern',
-                              plot_name='sample_correlation_sparsity_pattern')
+                              'sparsity_pattern'),
+            kind_id=measurements_object.correlation_id,
+            plot_name='sample_correlation_sparsity_pattern')
         file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
             decomposition_type=measurements_object.decomposition_type_correlations,
             seperator=measurements.universal.constants.SEPERATOR), '')
@@ -137,14 +106,18 @@ def sample_correlation_sparsity_pattern(measurements_object, file=None, permutat
 def sample_correlation_histogram(measurements_object, file=None, use_abs=False):
     # get file name
     if file is None:
-        plot_name = 'sample_correlation_histogram'
         if use_abs:
-            plot_name = 'abs_' + plot_name
-        file = _get_file_name(measurements_object,
-                              'correlation',
+            plot_name = 'abs_sample_correlation_histogram'
+        else:
+            plot_name = 'sample_correlation_histogram'
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('correlation',
                               'sample_correlation',
-                              'histogram',
-                              plot_name=plot_name)
+                              'histogram'),
+            kind_id=measurements_object.correlation_id,
+            plot_name=plot_name)
         file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
             decomposition_type=measurements_object.decomposition_type_correlations,
             seperator=measurements.universal.constants.SEPERATOR), '')
@@ -176,11 +149,14 @@ def sample_correlation_histogram(measurements_object, file=None, use_abs=False):
 def correlation_and_sample_correlation_sparsity_pattern(measurements_object, file=None):
     # get file name
     if file is None:
-        file = _get_file_name(measurements_object,
-                              'correlation',
-                              'correlation',
-                              'sparsity_pattern',
-                              plot_name='correlation_and_sample_correlation_sparsity_pattern')
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('correlation',
+                              'sample_correlation',
+                              'sparsity_pattern'),
+            kind_id=measurements_object.correlation_id,
+            plot_name=correlation_and_sample_correlation_sparsity_pattern)
         file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
             decomposition_type=measurements_object.decomposition_type_correlations,
             seperator=measurements.universal.constants.SEPERATOR), '')
