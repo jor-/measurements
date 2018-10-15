@@ -30,8 +30,10 @@ class Measurements():
     dtype_correlation = measurements.universal.constants.CORRELATION_DTYPE
 
     def __init__(self, tracer=None, data_set_name=None):
-        self._tracer = tracer
-        self._data_set_name = data_set_name
+        if tracer is not None:
+            self._tracer = tracer
+        if data_set_name is not None:
+            self._data_set_name = data_set_name
         util.logging.debug('{}: initialized with tracer {} and data set {}.'.format(self.__class__.__name__, tracer, data_set_name))
 
     # *** string representations *** #
@@ -46,15 +48,23 @@ class Measurements():
 
     @property
     def tracer(self):
-        if self._tracer is not None:
-            return self._tracer
+        try:
+            tracer = self._tracer
+        except AttributeError:
+            tracer = None
+        if tracer is not None:
+            return tracer
         else:
             raise ValueError('Tracer is not set.')
 
     @property
     def data_set_name(self):
-        if self._data_set_name is not None:
-            return self._data_set_name
+        try:
+            data_set_name = self._data_set_name
+        except AttributeError:
+            data_set_name = None
+        if data_set_name is not None:
+            return data_set_name
         else:
             raise ValueError('Data set name is not set.')
 
