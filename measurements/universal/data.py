@@ -829,15 +829,6 @@ class MeasurementsCollection(Measurements):
         # store
         self._measurements_list = measurements_list
 
-        # make tracer and data set name for collection
-        tracer = ','.join(map(lambda measurement: measurement.tracer, measurements_list))
-        data_set_name = ','.join(map(lambda measurement: measurement.data_set_name, measurements_list))
-        if len(measurements_list) > 1:
-            data_set_name = ','.join(map(lambda measurement: '{tracer}:{data_set_name}'.format(tracer=measurement.tracer, data_set_name=measurement.data_set_name), measurements_list))
-        else:
-            data_set_name = measurements_list[0].data_set_name
-        super().__init__(tracer=tracer, data_set_name=data_set_name)
-
     @property
     def measurements_list(self):
         return self._measurements_list
@@ -847,6 +838,29 @@ class MeasurementsCollection(Measurements):
 
     def __iter__(self):
         return self.measurements_list.__iter__()
+
+    @property
+    def tracer(self):
+        return tuple(measurements_object.tracer for measurements_object in self)
+
+    @property
+    def tracer_str(self):
+        tracer_str = ','.join(map(lambda measurement: measurement.tracer, self.measurements_list))
+        return tracer_str
+
+    @property
+    def data_set_name(self):
+        return tuple(measurements_object.data_set_name for measurements_object in self)
+
+    @property
+    def data_set_name_str(self):
+        measurements_list = self.measurements_list
+        data_set_name_str = ','.join(map(lambda measurement: measurement.data_set_name, measurements_list))
+        if len(measurements_list) > 1:
+            data_set_name_str = ','.join(map(lambda measurement: '{tracer}:{data_set_name}'.format(tracer=measurement.tracer, data_set_name=measurement.data_set_name), measurements_list))
+        else:
+            data_set_name_str = measurements_list[0].data_set_name
+        return data_set_name_str
 
     @property
     @overrides.overrides
@@ -1599,7 +1613,7 @@ class MeasurementsCollectionCache(MeasurementsCollection):
 
     @property
     def measurements_dir(self):
-        return measurements.universal.constants.MEASUREMENT_DIR.format(tracer=self.tracer, data_set=self.data_set_name)
+        return measurements.universal.constants.MEASUREMENT_DIR.format(tracer=self.tracer_str, data_set=self.data_set_name_str)
 
     def correlations_own_sample_matrix_cache_file(self):
         return self._merge_files(self.measurements_dir, [measurement._sample_correlation.correlation_matrix_cache_file() for measurement in self.measurements_list])
