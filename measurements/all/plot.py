@@ -13,7 +13,7 @@ def _main():
     # parse arguments
     parser = argparse.ArgumentParser(description='Save data from measurements.')
 
-    parser.add_argument('--tracers', nargs='+', choices=measurements.all.data.TRACERS, default=None, help='The tracers for which the data should be saved.')
+    parser.add_argument('--tracers', nargs='+', choices=measurements.all.data.TRACERS, default=measurements.all.data.TRACERS, help='The tracers for which the data should be saved.')
     parser.add_argument('--max_box_distance_to_water', type=int, default=None, help='The maximal number of boxes allowed as distance to a water box.')
     parser.add_argument('--water_lsm', choices=measurements.all.data.LAND_SEA_MASKS, default='TMM', help='The land sea mask used to calculate the distances to water boxes.')
 
@@ -29,11 +29,11 @@ def _main():
 
     parser.add_argument('--sample_correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, default=None, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', type=bool, choices=(True, False), default=None, help='Plot histogram of sample correlation of measurements with passed using abs.')
-    parser.add_argument('--correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of correlation and sample correlation of measurements in one plot.')
-
     parser.add_argument('--sample_correlation_correlations', action='store', default=None, nargs='*', help='Plot correlation of sample correlation of measurements.')
     parser.add_argument('--sample_correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements.')
     parser.add_argument('--sample_correlation_violin_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements as violin plot.')
+
+    parser.add_argument('--correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of correlation and sample correlation of measurements in one plot.')
     parser.add_argument('--correlation_correlations', action='store', default=None, nargs='*', help='Plot correlation of correlation of measurements.')
     parser.add_argument('--correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements.')
     parser.add_argument('--correlation_violin_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements as violin plot.')
@@ -55,12 +55,18 @@ def _main():
             max_box_distance_to_water=args.max_box_distance_to_water,
             water_lsm=args.water_lsm)
 
-        # plot
-        if args.means_sample_lsm:
-            measurements.plot.data.concentration_means_for_sample_lsm(m)
+        try:
+            measurements_list = m.measurements_list
+        except AttributeError:
+            measurements_list = [m]
 
-        if args.concentration_standard_deviations_sample_lsm:
-            measurements.plot.data.concentration_standard_deviations_for_sample_lsm(m)
+        # plot
+        for mi in measurements_list:
+            if args.means_sample_lsm:
+                measurements.plot.data.concentration_means_for_sample_lsm(mi)
+
+            if args.concentration_standard_deviations_sample_lsm:
+                measurements.plot.data.concentration_standard_deviations_for_sample_lsm(mi)
 
         if args.sample_correlation_sparsity_pattern is not None:
             measurements.plot.data.sample_correlation_sparsity_pattern(m, permutation_method=args.sample_correlation_sparsity_pattern)
