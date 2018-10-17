@@ -18,7 +18,7 @@ def distribution_time(measurement_dict, file='/tmp/distribution_time.png', time_
         t_max = t.max()
     n = n[:,4]
 
-    util.plot.histogram(t, file, weights=n, bins=range(int(t_min),int(t_max+2)), tick_power=tick_power)
+    util.plot.histogram(file, t, weights=n, bins=range(int(t_min),int(t_max+2)), tick_power=tick_power)
 
 
 def distribution_year(measurement_dict, file='/tmp/distribution_year.png', time_step=1/365., tick_power=None):
@@ -29,7 +29,7 @@ def distribution_year(measurement_dict, file='/tmp/distribution_year.png', time_
     n = m.numbers()
     t = n[:,0] / time_step
     n = n[:,4]
-    util.plot.histogram(t, file, weights=n, bins=range(0, int(np.ceil(1/time_step))+1), tick_power=tick_power)
+    util.plot.histogram(file, t, weights=n, bins=range(0, int(np.ceil(1/time_step))+1), tick_power=tick_power)
 
 
 def distribution_depth(measurement_dict, file='/tmp/distribution_depth.png', z_max=None, bin_size=50, use_log_scale=True):
@@ -40,7 +40,7 @@ def distribution_depth(measurement_dict, file='/tmp/distribution_depth.png', z_m
     if z_max is None:
         z_max = z.max()
     n = n[:,4]
-    util.plot.histogram(z, file, weights=n, bins=np.arange(0, z_max+1, bin_size), use_log_scale=use_log_scale)
+    util.plot.histogram(file, z, weights=n, bins=np.arange(0, z_max+1, bin_size), use_log_scale=use_log_scale)
 
 
 def value_histograms(measurement_dict, lsm, file='/tmp/value_histogram_{}.png', min_measurements=1, step_size=0.01):
@@ -49,7 +49,7 @@ def value_histograms(measurement_dict, lsm, file='/tmp/value_histogram_{}.png', 
     n = measurement_dict.numbers(min_measurements=min_measurements)
     for i in range(len(n)):
         measurement_index = n[i,:-1]
-        util.plot.histogram(measurement_dict[measurement_index], file.format(measurement_index), step_size=step_size)
+        util.plot.histogram(file.format(measurement_index), measurement_dict[measurement_index], step_size=step_size)
 
 
 def _prepare_filename(file, lsm=None, insertion=None):
@@ -72,7 +72,7 @@ def _plot_map(data, lsm, file, layer=None, v_min=None, v_max=None, use_log_scale
 
 def _plot_histogram(data, lsm, file, bins=None, step_size=None, v_min=None, v_max=None, use_log_scale=False, tick_power=None):
     file = _prepare_filename(file, lsm, 'histogram')
-    util.plot.histogram(data, file, bins=bins, step_size=step_size, x_min=v_min, x_max=v_max, use_log_scale=use_log_scale, tick_power=tick_power)
+    util.plot.histogram(file, data, bins=bins, step_size=step_size, x_min=v_min, x_max=v_max, use_log_scale=use_log_scale, tick_power=tick_power)
 
 def _plot(data, lsm, file, bins=None, step_size=None, layer=None, v_min=None, v_max=None, use_log_scale=False, type='both'):
     if type == 'both' or type == 'map':
