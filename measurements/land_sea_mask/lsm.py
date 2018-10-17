@@ -678,7 +678,7 @@ class LandSeaMask():
 
         # plot
         cm = matplotlib.pyplot.cm.winter_r
-        util.plot.data(data, file, land_value=0, power_limit=10, colormap=cm)
+        util.plot.data(file, data, land_value=0, power_limit=10, colormap=cm)
 
     # copy
     def copy(self):

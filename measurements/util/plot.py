@@ -68,7 +68,7 @@ def _plot_map(data, lsm, file, layer=None, v_min=None, v_max=None, use_log_scale
         data = data[:, :, :, layer]
         data = data.reshape(data.shape + (1,))
     file = _prepare_filename(file, lsm)
-    util.plot.data(data, file, no_data_value=np.inf, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale, contours=False, colorbar=True, power_limit=0, colorbar_kwargs=colorbar_kwargs)
+    util.plot.data(file, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, use_log_scale=use_log_scale, contours=False, colorbar=True, power_limit=0, colorbar_kwargs=colorbar_kwargs)
 
 def _plot_histogram(data, lsm, file, bins=None, step_size=None, v_min=None, v_max=None, use_log_scale=False, tick_power=None):
     file = _prepare_filename(file, lsm, 'histogram')
