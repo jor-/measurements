@@ -120,7 +120,7 @@ def sample_correlation_sparsity_pattern(measurements_object, file=None, permutat
             A = A.tocoo(copy=False)
             A = matrix.permute.symmetric(A, permutation_vector)
         # plot
-        util.plot.spy(A, file, axis_labels=False)
+        util.plot.sparse_matrix_pattern(file, A, axis_labels=False)
     # reset old permutation method
     measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
 
