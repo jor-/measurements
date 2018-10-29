@@ -69,7 +69,9 @@ class SampleData():
 
     def sample_concentration_means_map_indices_dict(self, min_measurements=measurements.universal.constants.MEAN_MIN_MEASUREMENTS):
         util.logging.debug(f'Calculating sample_concentration_means_map_indices_dict with min_measurements {min_measurements} and min_value {self.min_value}.')
-        data_function = lambda data_dict: data_dict.means(min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
+
+        def data_function(data_dict):
+            return data_dict.means(min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
         data = self._sample_data_dict_concentration_based(data_function)
         return data
 
@@ -83,7 +85,9 @@ class SampleData():
 
     def sample_concentration_quantiles_map_indices_dict(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
         util.logging.debug(f'Calculating sample_concentration_quantiles_map_indices_dict with quantile {quantile}, min_measurements {min_measurements} and min_value {self.min_value}.')
-        data_function = lambda data_dict: data_dict.quantiles(quantile, min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
+
+        def data_function(data_dict):
+            return data_dict.quantiles(quantile, min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
         data = self._sample_data_dict_concentration_based(data_function)
         return data
 
@@ -97,7 +101,9 @@ class SampleData():
 
     def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug(f'Calculating sample_concentration_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
-        data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
+
+        def data_function(data_dict):
+            return data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_concentration_based(data_function)
         return data_dict
 
@@ -109,7 +115,9 @@ class SampleData():
 
     def sample_average_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug(f'Calculating sample_average_noise_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
-        data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
+
+        def data_function(data_dict):
+            return data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_average_noise_based(data_function)
         return data_dict
 
@@ -121,7 +129,9 @@ class SampleData():
 
     def sample_noise_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
         util.logging.debug(f'Calculating sample_noise_standard_deviations with min_measurements {min_measurements} and min_value {min_value}.')
-        data_function = lambda data_dict: data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
+
+        def data_function(data_dict):
+            return data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
         data_dict = self._sample_data_dict_noise_based(data_function)
         return data_dict
 
