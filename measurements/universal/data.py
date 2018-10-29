@@ -292,7 +292,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     POSSIBLE_FILL_STRATEGIES = ('auto', 'point_average', 'lsm_average', 'constant', 'interpolate')
     POSSIBLE_KINDS = ('concentration_means', 'concentration_quantiles', 'concentration_standard_deviations', 'average_noise_standard_deviations')
 
-
     def __init__(self, tracer=None, data_set_name=None):
         self._interpolator_options = {}
         self._constant_fill_values = {}
