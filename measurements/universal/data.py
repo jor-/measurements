@@ -438,23 +438,34 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         else:
             raise ValueError('Unknown fill method {}.'.format(fill_strategy))
 
+        assert lsm_values.shape == self.sample_lsm.dim
         return lsm_values
 
     def means_for_sample_lsm(self):
-        return self._data_for_sample_lsm('concentration_means')
+        values = self._data_for_sample_lsm('concentration_means')
+        assert values.shape == self.sample_lsm.dim
+        return values
 
     def quantiles_for_sample_lsm(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return self._data_for_sample_lsm('concentration_quantiles', quantile, min_measurements=min_measurements)
+        values = self._data_for_sample_lsm('concentration_quantiles', quantile, min_measurements=min_measurements)
+        assert values.shape == self.sample_lsm.dim
+        return values
 
     def concentration_standard_deviations_for_sample_lsm(self):
-        return self._data_for_sample_lsm('concentration_standard_deviations')
+        values = self._data_for_sample_lsm('concentration_standard_deviations')
+        assert values.shape == self.sample_lsm.dim
+        return values
 
     def average_noise_standard_deviations_for_sample_lsm(self):
-        return self._data_for_sample_lsm('average_noise_standard_deviations')
+        values = self._data_for_sample_lsm('average_noise_standard_deviations')
+        assert values.shape == self.sample_lsm.dim
+        return values
 
     def standard_deviations_for_sample_lsm(self):
-        return (self.concentration_standard_deviations_for_sample_lsm()**2 + self.average_noise_standard_deviations_for_sample_lsm()**2)**(0.5)
+        values = (self.concentration_standard_deviations_for_sample_lsm()**2 + self.average_noise_standard_deviations_for_sample_lsm()**2)**(0.5)
+        assert values.shape == self.sample_lsm.dim
+        return values
 
     # data for sample points
 
