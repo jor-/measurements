@@ -25,8 +25,9 @@ def _main():
     parser.add_argument('--min_standard_deviation', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
 
     parser.add_argument('--means_sample_lsm', action='store_true', help='Plot means for points of sample land sea mask.')
-    parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
     parser.add_argument('--quantile_sample_lsm', type=float, default=None, help='Plot passed quantiles for points of sample land sea mask.')
+    parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
+    parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Plot standard deviations for points of sample land sea mask.')
 
     parser.add_argument('--sample_correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, default=None, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', type=bool, choices=(True, False), default=None, help='Plot histogram of sample correlation of measurements with passed using abs.')
@@ -71,6 +72,9 @@ def _main():
 
             if args.concentration_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_standard_deviations_for_sample_lsm(mi)
+
+            if args.standard_deviations_sample_lsm:
+                measurements.plot.data.standard_deviations_for_sample_lsm(mi)
 
         if args.sample_correlation_sparsity_pattern is not None:
             measurements.plot.data.sample_correlation_sparsity_pattern(m, permutation_method=args.sample_correlation_sparsity_pattern)

@@ -94,6 +94,18 @@ def concentration_standard_deviations_for_sample_lsm(measurements_object, file=N
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
 
+def standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite=False):
+    if file is None:
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind='standard_deviation',
+            kind_id=measurements_object.standard_deviation_id,
+            plot_name='standard_deviations_for_sample_lsm')
+    data = measurements_object.standard_deviations_for_sample_lsm()
+    _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+
+
 def sample_correlation_sparsity_pattern(measurements_object, file=None, permutation_method=None, overwrite=False):
     # set permutation method
     permutation_method_decomposition_correlation_old = measurements_object.permutation_method_decomposition_correlation
