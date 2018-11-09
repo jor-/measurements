@@ -64,7 +64,7 @@ def _main():
         # plot
         for mi in measurements_list:
             if args.means_sample_lsm:
-                measurements.plot.data.concentration_means_for_sample_lsm(mi)
+                measurements.plot.data.means_for_sample_lsm(mi)
 
             if args.quantile_sample_lsm:
                 measurements.plot.data.concentration_quantiles_for_sample_lsm(mi, args.quantile_sample_lsm)

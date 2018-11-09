@@ -58,14 +58,14 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
         util.plot.line(file, sample_lsm.z_center, data_averaged_all_without_depth, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
 
 
-def concentration_means_for_sample_lsm(measurements_object, file=None, overwrite=False):
+def means_for_sample_lsm(measurements_object, file=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
             kind='mean',
             kind_id=measurements_object.mean_id,
-            plot_name='concentration_means_for_sample_lsm')
+            plot_name='means_for_sample_lsm')
     data = measurements_object.means_for_sample_lsm()
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
