@@ -175,8 +175,12 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     def _min_measurements(self, min_measurements, default_min_measurements):
         if min_measurements is not None:
+            assert int(min_measurements) == min_measurements
+            min_measurements = int(min_measurements)
             return min_measurements
         else:
+            assert int(default_min_measurements) == default_min_measurements
+            default_min_measurements = int(default_min_measurements)
             return default_min_measurements
 
     @property
