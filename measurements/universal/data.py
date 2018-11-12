@@ -467,6 +467,29 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         assert values.shape == self.sample_lsm.dim
         return values
 
+    def interquartile_range_for_sample_lsm(self, min_measurements=None):
+        q_25 = self.quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
+        q_75 = self.quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
+        values = q_75 - q_25
+        assert values.shape == self.sample_lsm.dim
+        return values
+
+    def relative_standard_deviations_for_sample_lsm(self):
+        standard_deviations = self.standard_deviations_for_sample_lsm()
+        means = self.means_for_sample_lsm()
+        with np.errstate(divide='ignore'):
+            values = standard_deviations / np.abs(means)
+        assert values.shape == self.sample_lsm.dim
+        return values
+
+    def quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
+        q_25 = self.quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
+        q_75 = self.quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
+        with np.errstate(divide='ignore'):
+            values = (q_75 - q_25) / (q_75 + q_25)
+        assert values.shape == self.sample_lsm.dim
+        return values
+
     # data for sample points
 
     def _data_for_sample_points(self, kind, *args, **kargs):
@@ -760,6 +783,15 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
 
     def standard_deviations_for_sample_lsm(self):
         return self.base_measurements.standard_deviations_for_sample_lsm()
+
+    def interquartile_range_for_sample_lsm(self, min_measurements=None):
+        return self.base_measurements.interquartile_range_for_sample_lsm(min_measurements=min_measurements)
+
+    def relative_standard_deviations_for_sample_lsm(self):
+        return self.base_measurements.relative_standard_deviations_for_sample_lsm()
+
+    def quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
+        return self.base_measurements.interquartile_range_for_sample_lsm(min_measurements=min_measurements)
 
     # getter and setter from base measurement
 
