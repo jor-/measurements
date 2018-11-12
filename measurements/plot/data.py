@@ -70,15 +70,15 @@ def means_for_sample_lsm(measurements_object, file=None, overwrite=False):
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
 
-def quantiles_for_sample_lsm(measurements_object, quantile, file=None, overwrite=False):
+def quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=None, file=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
             kind='quantile',
-            kind_id=measurements_object.quantile_id(quantile),
-            plot_name='concentration_quantiles_for_sample_lsm_{:0<4}'.format(float(quantile)))
-    data = measurements_object.quantiles_for_sample_lsm(quantile)
+            kind_id=measurements_object.quantile_id(quantile, min_measurements=min_measurements),
+            plot_name=f'concentration_quantiles_for_sample_lsm_{float(quantile):0<4}')
+    data = measurements_object.quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
 
