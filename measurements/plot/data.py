@@ -1,4 +1,5 @@
 import os.path
+import warnings
 
 import numpy as np
 
@@ -35,7 +36,9 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
 
     # plot time averaged
     file = file_root + '_-_time_averaged' + file_extension
-    data_time_averaged = np.nanmean(data, axis=0)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        data_time_averaged = np.nanmean(data, axis=0)
     v_max = _calculate_v_max(data_time_averaged)
     assert data_time_averaged.ndim == 3
     util.plot.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
