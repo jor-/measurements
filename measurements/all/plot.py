@@ -17,12 +17,12 @@ def _main():
     parser.add_argument('--max_box_distance_to_water', type=int, default=None, help='The maximal number of boxes allowed as distance to a water box.')
     parser.add_argument('--water_lsm', choices=measurements.all.data.LAND_SEA_MASKS, default='TMM', help='The land sea mask used to calculate the distances to water boxes.')
 
-    parser.add_argument('--min_measurements_mean', type=int, default=None, help='The minimal number of measurements used to calculate means applied to each tracer.')
+    parser.add_argument('--min_measurements_mean', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate means applied to each tracer.')
     parser.add_argument('--min_measurements_quantile', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate quantiles applied to each tracer.')
-    parser.add_argument('--min_measurements_standard_deviation', type=int, default=None, help='The minimal number of measurements used to calculate standard deviations applied to each tracer.')
+    parser.add_argument('--min_measurements_standard_deviation', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate standard deviations applied to each tracer.')
     parser.add_argument('--min_measurements_correlation', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
 
-    parser.add_argument('--min_standard_deviation', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
+    parser.add_argument('--min_standard_deviation', type=float, nargs='+', default=None, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
 
     parser.add_argument('--means_sample_lsm', action='store_true', help='Plot means for points of sample land sea mask.')
     parser.add_argument('--quantiles_sample_lsm', type=float, default=None, help='Plot passed quantiles for points of sample land sea mask.')
