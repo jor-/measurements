@@ -28,6 +28,9 @@ def _main():
     parser.add_argument('--quantiles_sample_lsm', type=float, default=None, help='Plot passed quantiles for points of sample land sea mask.')
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Plot standard deviations for points of sample land sea mask.')
+    parser.add_argument('--interquartile_range_for_sample_lsm', action='store_true', help='Plot interquartile range for points of sample land sea mask.')
+    parser.add_argument('--relative_standard_deviations_for_sample_lsm', action='store_true', help='Plot relative standard deviations for points of sample land sea mask.')
+    parser.add_argument('--quartile_coefficient_of_dispersion_for_sample_lsm', action='store_true', help='Plot quartile coefficient of dispersion for points of sample land sea mask.')
 
     parser.add_argument('--sample_correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, default=None, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', type=bool, choices=(True, False), default=None, help='Plot histogram of sample correlation of measurements with passed using abs.')
@@ -75,6 +78,15 @@ def _main():
 
             if args.standard_deviations_sample_lsm:
                 measurements.plot.data.standard_deviations_for_sample_lsm(mi)
+
+            if args.interquartile_range_for_sample_lsm:
+                measurements.plot.data.interquartile_range_for_sample_lsm(mi)
+
+            if args.relative_standard_deviations_for_sample_lsm:
+                measurements.plot.data.relative_standard_deviations_for_sample_lsm(mi)
+
+            if args.quartile_coefficient_of_dispersion_for_sample_lsm:
+                measurements.plot.data.quartile_coefficient_of_dispersion_for_sample_lsm(mi)
 
         if args.sample_correlation_sparsity_pattern is not None:
             measurements.plot.data.sample_correlation_sparsity_pattern(m, permutation_method=args.sample_correlation_sparsity_pattern)
