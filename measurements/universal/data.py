@@ -1205,11 +1205,11 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
     @overrides.overrides
     def quantiles_for_sample_lsm(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return super().quantiles_for_sample_lsm(quantile, min_measurements)
+        return super().quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
 
     def quantiles_for_sample_lsm_cache_file(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return self._quantile_cache_file(str(self.sample_lsm), quantile, min_measurements)
+        return self._quantile_cache_file(str(self.sample_lsm), quantile, min_measurements=min_measurements)
 
     # *** deviation *** #
 
