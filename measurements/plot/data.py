@@ -106,6 +106,55 @@ def standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
 
+def interquartile_range_for_sample_lsm(measurements_object, min_measurements=None, file=None, overwrite=False):
+    if file is None:
+        kind_id = measurements_object.quantile_id(0, min_measurements=min_measurements)
+        kind_id = measurements.universal.constants.SEPERATOR.join(kind_id.split(measurements.universal.constants.SEPERATOR)[1:])
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind='interquartile_range',
+            kind_id=kind_id,
+            plot_name='interquartile_range_for_sample_lsm')
+    data = measurements_object.interquartile_range_for_sample_lsm(min_measurements=min_measurements)
+    _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+
+
+def relative_standard_deviations_for_sample_lsm(measurements_object, max_value=2, file=None, overwrite=False):
+    if file is None:
+        kind_id = measurements_object.standard_deviation_id
+        kind_id = kind_id.split(measurements.universal.constants.SEPERATOR)
+        kind_id.append(f'max_value_{max_value:g}')
+        kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind='relative_standard_deviations',
+            kind_id=kind_id,
+            plot_name='relative_standard_deviations_for_sample_lsm')
+    data = measurements_object.relative_standard_deviations_for_sample_lsm()
+    data = np.minimum(data, max_value)
+    _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+
+
+def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, max_value=2, min_measurements=None, file=None, overwrite=False):
+    if file is None:
+        kind_id = measurements_object.quantile_id(0, min_measurements=min_measurements)
+        kind_id = kind_id.split(measurements.universal.constants.SEPERATOR)
+        kind_id = kind_id[1:]
+        kind_id.append(f'max_value_{max_value:g}')
+        kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind='quartile_coefficient_of_dispersion',
+            kind_id=kind_id,
+            plot_name='quartile_coefficient_of_dispersion_for_sample_lsm')
+    data = measurements_object.quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
+    data = np.minimum(data, max_value)
+    _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+
+
 def sample_correlation_sparsity_pattern(measurements_object, file=None, permutation_method=None, overwrite=False):
     # set permutation method
     permutation_method_decomposition_correlation_old = measurements_object.permutation_method_decomposition_correlation
