@@ -218,8 +218,9 @@ def sample_correlation_histogram(measurements_object, file=None, use_abs=False, 
             permutation_method_decomposition_correlation=measurements_object.permutation_method_decomposition_correlation,
             seperator=measurements.universal.constants.SEPERATOR), '')
     # plot if not existing
+    filename, file_extension = os.path.splitext(file)
     for use_log_scale in (False, True):
-        file_with_scale = file.replace('.png', '_log_scale_{}.png'.format(use_log_scale))
+        file_with_scale = file.replace(file_extension, f'_log_scale_{use_log_scale}{file_extension}')
         if overwrite or not os.path.exists(file_with_scale):
             # get data
             A = measurements_object.correlations_own_sample_matrix
