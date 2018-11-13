@@ -483,12 +483,11 @@ class LandSeaMask():
         # convert points to 2 dim array
         points = np.asanyarray(points)
         result_ndim = points.ndim
-        if points.ndim == 1:
+        if result_ndim == 1:
             points = points[np.newaxis]
         util.logging.debug('Transforming {} coordinates to map indices for {} with discard year {} and int_indices {}.'.format(len(points), self, discard_year, int_indices))
 
         # create map indices array
-        n = len(points)
         if int_indices:
             if discard_year or points.shape[1] < 4:
                 dtype = np.min_scalar_type(np.max(self.dim) - 1)
@@ -496,11 +495,11 @@ class LandSeaMask():
                 dtype = np.int
         else:
             dtype = np.float
-        ndim = self.ndim
-        map_indices = np.empty((n, ndim), dtype=dtype)
+        (n, m) = points.shape
+        map_indices = np.empty((n, m), dtype=dtype)
 
         # convert
-        for i in range(-1, -ndim - 1, -1):
+        for i in range(-1, -m - 1, -1):
             map_indices[:, i] = self.coordinates_to_map_indices_single_axis(points[:, i], i, discard_year=discard_year, int_indices=int_indices)
 
         # return
