@@ -66,7 +66,8 @@ def means_for_sample_lsm(measurements_object, file=None, overwrite=False):
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind='mean',
+            kind=os.path.join('expected_value',
+                              'mean'),
             kind_id=measurements_object.mean_id,
             plot_name='means_for_sample_lsm')
     data = measurements_object.means_for_sample_lsm()
@@ -78,7 +79,8 @@ def quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=Non
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind='quantile',
+            kind=os.path.join('expected_value',
+                              'quantile'),
             kind_id=measurements_object.quantile_id(quantile, min_measurements=min_measurements),
             plot_name=f'concentration_quantiles_for_sample_lsm_{float(quantile):0<4}')
     data = measurements_object.quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
@@ -90,7 +92,8 @@ def concentration_standard_deviations_for_sample_lsm(measurements_object, file=N
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind='standard_deviation',
+            kind=os.path.join('spread',
+                              'standard_deviation'),
             kind_id=measurements_object.standard_deviation_id,
             plot_name='concentration_standard_deviations_for_sample_lsm')
     data = measurements_object.concentration_standard_deviations_for_sample_lsm()
@@ -102,7 +105,8 @@ def standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind='standard_deviation',
+            kind=os.path.join('spread',
+                              'standard_deviation'),
             kind_id=measurements_object.standard_deviation_id,
             plot_name='standard_deviations_for_sample_lsm')
     data = measurements_object.standard_deviations_for_sample_lsm()
@@ -116,7 +120,8 @@ def interquartile_range_for_sample_lsm(measurements_object, min_measurements=Non
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind='interquartile_range',
+            kind=os.path.join('spread',
+                              'interquartile_range'),
             kind_id=kind_id,
             plot_name='interquartile_range_for_sample_lsm')
     data = measurements_object.interquartile_range_for_sample_lsm(min_measurements=min_measurements)
@@ -132,7 +137,8 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, max_value=2
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind='relative_standard_deviations',
+            kind=os.path.join('spread',
+                              'relative_standard_deviations'),
             kind_id=kind_id,
             plot_name='relative_standard_deviations_for_sample_lsm')
     data = measurements_object.relative_standard_deviations_for_sample_lsm()
@@ -150,7 +156,8 @@ def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, max_v
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind='quartile_coefficient_of_dispersion',
+            kind=os.path.join('spread',
+                              'quartile_coefficient_of_dispersion'),
             kind_id=kind_id,
             plot_name='quartile_coefficient_of_dispersion_for_sample_lsm')
     data = measurements_object.quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
