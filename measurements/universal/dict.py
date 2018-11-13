@@ -6,8 +6,6 @@ import numpy as np
 import scipy.stats
 import overrides
 
-import measurements.util.calculate
-
 import util.logging
 import util.multi_dict
 
@@ -339,6 +337,15 @@ class MeasurementsDict(util.multi_dict.MultiDict):
     # total correlogram and correlation (autocorrelation)
 
     def _get_first_dim_shifted(self, measurements_dict_list, shift, same_bound, wrap_around_range=None):
+        def wrap_around_index(index, index_range):
+            if index_range is not None:
+                index_range_diff = index_range[1] - index_range[0]
+                while index < index_range[0]:
+                    index += index_range_diff
+                while index >= index_range[1]:
+                    index -= index_range_diff
+            return index
+
         util.logging.debug('Getting first dim shifted with shift %f and same bound %f.' % (shift, same_bound))
 
         if self.sorted:
@@ -357,8 +364,8 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                 for (key, value) in measurements_dict.items():
 
                     # calculate desired key bounds
-                    key_shifted_desired_lower_bound = measurements.util.calculate.wrap_around_index(key + shift - same_bound, wrap_around_range)
-                    key_shifted_desired_upper_bound = measurements.util.calculate.wrap_around_index(key + shift + same_bound, wrap_around_range)
+                    key_shifted_desired_lower_bound = wrap_around_index(key + shift - same_bound, wrap_around_range)
+                    key_shifted_desired_upper_bound = wrap_around_index(key + shift + same_bound, wrap_around_range)
                     key_shifted_desired_lower_bound_index = keys_view_shifted.bisect_left(key_shifted_desired_lower_bound)
                     key_shifted_desired_upper_bound_index = keys_view_shifted.bisect_right(key_shifted_desired_upper_bound)
 
@@ -394,7 +401,7 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                 for (i, i_dict) in measurements_dict.items():
                     i_shifted_desired = i + shift
                     if wrap_around_range is not None:
-                        i_shifted_desired = measurements.util.calculate.wrap_around_index(i_shifted_desired, wrap_around_range)
+                        i_shifted_desired = wrap_around_index(i_shifted_desired, wrap_around_range)
 
                     # iterate over all shifted
                     for (i_shifted, i_dict_shifted) in measurements_dict_shifted.items():
