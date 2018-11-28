@@ -23,7 +23,8 @@ def per_time(measurements_object, step_size=None, file=None, overwrite=False):
     assert points.shape[1] == 4
     t = points[:, 0]
 
-    util.plot.save.histogram(file, t, step_size=step_size, overwrite=overwrite)
+    util.plot.save.histogram(file, t, step_size=step_size,
+                             tick_power_limit_scientific_y=3, overwrite=overwrite)
 
 
 def per_year(measurements_object, number_of_bins=None, file=None, overwrite=False):
@@ -48,7 +49,8 @@ def per_year(measurements_object, number_of_bins=None, file=None, overwrite=Fals
     t = points[:, 0]
     t = t % 1
 
-    util.plot.save.histogram(file, t, step_size=step_size, overwrite=overwrite)
+    util.plot.save.histogram(file, t, step_size=step_size,
+                             tick_power_limit_scientific_y=3, overwrite=overwrite)
 
 
 def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None, overwrite=False):
@@ -59,6 +61,9 @@ def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None
         plot_name = f'number_of_measurements_per_depth_-_step_size_{step_size}'
         if use_log_scale:
             plot_name += '_-_log_scale'
+            tick_power_limit_scientific_y = None
+        else:
+            tick_power_limit_scientific_y = 3
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
@@ -71,7 +76,8 @@ def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None
     assert points.shape[1] == 4
     z = points[:, 3]
 
-    util.plot.save.histogram(file, z, step_size=step_size, use_log_scale=use_log_scale, overwrite=overwrite)
+    util.plot.save.histogram(file, z, step_size=step_size, use_log_scale=use_log_scale,
+                             tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
 
 
 def per_space(measurements_object, use_log_scale=True, file=None, overwrite=False):
@@ -79,6 +85,9 @@ def per_space(measurements_object, use_log_scale=True, file=None, overwrite=Fals
         plot_name = 'number_of_measurements_per_space'
         if use_log_scale:
             plot_name += '_-_log_scale'
+            tick_power_limit_scientific_y = None
+        else:
+            tick_power_limit_scientific_y = 3
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
@@ -96,4 +105,6 @@ def per_space(measurements_object, use_log_scale=True, file=None, overwrite=Fals
     data = np.concatenate((data, counts[:, np.newaxis]), axis=1)
     data = lsm.insert_index_values_in_map(data, no_data_value=np.inf)
 
-    util.plot.save.data(file, data, no_data_value=np.inf, use_log_scale=use_log_scale, contours=False, colorbar=True, overwrite=overwrite)
+    util.plot.save.data(file, data, no_data_value=np.inf,
+                        use_log_scale=use_log_scale, contours=False, colorbar=True,
+                        tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
