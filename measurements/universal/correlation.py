@@ -6,7 +6,7 @@ import scipy.sparse
 import overrides
 
 import util.cache
-import util.plot
+import util.plot.save
 import measurements.universal.constants
 
 
@@ -102,7 +102,7 @@ class Correlation():
         autocorrelation_array = correlation_array[:, n:]
         return autocorrelation_array
 
-    def plot_correlation(self, axis, file, use_sample_correlation=False):
+    def plot_correlation(self, axis, file, use_sample_correlation=False, overwrite=False):
         axis = self._prepare_axis(axis)
         if len(axis) != 1:
             raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
@@ -110,10 +110,10 @@ class Correlation():
         correlation = self.correlation_array(axis=axis, use_sample_correlation=use_sample_correlation)
         assert correlation.shape[1] == 3
 
-        util.plot.imshow_dataset_means(file, correlation, use_abs=True)
+        util.plot.save.imshow_dataset_means(file, correlation, use_abs=True, overwrite=overwrite)
         return file
 
-    def plot_autocorrelation(self, axis, file, use_sample_correlation=False):
+    def plot_autocorrelation(self, axis, file, use_sample_correlation=False, overwrite=False):
         axis = self._prepare_axis(axis)
         if len(axis) > 2:
             raise ValueError(f'The parameter axis has to be one or two integer values but it is {axis}.')
@@ -121,10 +121,10 @@ class Correlation():
         autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
         assert autocorrelation.shape[1] == len(axis) + 1
 
-        util.plot.scatter_dataset_means(file, autocorrelation, use_abs=True)
+        util.plot.save.scatter_dataset_means(file, autocorrelation, use_abs=True, overwrite=overwrite)
         return file
 
-    def plot_violin_autocorrelation(self, axis, file, use_sample_correlation=False):
+    def plot_violin_autocorrelation(self, axis, file, use_sample_correlation=False, overwrite=False):
         axis = self._prepare_axis(axis)
         if len(axis) != 1:
             raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
@@ -137,7 +137,7 @@ class Correlation():
         positions = np.unique(x)
         dataset = tuple(np.sort(y[x == p]) for p in positions)
 
-        util.plot.violin(file, positions, dataset)
+        util.plot.save.violin(file, positions, dataset, overwrite=overwrite)
         return file
 
 

@@ -661,8 +661,8 @@ class LandSeaMask():
         return value_map
 
     # plot
-    def plot(self, use_depth=True):
-        import util.plot
+    def plot(self, use_depth=True, overwrite=False):
+        import util.plot.save
         import matplotlib.pyplot
 
         # get filename
@@ -677,7 +677,7 @@ class LandSeaMask():
 
         # plot
         cm = matplotlib.pyplot.cm.winter_r
-        util.plot.data(file, data, land_value=0, power_limit=10, colormap=cm)
+        util.plot.save.data(file, data, land_value=0, colormap=cm, overwrite=overwrite)
 
     # copy
     def copy(self):

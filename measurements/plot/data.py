@@ -7,7 +7,7 @@ import matrix.permute
 
 import measurements.plot.constants
 import measurements.universal.constants
-import util.plot
+import util.plot.save
 
 
 def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
@@ -26,13 +26,13 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
     file_data = file_root + '_-_data' + file_extension
     v_max = _calculate_v_max(data)
     assert data.ndim == 4
-    util.plot.data(file_data, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
+    util.plot.save.data(file_data, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
 
     # plot histogram
     file_histogram = file_root + '_-_histogram' + file_extension
     if overwrite or not os.path.exists(file_histogram):
         data_non_nan = data[~np.isnan(data)]
-        util.plot.histogram(file_histogram, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite)
+        util.plot.save.histogram(file_histogram, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite)
 
     # plot time averaged
     file = file_root + '_-_time_averaged' + file_extension
@@ -41,7 +41,7 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
         data_time_averaged = np.nanmean(data, axis=0)
     v_max = _calculate_v_max(data_time_averaged)
     assert data_time_averaged.ndim == 3
-    util.plot.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
+    util.plot.save.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
 
     # plot all averaged without depth
     file = file_root + '_-_all_averaged_without_depth' + file_extension
@@ -58,7 +58,7 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
             data_averaged_i = np.sum(data_i * volume_map_i) / np.sum(volume_map_i)
             data_averaged_all_without_depth[i] = data_averaged_i
         v_max = _calculate_v_max(data_averaged_all_without_depth)
-        util.plot.line(file, sample_lsm.z_center, data_averaged_all_without_depth, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
+        util.plot.save.line(file, sample_lsm.z_center, data_averaged_all_without_depth, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
 
 
 def means_for_sample_lsm(measurements_object, file=None, overwrite=False):
@@ -191,7 +191,7 @@ def sample_correlation_sparsity_pattern(measurements_object, file=None, permutat
             A = A.tocoo(copy=False)
             A = matrix.permute.symmetric(A, permutation_vector)
         # plot
-        util.plot.sparse_matrix_pattern(file, A, axis_labels=False)
+        util.plot.save.sparse_matrix_pattern(file, A, axis_labels=False)
     # reset old permutation method
     measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
 
@@ -237,7 +237,7 @@ def sample_correlation_histogram(measurements_object, file=None, use_abs=False, 
             else:
                 x_min = -1
                 tick_number = 5
-            util.plot.histogram(file_with_scale, data, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
+            util.plot.save.histogram(file_with_scale, data, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
 
 
 def correlation_and_sample_correlation_sparsity_pattern(measurements_object, file=None, overwrite=False):
@@ -264,7 +264,7 @@ def correlation_and_sample_correlation_sparsity_pattern(measurements_object, fil
         B = measurements_object.correlations_own.tocsc(copy=False)
         B.data[np.abs(B.data) < min_abs_value] = 0
         # plot
-        util.plot.sparse_matrices_patterns_with_differences(
+        util.plot.save.sparse_matrices_patterns_with_differences(
             file, A, B,
             colors=((1, 0, 0), (1, 1, 1), (1, 0, 1), (0, 0, 1)),
             labels=('removed', 'inserted', 'changed', 'unchanged'),)
