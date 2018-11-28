@@ -58,6 +58,9 @@ def _main():
     parser.add_argument('--correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements.')
     parser.add_argument('--correlation_violin_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements as violin plot.')
 
+    # overwrite
+    parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files.')
+
     # debug
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
@@ -87,72 +90,98 @@ def _main():
             # number of measurements_i
 
             if args.number_of_measurements_per_time:
-                measurements.plot.number_of_measurements.per_time(mi, step_size=args.number_of_measurements_per_time)
+                measurements.plot.number_of_measurements.per_time(
+                    mi, step_size=args.number_of_measurements_per_time,
+                    overwrite=args.overwrite)
 
             if args.number_of_measurements_per_year:
-                measurements.plot.number_of_measurements.per_year(mi, number_of_bins=args.number_of_measurements_per_year)
+                measurements.plot.number_of_measurements.per_year(
+                    mi, number_of_bins=args.number_of_measurements_per_year,
+                    overwrite=args.overwrite)
 
             if args.number_of_measurements_per_depth:
-                measurements.plot.number_of_measurements.per_depth(mi, step_size=args.number_of_measurements_per_depth)
+                measurements.plot.number_of_measurements.per_depth(
+                    mi, step_size=args.number_of_measurements_per_depth,
+                    overwrite=args.overwrite)
 
             if args.number_of_measurements_per_space:
-                measurements.plot.number_of_measurements.per_space(mi)
+                measurements.plot.number_of_measurements.per_space(
+                    mi, overwrite=args.overwrite)
 
             # expectation values
 
             if args.means_sample_lsm:
-                measurements.plot.data.means_for_sample_lsm(mi)
+                measurements.plot.data.means_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
 
             if args.quantiles_sample_lsm:
-                measurements.plot.data.quantiles_for_sample_lsm(mi, args.quantiles_sample_lsm)
+                measurements.plot.data.quantiles_for_sample_lsm(
+                    mi, args.quantiles_sample_lsm,
+                    overwrite=args.overwrite)
 
             # spread values
 
             if args.concentration_standard_deviations_sample_lsm:
-                measurements.plot.data.concentration_standard_deviations_for_sample_lsm(mi)
+                measurements.plot.data.concentration_standard_deviations_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
 
             if args.standard_deviations_sample_lsm:
-                measurements.plot.data.standard_deviations_for_sample_lsm(mi)
+                measurements.plot.data.standard_deviations_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
 
             if args.interquartile_range_for_sample_lsm:
-                measurements.plot.data.interquartile_range_for_sample_lsm(mi)
+                measurements.plot.data.interquartile_range_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
 
             if args.relative_standard_deviations_for_sample_lsm:
-                measurements.plot.data.relative_standard_deviations_for_sample_lsm(mi)
+                measurements.plot.data.relative_standard_deviations_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
 
             if args.quartile_coefficient_of_dispersion_for_sample_lsm:
-                measurements.plot.data.quartile_coefficient_of_dispersion_for_sample_lsm(mi)
+                measurements.plot.data.quartile_coefficient_of_dispersion_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
 
         # sample correlation and correlation
 
         if args.sample_correlation_sparsity_pattern is not None:
-            measurements.plot.data.sample_correlation_sparsity_pattern(m, permutation_method=args.sample_correlation_sparsity_pattern)
+            measurements.plot.data.sample_correlation_sparsity_pattern(
+                m, permutation_method=args.sample_correlation_sparsity_pattern,
+                overwrite=args.overwrite)
 
         if args.sample_correlation_histogram is not None:
-            measurements.plot.data.sample_correlation_histogram(m, use_abs=args.sample_correlation_histogram)
+            measurements.plot.data.sample_correlation_histogram(
+                m, use_abs=args.sample_correlation_histogram,
+                overwrite=args.overwrite)
 
         if args.correlation_sparsity_pattern:
-            measurements.plot.data.correlation_and_sample_correlation_sparsity_pattern(m)
+            measurements.plot.data.correlation_and_sample_correlation_sparsity_pattern(
+                m, overwrite=args.overwrite)
 
         mc = measurements.universal.correlation.CorrelationCache(m)
         if args.sample_correlation_correlations is not None:
             mc.plot_correlation(axis=args.sample_correlation_correlations,
-                                use_sample_correlation=True)
+                                use_sample_correlation=True,
+                                overwrite=args.overwrite)
         if args.sample_correlation_autocorrelations is not None:
             mc.plot_autocorrelation(axis=args.sample_correlation_autocorrelations,
-                                    use_sample_correlation=True)
+                                    use_sample_correlation=True,
+                                    overwrite=args.overwrite)
         if args.sample_correlation_violin_autocorrelations is not None:
             mc.plot_violin_autocorrelation(axis=args.sample_correlation_violin_autocorrelations,
-                                           use_sample_correlation=True)
+                                           use_sample_correlation=True,
+                                           overwrite=args.overwrite)
         if args.correlation_correlations is not None:
             mc.plot_correlation(axis=args.correlation_correlations,
-                                use_sample_correlation=False)
+                                use_sample_correlation=False,
+                                overwrite=args.overwrite)
         if args.correlation_autocorrelations is not None:
             mc.plot_autocorrelation(axis=args.correlation_autocorrelations,
-                                    use_sample_correlation=False)
+                                    use_sample_correlation=False,
+                                    overwrite=args.overwrite)
         if args.correlation_violin_autocorrelations is not None:
             mc.plot_violin_autocorrelation(axis=args.correlation_violin_autocorrelations,
-                                           use_sample_correlation=False)
+                                           use_sample_correlation=False,
+                                           overwrite=args.overwrite)
 
 
 if __name__ == "__main__":
