@@ -6,9 +6,23 @@ import util.plot.save
 import measurements.plot.constants
 
 
+def _get_int_if_possible(value):
+    try:
+        int_value = int(value)
+    except ValueError:
+        return value
+    else:
+        if int_value == value:
+            return int_value
+        else:
+            return value
+
+
 def per_time(measurements_object, step_size=None, file=None, overwrite=False):
     if step_size is None:
         step_size = 1
+    else:
+        step_size = _get_int_if_possible(step_size)
 
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
@@ -55,7 +69,9 @@ def per_year(measurements_object, number_of_bins=None, file=None, overwrite=Fals
 
 def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None, overwrite=False):
     if step_size is None:
-        step_size = 50.
+        step_size = 50
+    else:
+        step_size = _get_int_if_possible(step_size)
 
     if file is None:
         plot_name = f'number_of_measurements_per_depth_-_step_size_{step_size}'
