@@ -8,16 +8,11 @@ import matrix.permute
 import measurements.plot.constants
 import measurements.universal.constants
 import util.plot.save
+import util.plot.auxiliary
 
 
 def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
     assert data.ndim == 4
-
-    def _calculate_v_max(data):
-        data = data[~np.isnan(data)]
-        v_max = np.percentile(data, 99)
-        v_max = np.round(v_max * 100) / 100
-        return v_max
     v_min = 0
     contours = False
 
@@ -26,7 +21,7 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
     base_file = file_root + '_-_{}' + file_extension
 
     # plot data
-    v_max = _calculate_v_max(data)
+    v_max = util.plot.auxiliary.v_max(data)
     for file_type_i, v_max_i in [('time_{time}_depth_{depth}', None), ('time_{time}_depth_{depth}_-_max_value_fixed', v_max)]:
         file = base_file.format(file_type_i)
         util.plot.save.data(file, data, no_data_value=np.inf, v_min=v_min, v_max=v_max_i, contours=contours, colorbar=not contours, overwrite=overwrite)
@@ -42,7 +37,7 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         data_time_averaged = np.nanmean(data, axis=0)
-    v_max = _calculate_v_max(data_time_averaged)
+    v_max = util.plot.auxiliary.v_max(data_time_averaged)
     for file_type_i, v_max_i in [('depth_{depth}', None), ('depth_{depth}_-_max_value_fixed', v_max)]:
         file = base_file.format(file_type_i)
         util.plot.save.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max_i, contours=contours, colorbar=not contours, overwrite=overwrite)
@@ -61,7 +56,7 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
             volume_map_i = volume_map_i[mask]
             data_averaged_i = np.sum(data_i * volume_map_i) / np.sum(volume_map_i)
             data_averaged_all_without_depth[i] = data_averaged_i
-        v_max = _calculate_v_max(data_averaged_all_without_depth)
+        v_max = util.plot.auxiliary.v_max(data_averaged_all_without_depth)
         util.plot.save.line(file, sample_lsm.z_center, data_averaged_all_without_depth, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
 
 
