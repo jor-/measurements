@@ -11,6 +11,7 @@ import util.plot.save
 
 
 def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
+    assert data.ndim == 4
 
     def _calculate_v_max(data):
         data = data[~np.isnan(data)]
@@ -20,31 +21,34 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
     v_min = 0
     contours = False
 
+    # prepare base file
     file_root, file_extension = os.path.splitext(base_file)
+    base_file = file_root + '_-_{}' + file_extension
 
     # plot data
-    file_data = file_root + '_-_data' + file_extension
     v_max = _calculate_v_max(data)
-    assert data.ndim == 4
-    util.plot.save.data(file_data, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
+    for file_type_i, v_max_i in [('time_{time}_depth_{depth}', None), ('time_{time}_depth_{depth}_-_max_value_fixed', v_max)]:
+        file = base_file.format(file_type_i)
+        util.plot.save.data(file, data, no_data_value=np.inf, v_min=v_min, v_max=v_max_i, contours=contours, colorbar=not contours, overwrite=overwrite)
 
     # plot histogram
-    file_histogram = file_root + '_-_histogram' + file_extension
-    if overwrite or not os.path.exists(file_histogram):
+    file = base_file.format('histogram')
+    if overwrite or not os.path.exists(file):
         data_non_nan = data[~np.isnan(data)]
-        util.plot.save.histogram(file_histogram, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite)
+        util.plot.save.histogram(file, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite)
 
     # plot time averaged
-    file = file_root + '_-_time_averaged' + file_extension
+    file = base_file.format('depth_{depth}')
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         data_time_averaged = np.nanmean(data, axis=0)
     v_max = _calculate_v_max(data_time_averaged)
-    assert data_time_averaged.ndim == 3
-    util.plot.save.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
+    for file_type_i, v_max_i in [('depth_{depth}', None), ('depth_{depth}_-_max_value_fixed', v_max)]:
+        file = base_file.format(file_type_i)
+        util.plot.save.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max_i, contours=contours, colorbar=not contours, overwrite=overwrite)
 
     # plot all averaged without depth
-    file = file_root + '_-_all_averaged_without_depth' + file_extension
+    file = base_file.format('depth')
     if overwrite or not os.path.exists(file):
         n = data.shape[3]
         data_averaged_all_without_depth = np.empty((n,), dtype=np.float128)
