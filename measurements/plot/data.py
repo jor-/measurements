@@ -99,6 +99,19 @@ def concentration_standard_deviations_for_sample_lsm(measurements_object, file=N
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
 
+def average_noise_standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite=False):
+    if file is None:
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('spread',
+                              'standard_deviation'),
+            kind_id=measurements_object.standard_deviation_id,
+            plot_name='average_noise_standard_deviations_for_sample_lsm')
+    data = measurements_object.average_noise_standard_deviations_for_sample_lsm()
+    _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+
+
 def standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
