@@ -141,7 +141,9 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, max_value=2
             kind_id=kind_id,
             plot_name='relative_standard_deviations_for_sample_lsm')
     data = measurements_object.relative_standard_deviations_for_sample_lsm()
-    data = np.minimum(data, max_value)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        data = np.minimum(data, max_value)
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
 
@@ -160,7 +162,9 @@ def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, max_v
             kind_id=kind_id,
             plot_name='quartile_coefficient_of_dispersion_for_sample_lsm')
     data = measurements_object.quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
-    data = np.minimum(data, max_value)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        data = np.minimum(data, max_value)
     _values_for_sample_lsm(data, file, measurements_object.sample_lsm, overwrite=overwrite)
 
 
