@@ -40,6 +40,7 @@ def _main():
 
     # spread values
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
+    parser.add_argument('--average_noise_standard_deviations_sample_lsm', action='store_true', help='Plot average noise standard deviations for points of sample land sea mask.')
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Plot standard deviations for points of sample land sea mask.')
     parser.add_argument('--relative_standard_deviations_sample_lsm', action='store_true', help='Plot relative standard deviations for points of sample land sea mask.')
 
@@ -126,6 +127,10 @@ def _main():
 
             if args.concentration_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_standard_deviations_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
+
+            if args.average_noise_standard_deviations_sample_lsm:
+                measurements.plot.data.average_noise_standard_deviations_for_sample_lsm(
                     mi, overwrite=args.overwrite)
 
             if args.standard_deviations_sample_lsm:
