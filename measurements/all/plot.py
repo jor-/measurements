@@ -106,8 +106,10 @@ def _main():
                     overwrite=args.overwrite)
 
             if args.number_of_measurements_per_space:
-                measurements.plot.number_of_measurements.per_space(
-                    mi, overwrite=args.overwrite)
+                for max_value_fixed in (True, False):
+                    measurements.plot.number_of_measurements.per_space(
+                        mi, max_value_fixed=max_value_fixed,
+                        overwrite=args.overwrite)
 
             # expectation values
 
