@@ -43,10 +43,16 @@ class SampleData():
         data_dict.map_indices_to_coordinates(self.sample_lsm)
         return data_dict.toarray()
 
-    def _sample_data_dict_concentration_based(self, data_function):
+    def _sample_data_dict_concentration_based(self, data_function, calculation_method='mean'):
         data_dict = self.measurement_dict
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
-        data_dict.means(min_number_of_values=1, min_value=self.min_value, return_type='self')
+        if calculation_method == 'mean':
+            calculation_method = data_dict.means
+        elif calculation_method == 'median':
+            calculation_method = data_dict.medians
+        else:
+            raise ValueError(f'calculation_method {calculation_method} is unkown. Only "mean" or "median" are supported.')
+        calculation_method(min_number_of_values=1, min_value=self.min_value, return_type='self')
         data_dict.discard_year()
         data_function(data_dict)
         return data_dict
@@ -72,7 +78,7 @@ class SampleData():
 
         def data_function(data_dict):
             return data_dict.means(min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
-        data = self._sample_data_dict_concentration_based(data_function)
+        data = self._sample_data_dict_concentration_based(data_function, calculation_method='mean')
         return data
 
     def sample_concentration_means(self, min_measurements=measurements.universal.constants.MEAN_MIN_MEASUREMENTS):
@@ -88,7 +94,7 @@ class SampleData():
 
         def data_function(data_dict):
             return data_dict.quantiles(quantile, min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
-        data = self._sample_data_dict_concentration_based(data_function)
+        data = self._sample_data_dict_concentration_based(data_function, calculation_method='median')
         return data
 
     def sample_concentration_quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
@@ -104,7 +110,7 @@ class SampleData():
 
         def data_function(data_dict):
             return data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
-        data_dict = self._sample_data_dict_concentration_based(data_function)
+        data_dict = self._sample_data_dict_concentration_based(data_function, calculation_method='mean')
         return data_dict
 
     def sample_concentration_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
