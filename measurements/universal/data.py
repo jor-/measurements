@@ -438,7 +438,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         elif fill_strategy == 'interpolate':
             interpolator_options = self.get_interpolator_options(kind)
             lsm_values = self._interpolator.interpolate_data_for_sample_lsm_with_map_indices(map_indices_and_values, interpolator_options)
-            lsm_values = np.maximum(lsm_values, self._min_value)
+            data_mask = np.logical_not(np.isnan(lsm_values))
+            lsm_values[data_mask] = np.maximum(lsm_values[data_mask], self._min_value)
         else:
             raise ValueError('Unknown fill method {}.'.format(fill_strategy))
 
