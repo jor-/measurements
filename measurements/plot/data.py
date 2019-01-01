@@ -47,14 +47,14 @@ def _values_for_sample_lsm(data, base_file, sample_lsm, overwrite=False):
     if overwrite or not os.path.exists(file):
         n = data.shape[3]
         data_averaged_all_without_depth = np.empty((n,), dtype=np.float128)
-        volume_map = sample_lsm.volume_map
+        weights_map = sample_lsm.normalized_volume_weights_map(dtype=np.float128)
         for i in range(n):
             data_i = data[:, :, :, i]
-            volume_map_i = volume_map[:, :, :, i]
+            weights_map_i = weights_map[:, :, :, i]
             mask = ~np.isnan(data_i)
             data_i = data_i[mask]
-            volume_map_i = volume_map_i[mask]
-            data_averaged_i = np.sum(data_i * volume_map_i) / np.sum(volume_map_i)
+            weights_map_i = weights_map_i[mask]
+            data_averaged_i = np.sum(data_i * weights_map_i)
             data_averaged_all_without_depth[i] = data_averaged_i
         v_max = util.plot.auxiliary.v_max(data_averaged_all_without_depth)
         util.plot.save.line(file, sample_lsm.z_center, data_averaged_all_without_depth, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
