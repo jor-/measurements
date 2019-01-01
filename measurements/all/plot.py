@@ -32,7 +32,8 @@ def _main():
     parser.add_argument('--number_of_measurements_per_time', type=float, default=None, help='Plots the number of measurements per passed time step.')
     parser.add_argument('--number_of_measurements_per_year', type=int, default=None, help='Plots the number of measurements within a year per passed number of bins.')
     parser.add_argument('--number_of_measurements_per_depth', type=float, default=None, help='Plots the number of measurements per passed depth step.')
-    parser.add_argument('--number_of_measurements_per_space', action='store_true', help='Plots the number of measurements per sample land sea mask grid.')
+    parser.add_argument('--number_of_measurements_per_space', action='store_true', help='Plots the number of measurements per sample land sea mask grid summed up.')
+    parser.add_argument('--number_of_measurements_per_space_each_depth', action='store_true', help='Plots the number of measurements per sample land sea mask grid.')
 
     # expectation values
     parser.add_argument('--means_sample_lsm', action='store_true', help='Plot means for points of sample land sea mask.')
@@ -106,11 +107,15 @@ def _main():
                     mi, step_size=args.number_of_measurements_per_depth,
                     overwrite=args.overwrite)
 
-            if args.number_of_measurements_per_space:
+            if args.number_of_measurements_per_space_each_depth:
                 for max_value_fixed in (True, False):
-                    measurements.plot.number_of_measurements.per_space(
+                    measurements.plot.number_of_measurements.per_space_each_depth(
                         mi, max_value_fixed=max_value_fixed,
                         overwrite=args.overwrite)
+
+            if args.number_of_measurements_per_space:
+                measurements.plot.number_of_measurements.per_space(
+                    mi, overwrite=args.overwrite)
 
             # expectation values
 
