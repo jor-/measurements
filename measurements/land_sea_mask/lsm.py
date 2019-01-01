@@ -278,7 +278,7 @@ class LandSeaMask():
         return v
 
     @staticmethod
-    def volume_of_coordinate_boxes(bounds):
+    def volume_of_coordinate_boxes(bounds, dtype=np.float64):
         # prepare input
         bounds = np.asanyarray(bounds)
 
@@ -294,7 +294,7 @@ class LandSeaMask():
         n = len(bounds)
         util.logging.debug('Calculating volume of {} coordinate boxes.'.format(n))
 
-        box_volumes = np.empty(n)
+        box_volumes = np.empty(n, dtype)
         for i in range(n):
             box_volumes[i] = LandSeaMask.volume_of_coordinate_box(bounds[i])
 
@@ -305,7 +305,7 @@ class LandSeaMask():
         util.logging.debug('Volume of coordinate boxes are calculated.')
         return box_volumes
 
-    def volume_of_boxes_of_map_indices(self, map_indices):
+    def volume_of_boxes_of_map_indices(self, map_indices, dtype=np.float64):
         util.logging.debug('Calculating volume of boxes of {} map indices.'.format(len(map_indices)))
 
         # calculate box bounds as map indices
@@ -319,32 +319,30 @@ class LandSeaMask():
         assert np.all(box_bounds[:, :, 1] > box_bounds[:, :, 0])
 
         # calculate volumes
-        volumes = self.volume_of_coordinate_boxes(box_bounds)
+        volumes = self.volume_of_coordinate_boxes(box_bounds, dtype=dtype)
 
         # return
         return volumes
 
-    @property
-    def volume_map(self):
+    def volumes_map(self, dtype=np.float64):
         util.logging.debug('Calculating volume map.')
 
         # calculate sea map indices
         sea_indices = self.sea_indices
 
         # calculate volume map
-        volumes = self.volume_of_boxes_of_map_indices(sea_indices)
+        volumes = self.volume_of_boxes_of_map_indices(sea_indices, dtype=dtype)
         volumes_with_indices = np.concatenate([sea_indices, volumes[:, np.newaxis]], axis=1)
-        volume_map = self.insert_index_values_in_map(volumes_with_indices, no_data_value=np.inf)
+        volumes_map = self.insert_index_values_in_map(volumes_with_indices, no_data_value=np.inf)
 
         # return
-        return volume_map
+        return volumes_map
 
-    @property
-    def normalized_volume_weights_map(self):
-        volume_map = self.volume_map
-        normalized_volume_map = volume_map / np.nansum(volume_map)
-        assert np.isclose(np.nansum(normalized_volume_map), 1)
-        return normalized_volume_map
+    def normalized_volume_weights_map(self, dtype=np.float64):
+        volume_map = self.volumes_map(dtype=dtype)
+        normalized_volume_weights_map = volume_map / np.nansum(volume_map, dtype=np.float128)
+        assert np.isclose(np.nansum(normalized_volume_weights_map, dtype=np.float128), 1)
+        return normalized_volume_weights_map
 
     # convert map indices and coordinates
 
