@@ -630,7 +630,8 @@ class LandSeaMask():
             self.t_dim = None
 
         # init map
-        value_map = self.masked_map(default_value=no_data_value, land_value=np.nan, dtype=values.dtype)
+        dtype = np.promote_types(values.dtype, np.float16)
+        value_map = self.masked_map(default_value=no_data_value, land_value=np.nan, dtype=dtype)
         number_map = self.masked_map(default_value=0, land_value=0, dtype=np.int32)
 
         # insert values: sum and count for each box
