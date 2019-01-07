@@ -324,23 +324,55 @@ class LandSeaMask():
         # return
         return volumes
 
-    def volumes_map(self, dtype=np.float64):
-        util.logging.debug('Calculating volume map.')
-
-        # calculate sea map indices
-        sea_indices = self.sea_indices
-
-        # calculate volume map
-        volumes = self.volume_of_boxes_of_map_indices(sea_indices, dtype=dtype)
-        volumes_with_indices = np.concatenate([sea_indices, volumes[:, np.newaxis]], axis=1)
-        volumes_map = self.insert_index_values_in_map(volumes_with_indices, no_data_value=np.inf)
-
+    def volumes_map(self, t_dim='default', dtype=np.float64):
+        util.logging.debug(f'Calculating volume map of t_dim {t_dim} with dtype {dtype}.')
+        # use defualt t_dim
+        if t_dim == 'default':
+            t_dim = self.t_dim
+        # calculate without t_dim
+        if t_dim is None or t_dim == 0:
+            # save t_dim
+            old_t_dim = self.t_dim
+            self.t_dim = None
+            # calculate volume map without t_dim
+            sea_indices = self.sea_indices
+            volumes = self.volume_of_boxes_of_map_indices(sea_indices, dtype=dtype)
+            volumes_with_indices = np.concatenate([sea_indices, volumes[:, np.newaxis]], axis=1)
+            volumes_map = self.insert_index_values_in_map(volumes_with_indices, no_data_value=np.inf)
+            assert volumes_map.shape == self.dim[-3:]
+            # restore t_dim
+            self.t_dim = old_t_dim
+        # calculate with t_dim
+        else:
+            volumes_map = self.volumes_map(t_dim=None, dtype=dtype)
+            result_shape = (t_dim, *self.dim[-3:])
+            volumes_map = np.broadcast_to(volumes_map, result_shape)
+            assert volumes_map.ndim == 4
+            assert volumes_map.shape[0] == t_dim
+            assert volumes_map.shape[-3:] == self.dim[-3:]
         # return
         return volumes_map
 
-    def normalized_volume_weights_map(self, dtype=np.float64):
-        volume_map = self.volumes_map(dtype=dtype)
-        normalized_volume_weights_map = volume_map / np.nansum(volume_map, dtype=np.float128)
+    def normalized_volume_weights_map(self, t_dim='default', dtype=np.float64):
+        util.logging.debug(f'Calculating normalized volume weight map of t_dim {t_dim} with dtype {dtype}.')
+        # use defualt t_dim
+        if t_dim == 'default':
+            t_dim = self.t_dim
+        # calculate without t_dim
+        if t_dim is None or t_dim == 0:
+            volume_map = self.volumes_map(t_dim=t_dim, dtype=dtype)
+            normalized_volume_weights_map = volume_map / np.nansum(volume_map, dtype=dtype)
+            assert normalized_volume_weights_map.shape == self.dim[-3:]
+        # calculate with t_dim
+        else:
+            normalized_volume_weights_map = self.normalized_volume_weights_map(t_dim=None, dtype=dtype)
+            result_shape = (t_dim, *self.dim[-3:])
+            normalized_volume_weights_map = np.broadcast_to(normalized_volume_weights_map, result_shape)
+            normalized_volume_weights_map = normalized_volume_weights_map / normalized_volume_weights_map.shape[0]
+            assert normalized_volume_weights_map.ndim == 4
+            assert normalized_volume_weights_map.shape[0] == t_dim
+            assert normalized_volume_weights_map.shape[-3:] == self.dim[-3:]
+        # return
         assert np.isclose(np.nansum(normalized_volume_weights_map, dtype=np.float128), 1)
         return normalized_volume_weights_map
 
