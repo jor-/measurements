@@ -576,12 +576,18 @@ class LandSeaMask():
         result_ndim = points.ndim
         if points.ndim == 1:
             points = points[np.newaxis]
+        assert points.ndim == 2
+        m = self.ndim
+        assert points.shape[1] == m
         util.logging.debug('Transforming {} map indices from {} to coordinates with use_modulo_for_x {}'.format(len(points), self, use_modulo_for_x))
 
         n = len(points)
-        new_points = np.empty((n, self.ndim))
+        new_points = np.empty((n, m))
         for i in range(n):
-            new_points[i] = self.map_index_to_coordinate(*points[i], use_modulo_for_x=use_modulo_for_x)
+            points_i = points[i]
+            if m == 3:
+                points_i = (None, *points_i)
+            new_points[i] = self.map_index_to_coordinate(*points_i, use_modulo_for_x=use_modulo_for_x)
 
         if result_ndim == 1:
             new_points = new_points[0]
