@@ -722,16 +722,57 @@ class LandSeaMask():
         return copy.deepcopy(self)
 
 
-class LandSeaMaskFromFile(LandSeaMask):
+class LandSeaMaskCache(LandSeaMask):
+
+    def __init__(self, lsm_dir):
+        self._lsm_dir = lsm_dir
+
+    @util.cache.file.decorator()
+    @overrides.overrides
+    def volumes_map(self, t_dim='default', dtype=np.float64):
+        return super().volumes_map(t_dim=t_dim, dtype=dtype)
+
+    def volumes_map_cache_file(self, t_dim='default', dtype=np.float64):
+        if t_dim == 'default':
+            t_dim = self.t_dim
+        if t_dim is None or t_dim == 0:
+            dtype = np.dtype(dtype)
+            filename = measurements.land_sea_mask.constants.VOLUMES_MAP_FILENAME.format(dtype=dtype)
+            return os.path.join(self._lsm_dir, filename)
+        else:
+            return None
+
+    @util.cache.file.decorator()
+    @overrides.overrides
+    def normalized_volume_weights_map(self, t_dim='default', dtype=np.float64):
+        return super().normalized_volume_weights_map(t_dim=t_dim, dtype=dtype)
+
+    def normalized_volume_weights_map_cache_file(self, t_dim='default', dtype=np.float64):
+        if t_dim == 'default':
+            t_dim = self.t_dim
+        if t_dim is None or t_dim == 0:
+            dtype = np.dtype(dtype)
+            filename = measurements.land_sea_mask.constants.NORMALIZED_VOLUMES_WEIGHTS_MAP_FILENAME.format(dtype=dtype)
+            return os.path.join(self._lsm_dir, filename)
+        else:
+            return None
+
+
+class LandSeaMaskFromFile(LandSeaMaskCache):
 
     def __init__(self, lsm_dir, t_dim=None, t_centered=True):
-        self._lsm_file = os.path.join(lsm_dir, measurements.land_sea_mask.constants.LSM_NPY_FILENAME)
-        self._depth_file = os.path.join(lsm_dir, measurements.land_sea_mask.constants.DEPTH_NPY_FILENAME)
-
+        LandSeaMaskCache.__init__(self, lsm_dir)
         depth = self._calculate_depth()
         lsm = self._calculate_lsm()
+        LandSeaMask.__init__(self, lsm, depth, t_dim=t_dim, t_centered=t_centered)
 
-        super().__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
+    @property
+    def _lsm_file(self):
+        return os.path.join(self._lsm_dir, measurements.land_sea_mask.constants.LSM_NPY_FILENAME)
+
+    @property
+    def _depth_file(self):
+        return os.path.join(self._lsm_dir, measurements.land_sea_mask.constants.DEPTH_NPY_FILENAME)
 
     @util.cache.file.decorator(cache_file_function=lambda self: self._lsm_file)
     def _calculate_lsm(self):
@@ -811,9 +852,11 @@ class LandSeaMaskWOA13(LandSeaMaskFromFile):
         return super().name + '_woa13'
 
 
-class LandSeaMaskWOA13R(LandSeaMask):
+class LandSeaMaskWOA13R(LandSeaMaskCache):
 
     def __init__(self, t_dim=None, t_centered=True):
+        LandSeaMaskCache.__init__(self, measurements.land_sea_mask.constants.WOA13R_DIR)
+
         depth = measurements.land_sea_mask.depth.values_TMM(max_value=5200, increment_step=2)
         depth.extend([6000, 8000, 10000])
 
@@ -821,7 +864,7 @@ class LandSeaMaskWOA13R(LandSeaMask):
         lsm_woa13.z = depth
         lsm = lsm_woa13.lsm
 
-        super().__init__(lsm, depth, t_dim=t_dim, t_centered=t_centered)
+        LandSeaMask.__init__(self, lsm, depth, t_dim=t_dim, t_centered=t_centered)
 
     @property
     def name(self):
