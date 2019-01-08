@@ -486,9 +486,10 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     def quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
         q_25 = self.quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
+        q_50 = self.quantiles_for_sample_lsm(0.50, min_measurements=min_measurements)
         q_75 = self.quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
         with np.errstate(divide='ignore'):
-            values = (q_75 - q_25) / (q_75 + q_25)
+            values = (q_75 - q_25) / q_50
         assert values.shape == self.sample_lsm.dim
         return values
 
