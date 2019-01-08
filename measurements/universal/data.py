@@ -174,14 +174,11 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         return measurements.universal.sample_data.SampleData(self.points, self.values, self.sample_lsm)
 
     def _min_measurements(self, min_measurements, default_min_measurements):
-        if min_measurements is not None:
-            assert int(min_measurements) == min_measurements
-            min_measurements = int(min_measurements)
-            return min_measurements
-        else:
-            assert int(default_min_measurements) == default_min_measurements
-            default_min_measurements = int(default_min_measurements)
-            return default_min_measurements
+        if min_measurements is None:
+            min_measurements = default_min_measurements
+        min_measurements_int = int(min_measurements)
+        assert min_measurements_int == min_measurements
+        return min_measurements_int
 
     @property
     def _min_value(self):
