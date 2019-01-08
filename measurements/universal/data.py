@@ -796,7 +796,7 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
         return self.base_measurements.relative_standard_deviations_for_sample_lsm()
 
     def quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
-        return self.base_measurements.interquartile_range_for_sample_lsm(min_measurements=min_measurements)
+        return self.base_measurements.quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
 
     # getter and setter from base measurement
 
