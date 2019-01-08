@@ -195,9 +195,11 @@ def interquartile_range_for_sample_lsm(measurements_object, min_measurements=Non
 
 def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
-        kind_id = measurements_object.standard_deviation_id
-        kind_id = kind_id.split(measurements.universal.constants.SEPERATOR)
+        # make kind id
+        kind_id = measurements_object.mean_id.split(measurements.universal.constants.SEPERATOR)[:-1]
+        kind_id += measurements_object.standard_deviation_id.split(measurements.universal.constants.SEPERATOR)[1:]
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
+        # make file name
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
