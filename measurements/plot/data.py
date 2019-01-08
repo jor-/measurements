@@ -216,10 +216,20 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, 
 
 def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
-        kind_id = measurements_object.quantile_id(0, min_measurements=min_measurements)
+        # make kind id
+        try:
+            len(min_measurements)
+        except TypeError:
+            kind_id = measurements_object.quantile_id(quantile=0, min_measurements=min_measurements)
+        else:
+            min_measurements_placeholder = 9876543210
+            kind_id = measurements_object.quantile_id(quantile=0, min_measurements=min_measurements_placeholder)
+            min_measurements_str = ','.join((str(int(m)) for m in min_measurements))
+            kind_id = kind_id.replace(str(min_measurements_placeholder), min_measurements_str)
         kind_id = kind_id.split(measurements.universal.constants.SEPERATOR)
         kind_id = kind_id[1:]
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
+        # make file name
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
