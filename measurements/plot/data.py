@@ -17,6 +17,12 @@ def _append_to_filename(filename, suffix):
     return filename
 
 
+def _append_v_max_to_filename(filename, v_max):
+    if v_max is not None:
+        filename = _append_to_filename(filename, f'_-_v_max_{v_max}')
+    return filename
+
+
 def plot_time_space_depth(data, file, v_max=None, overwrite=False):
     assert data.ndim == 4
     v_min = 0
@@ -24,7 +30,6 @@ def plot_time_space_depth(data, file, v_max=None, overwrite=False):
     # fix v_max if needed
     if v_max == 'fixed':
         v_max = util.plot.auxiliary.v_max(data)
-        file = _append_to_filename(file, '_-_v_max_fixed')
     # prepare base file
     file = _append_to_filename(file, '_-_time_{time}_depth_{depth}')
     # plot data
@@ -42,7 +47,6 @@ def plot_space_depth(data, file, v_max=None, overwrite=False):
     # fix v_max if needed
     if v_max == 'fixed':
         v_max = util.plot.auxiliary.v_max(data)
-        file = _append_to_filename(file, '_-_v_max_fixed')
     # prepare base file
     file = _append_to_filename(file, '_-_depth_{depth}')
     # plot time averaged
@@ -80,16 +84,36 @@ def plot_histogram(data, base_file, v_max=None, overwrite=False):
         util.plot.save.histogram(file, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite)
 
 
-def plot_all_types(data, base_file, sample_lsm, overwrite=False):
-    plot_time_space_depth(data, base_file, v_max=None, overwrite=overwrite)
-    plot_time_space_depth(data, base_file, v_max='fixed', overwrite=overwrite)
-    plot_space_depth(data, base_file, v_max=None, overwrite=overwrite)
-    plot_space_depth(data, base_file, v_max='fixed', overwrite=overwrite)
-    plot_depth(data, base_file, sample_lsm, overwrite=overwrite)
-    plot_histogram(data, base_file, overwrite=overwrite)
+def plot_all_types(data, base_file, sample_lsm, v_max=None, overwrite=False):
+    plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
+    plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
+    if v_max != 'fixed':
+        plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
+        plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
 
 
-def means_for_sample_lsm(measurements_object, file=None, overwrite=False):
+def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False):
+    if plot_type == 'all':
+        plot_all_types(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
+        if v_max is None:
+            v_max = 'fixed'
+            base_file = _append_v_max_to_filename(base_file, v_max)
+            plot_all_types(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
+    elif plot_type == 'time_space_depth':
+        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
+    elif plot_type == 'space_depth':
+        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
+    elif plot_type == 'depth':
+        plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
+    elif plot_type == 'histogram':
+        plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
+    else:
+        raise ValueError(f'Unknown plot type {plot_type}.')
+
+
+# *** statistics (without correlation) *** #
+
+def means_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -97,11 +121,12 @@ def means_for_sample_lsm(measurements_object, file=None, overwrite=False):
             kind=os.path.join('expected_value', 'mean'),
             kind_id=measurements_object.mean_id,
             plot_name='means_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.means_for_sample_lsm()
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=None, file=None, overwrite=False):
+def quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -109,11 +134,12 @@ def quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=Non
             kind=os.path.join('expected_value', 'quantile'),
             kind_id=measurements_object.quantile_id(quantile, min_measurements=min_measurements),
             plot_name=f'concentration_quantiles_for_sample_lsm_{float(quantile):0<4}')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def concentration_standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite=False):
+def concentration_standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -121,11 +147,12 @@ def concentration_standard_deviations_for_sample_lsm(measurements_object, file=N
             kind=os.path.join('spread', 'standard_deviation', 'concentration_standard_deviations'),
             kind_id=measurements_object.standard_deviation_id,
             plot_name='concentration_standard_deviations_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.concentration_standard_deviations_for_sample_lsm()
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def average_noise_standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite=False):
+def average_noise_standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -133,11 +160,12 @@ def average_noise_standard_deviations_for_sample_lsm(measurements_object, file=N
             kind=os.path.join('spread', 'standard_deviation', 'average_noise_standard_deviations'),
             kind_id=measurements_object.standard_deviation_id,
             plot_name='average_noise_standard_deviations_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.average_noise_standard_deviations_for_sample_lsm()
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite=False):
+def standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -145,11 +173,12 @@ def standard_deviations_for_sample_lsm(measurements_object, file=None, overwrite
             kind=os.path.join('spread', 'standard_deviation', 'standard_deviations'),
             kind_id=measurements_object.standard_deviation_id,
             plot_name='standard_deviations_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.standard_deviations_for_sample_lsm()
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def interquartile_range_for_sample_lsm(measurements_object, min_measurements=None, file=None, overwrite=False):
+def interquartile_range_for_sample_lsm(measurements_object, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         kind_id = measurements_object.quantile_id(0, min_measurements=min_measurements)
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id.split(measurements.universal.constants.SEPERATOR)[1:])
@@ -159,15 +188,15 @@ def interquartile_range_for_sample_lsm(measurements_object, min_measurements=Non
             kind=os.path.join('spread', 'interquartile_range'),
             kind_id=kind_id,
             plot_name='interquartile_range_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.interquartile_range_for_sample_lsm(min_measurements=min_measurements)
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def relative_standard_deviations_for_sample_lsm(measurements_object, max_value=2, file=None, overwrite=False):
+def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         kind_id = measurements_object.standard_deviation_id
         kind_id = kind_id.split(measurements.universal.constants.SEPERATOR)
-        kind_id.append(f'max_value_{max_value:g}')
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -175,19 +204,19 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, max_value=2
             kind=os.path.join('spread', 'relative_standard_deviations'),
             kind_id=kind_id,
             plot_name='relative_standard_deviations_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.relative_standard_deviations_for_sample_lsm()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        data = np.minimum(data, max_value)
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+        data = np.minimum(data, v_max)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, max_value=2, min_measurements=None, file=None, overwrite=False):
+def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         kind_id = measurements_object.quantile_id(0, min_measurements=min_measurements)
         kind_id = kind_id.split(measurements.universal.constants.SEPERATOR)
         kind_id = kind_id[1:]
-        kind_id.append(f'max_value_{max_value:g}')
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -195,12 +224,15 @@ def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, max_v
             kind=os.path.join('spread', 'quartile_coefficient_of_dispersion'),
             kind_id=kind_id,
             plot_name='quartile_coefficient_of_dispersion_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        data = np.minimum(data, max_value)
-    plot_all_types(data, file, measurements_object.sample_lsm, overwrite=overwrite)
+        data = np.minimum(data, v_max)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
+
+# *** correlation *** #
 
 def sample_correlation_sparsity_pattern(measurements_object, file=None, permutation_method=None, overwrite=False):
     # set permutation method
