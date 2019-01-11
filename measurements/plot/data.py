@@ -23,6 +23,15 @@ def _append_v_max_to_filename(filename, v_max):
     return filename
 
 
+def _data_abs_time_difference(data):
+    diff = np.empty_like(data)
+    m = data.shape[0] - 1
+    diff[:m] = data[1:] - data[:m]
+    diff[m] = data[0] - data[m]
+    diff = np.abs(diff)
+    return diff
+
+
 def plot_time_space_depth(data, file, v_max=None, overwrite=False):
     assert data.ndim == 4
     v_min = 0
@@ -106,22 +115,25 @@ def plot_histogram(data, base_file, v_max=None, overwrite=False):
         util.plot.save.histogram(file, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite)
 
 
-def plot_all_types(data, base_file, sample_lsm, v_max=None, overwrite=False):
-    plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
-    plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
-    if v_max != 'fixed':
+def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False):
+    if plot_type == 'all':
+        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
+        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
         plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
         plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
-
-
-def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False):
-    if plot_type == 'all':
-        plot_all_types(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
         if v_max is None:
-            v_max = 'fixed'
-            base_file = _append_v_max_to_filename(base_file, v_max)
-            plot_all_types(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
+            # plot time difference
+            diff = _data_abs_time_difference(data)
+            diff_base_file = _append_to_filename(base_file, '_-_abs_time_diff')
+            plot_space_depth(diff, diff_base_file, v_max=None, overwrite=overwrite)
+            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite)
+            # plot with fixed v_max
+            fixed_base_file = _append_v_max_to_filename(base_file, v_max)
+            plot_time_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite)
+            plot_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite)
+            fixed_diff_base_file = _append_v_max_to_filename(diff_base_file, v_max)
+            plot_space_depth(diff, fixed_diff_base_file, v_max='fixed', overwrite=overwrite)
     elif plot_type == 'time_space_depth':
         plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
     elif plot_type == 'space_depth':
@@ -132,6 +144,13 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
         plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
     elif plot_type == 'histogram':
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
+    elif plot_type == 'space_depth_of_time_diff' or plot_type == 'depth_of_time_diff':
+        diff = _data_abs_time_difference(data)
+        diff_base_file = _append_to_filename(base_file, '_-_abs_time_diff')
+        if plot_type == 'space_depth_of_time_diff':
+            plot_space_depth(diff, diff_base_file, v_max=v_max, overwrite=overwrite)
+        if plot_type == 'depth_of_time_diff':
+            plot_depth(diff, diff_base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
     else:
         raise ValueError(f'Unknown plot type {plot_type}.')
 
