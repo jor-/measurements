@@ -62,12 +62,34 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False):
     if overwrite or not os.path.exists(file):
         dtype = np.float128
         volumes_map = sample_lsm.volumes_map(t_dim=None, dtype=dtype)
-        weights_map = volumes_map / (np.nansum(volumes_map, dtype=dtype, axis=(0, 1)) * data.shape[0])
+        weights_map = volumes_map / (data.shape[0] * np.nansum(volumes_map, dtype=dtype, axis=(0, 1)))
         data_averaged_all_without_depth = np.nansum(data * weights_map, dtype=dtype, axis=(0, 1, 2))
         assert data_averaged_all_without_depth.shape == (data.shape[3],)
         if v_max is None:
             v_max = util.plot.auxiliary.v_max(data_averaged_all_without_depth)
         util.plot.save.line(file, sample_lsm.z_center, data_averaged_all_without_depth, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
+
+
+def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
+    assert data.ndim == 4
+    v_min = 0
+    # prepare base file
+    file = _append_to_filename(base_file, '_-_time')
+    # plot all averaged without depth
+    if overwrite or not os.path.exists(file):
+        # average
+        dtype = np.float128
+        weights_map = sample_lsm.normalized_volume_weights_map(t_dim=None, dtype=dtype)
+        data_averaged = np.nansum(data * weights_map, dtype=dtype, axis=(1, 2, 3))
+        # x values
+        t_dim = data.shape[0]
+        assert data_averaged.shape == (t_dim,)
+        x = np.arange(t_dim) / (t_dim - 1)
+        # v max
+        if v_max is None:
+            v_max = util.plot.auxiliary.v_max(data_averaged)
+        # plot
+        util.plot.save.line(file, x, data_averaged, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) / 4, overwrite=overwrite)
 
 
 def plot_histogram(data, base_file, v_max=None, overwrite=False):
@@ -89,6 +111,7 @@ def plot_all_types(data, base_file, sample_lsm, v_max=None, overwrite=False):
     plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
     if v_max != 'fixed':
         plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
+        plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
 
 
@@ -105,6 +128,8 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
         plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
     elif plot_type == 'depth':
         plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
+    elif plot_type == 'time':
+        plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
     elif plot_type == 'histogram':
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
     else:
