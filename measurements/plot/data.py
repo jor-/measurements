@@ -32,8 +32,31 @@ def _data_abs_time_difference(data):
     return diff
 
 
-def plot_time_space_depth(data, file, v_max=None, overwrite=False):
+def _change_t_dim(data, new_t_dim=None):
+    t_dim = data.shape[0]
+    if new_t_dim is None:
+        new_t_dim = t_dim
+    factor = t_dim / new_t_dim
+    if factor.is_integer() and factor >= 1:
+        if factor > 1:
+            factor = int(factor)
+            new_shape = (new_t_dim,) + data.shape[1:]
+            new_data = np.zeros(new_shape)
+            for i in range(factor):
+                new_data += data[i::factor]
+            new_data /= factor
+        else:
+            new_data = data
+    else:
+        raise ValueError(f'Old time dim {t_dim} must be a mutiple of new time dim {new_t_dim}.')
+    assert new_data.ndim == data.ndim
+    assert new_data.shape[0] == new_t_dim
+    return new_data
+
+
+def plot_time_space_depth(data, file, v_max=None, overwrite=False, t_dim=None):
     assert data.ndim == 4
+    data = _change_t_dim(data, new_t_dim=t_dim)
     v_min = 0
     contours = False
     # fix v_max if needed
@@ -126,14 +149,15 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
             # plot time difference
             diff = _data_abs_time_difference(data)
             diff_base_file = _append_to_filename(base_file, '_-_abs_time_diff')
-            plot_space_depth(diff, diff_base_file, v_max=None, overwrite=overwrite)
-            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite)
+            plot_space_depth(diff, diff_base_file, v_max=v_max, overwrite=overwrite)
+            plot_depth(diff, diff_base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
             # plot with fixed v_max
+            v_max = 'fixed'
             fixed_base_file = _append_v_max_to_filename(base_file, v_max)
-            plot_time_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite)
-            plot_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite)
+            plot_time_space_depth(data, fixed_base_file, v_max=v_max, overwrite=overwrite)
+            plot_space_depth(data, fixed_base_file, v_max=v_max, overwrite=overwrite)
             fixed_diff_base_file = _append_v_max_to_filename(diff_base_file, v_max)
-            plot_space_depth(diff, fixed_diff_base_file, v_max='fixed', overwrite=overwrite)
+            plot_space_depth(diff, fixed_diff_base_file, v_max=v_max, overwrite=overwrite)
     elif plot_type == 'time_space_depth':
         plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
     elif plot_type == 'space_depth':
