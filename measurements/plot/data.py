@@ -54,24 +54,24 @@ def _change_t_dim(data, new_t_dim=None):
     return new_data
 
 
-def plot_time_space_depth(data, file, v_max=None, overwrite=False, t_dim=None):
+def plot_time_space_depth(data, file, v_max=None, overwrite=False, t_dim=None, colorbar=True):
     assert data.ndim == 4
     data = _change_t_dim(data, new_t_dim=t_dim)
     v_min = 0
-    contours = False
     # fix v_max if needed
     if v_max == 'fixed':
         v_max = util.plot.auxiliary.v_max(data)
     # prepare base file
+    if not colorbar:
+        file = _append_to_filename(file, '_-_no_colorbar')
     file = _append_to_filename(file, '_-_time_{time}_depth_{depth}')
     # plot data
-    util.plot.save.data(file, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
+    util.plot.save.data(file, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=False, colorbar=colorbar, overwrite=overwrite)
 
 
-def plot_space_depth(data, file, v_max=None, overwrite=False):
+def plot_space_depth(data, file, v_max=None, overwrite=False, colorbar=True):
     assert data.ndim == 4
     v_min = 0
-    contours = False
     # average time_
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
@@ -80,9 +80,11 @@ def plot_space_depth(data, file, v_max=None, overwrite=False):
     if v_max == 'fixed':
         v_max = util.plot.auxiliary.v_max(data)
     # prepare base file
+    if not colorbar:
+        file = _append_to_filename(file, '_-_no_colorbar')
     file = _append_to_filename(file, '_-_depth_{depth}')
     # plot time averaged
-    util.plot.save.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=contours, colorbar=not contours, overwrite=overwrite)
+    util.plot.save.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=False, colorbar=colorbar, overwrite=overwrite)
 
 
 def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False):
