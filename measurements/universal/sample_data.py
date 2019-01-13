@@ -57,12 +57,18 @@ class SampleData():
         data_function(data_dict)
         return data_dict
 
-    def _sample_data_dict_average_noise_based(self, data_function, return_values_at_points=True):
+    def _sample_data_dict_average_noise_based(self, data_function, calculation_method='mean', return_values_at_points=True):
         data_dict = self.measurement_dict
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
         data_function(data_dict)
         data_dict.discard_year()
-        data_dict.means(min_number_of_values=1, min_value=self.min_value, return_type='self')
+        if calculation_method == 'mean':
+            calculation_method = data_dict.means
+        elif calculation_method == 'median':
+            calculation_method = data_dict.medians
+        else:
+            raise ValueError(f'calculation_method {calculation_method} is unkown. Only "mean" or "median" are supported.')
+        calculation_method(min_number_of_values=1, min_value=self.min_value, return_type='self')
         return data_dict
 
     def _sample_data_dict_noise_based(self, data_function, return_values_at_points=True):
@@ -103,6 +109,20 @@ class SampleData():
         data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
         return data
 
+    def sample_average_noise_quantiles_map_indices_dict(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        util.logging.debug(f'Calculating sample_average_noise_quantiles_map_indices_dict with quantile {quantile}, min_measurements {min_measurements} and min_value {self.min_value}.')
+
+        def data_function(data_dict):
+            return data_dict.quantiles(quantile, min_number_of_values=min_measurements, min_value=self.min_value, return_type='self')
+        data = self._sample_data_dict_average_noise_based(data_function, calculation_method='median')
+        return data
+
+    def sample_average_noise_quantiles(self, quantile, min_measurements=measurements.universal.constants.QUANTILE_MIN_MEASUREMENTS):
+        util.logging.debug(f'Calculating sample_average_noise_quantiles with quantile {quantile}, min_measurements {min_measurements} and min_value {self.min_value}.')
+        data_dict = self.sample_average_noise_quantiles_map_indices_dict(quantile, min_measurements=min_measurements, min_value=self.min_value)
+        data = self._convert_map_indices_dict_to_array_for_points(data_dict, is_discard_year=True)
+        return data
+
     # *** deviation *** #
 
     def sample_concentration_standard_deviations_map_indices_dict(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
@@ -124,7 +144,7 @@ class SampleData():
 
         def data_function(data_dict):
             return data_dict.standard_deviations(min_number_of_values=min_measurements, min_value=min_value, return_type='self')
-        data_dict = self._sample_data_dict_average_noise_based(data_function)
+        data_dict = self._sample_data_dict_average_noise_based(data_function, calculation_method='mean')
         return data_dict
 
     def sample_average_noise_standard_deviations(self, min_measurements=measurements.universal.constants.STANDARD_DEVIATION_MIN_MEASUREMENTS, min_value=0):
