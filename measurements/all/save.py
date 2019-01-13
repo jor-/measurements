@@ -30,7 +30,7 @@ def _main():
     parser.add_argument('--standard_deviations', action='store_true', help='Calculate and save standard deviations of measurements.')
 
     parser.add_argument('--means_sample_lsm', action='store_true', help='Calculate and save means for points of sample land sea mask.')
-    parser.add_argument('--quantiles_sample_lsm', action='store', type=float, help='Calculate and save the passed quantile for points of sample land sea mask.')
+    parser.add_argument('--concentration_quantiles_sample_lsm', action='store', type=float, help='Calculate and save the passed quantile for points of sample land sea mask.')
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Calculate and save concentration standard deviations for points of sample land sea mask.')
     parser.add_argument('--average_noise_standard_deviations_for_sample_lsm', action='store_true', help='Calculate and save average noise standard deviations for points of sample land sea mask.')
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Calculate and save standard deviations for points of sample land sea mask.')
@@ -81,8 +81,8 @@ def _main():
         for m in m_list:
             if args.means_sample_lsm:
                 m.means_for_sample_lsm()
-            if args.quantiles_sample_lsm is not None:
-                m.quantiles_for_sample_lsm(args.quantiles_sample_lsm)
+            if args.concentration_quantiles_sample_lsm is not None:
+                m.concentration_quantiles_for_sample_lsm(args.concentration_quantiles_sample_lsm)
             if args.concentration_standard_deviations_sample_lsm:
                 m.concentration_standard_deviations_for_sample_lsm()
             if args.average_noise_standard_deviations_for_sample_lsm:

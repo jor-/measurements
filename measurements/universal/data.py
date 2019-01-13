@@ -429,7 +429,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         assert values.shape == self.sample_lsm.dim
         return values
 
-    def quantiles_for_sample_lsm(self, quantile, min_measurements=None):
+    def concentration_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
         values = self._data_for_sample_lsm('concentration_quantiles', quantile, min_measurements=min_measurements)
         assert values.shape == self.sample_lsm.dim
@@ -451,8 +451,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         return values
 
     def interquartile_range_for_sample_lsm(self, min_measurements=None):
-        q_25 = self.quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
-        q_75 = self.quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
+        q_25 = self.concentration_quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
+        q_75 = self.concentration_quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
         values = q_75 - q_25
         assert values.shape == self.sample_lsm.dim
         return values
@@ -477,9 +477,9 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             assert len(min_measurements) == 3
             (min_measurements_q_25, min_measurements_q_50, min_measurements_q_75) = min_measurements
         # calculate
-        q_25 = self.quantiles_for_sample_lsm(0.25, min_measurements=min_measurements_q_25)
-        q_50 = self.quantiles_for_sample_lsm(0.50, min_measurements=min_measurements_q_50)
-        q_75 = self.quantiles_for_sample_lsm(0.75, min_measurements=min_measurements_q_75)
+        q_25 = self.concentration_quantiles_for_sample_lsm(0.25, min_measurements=min_measurements_q_25)
+        q_50 = self.concentration_quantiles_for_sample_lsm(0.50, min_measurements=min_measurements_q_50)
+        q_75 = self.concentration_quantiles_for_sample_lsm(0.75, min_measurements=min_measurements_q_75)
         with np.errstate(divide='ignore'):
             values = (q_75 - q_25) / q_50
         assert values.shape == self.sample_lsm.dim
@@ -514,7 +514,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
                 if kind == 'concentration_means':
                     data_for_sample_lsm = self.means_for_sample_lsm(*args, **kargs)
                 elif kind == 'concentration_quantiles':
-                    data_for_sample_lsm = self.quantiles_for_sample_lsm(*args, **kargs)
+                    data_for_sample_lsm = self.concentration_quantiles_for_sample_lsm(*args, **kargs)
                 elif kind == 'concentration_standard_deviations':
                     data_for_sample_lsm = self.concentration_standard_deviations_for_sample_lsm(*args, **kargs)
                 elif kind == 'average_noise_standard_deviations':
@@ -758,8 +758,8 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     def means_for_sample_lsm(self):
         return self.base_measurements.means_for_sample_lsm()
 
-    def quantiles_for_sample_lsm(self, quantile, min_measurements=None):
-        return self.base_measurements.quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
+    def concentration_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
+        return self.base_measurements.concentration_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
 
     def concentration_standard_deviations_for_sample_lsm(self):
         return self.base_measurements.concentration_standard_deviations_for_sample_lsm()
@@ -1164,11 +1164,11 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         'self.fill_strategy'))
     @util.cache.file.decorator()
     @overrides.overrides
-    def quantiles_for_sample_lsm(self, quantile, min_measurements=None):
+    def concentration_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return super().quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
+        return super().concentration_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
 
-    def quantiles_for_sample_lsm_cache_file(self, quantile, min_measurements=None):
+    def concentration_quantiles_for_sample_lsm_cache_file(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
         return self._quantile_cache_file(str(self.sample_lsm), quantile, min_measurements=min_measurements)
 

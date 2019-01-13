@@ -208,7 +208,7 @@ def means_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
+def concentration_quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
@@ -217,7 +217,7 @@ def quantiles_for_sample_lsm(measurements_object, quantile, min_measurements=Non
             kind_id=measurements_object.quantile_id(quantile, min_measurements=min_measurements),
             plot_name=f'concentration_quantiles_for_sample_lsm_{float(quantile):0<4}')
         file = _append_v_max_to_filename(file, v_max)
-    data = measurements_object.quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
+    data = measurements_object.concentration_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 

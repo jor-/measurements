@@ -37,7 +37,7 @@ def _main():
 
     # expectation values
     parser.add_argument('--means_sample_lsm', action='store_true', help='Plot means for points of sample land sea mask.')
-    parser.add_argument('--quantiles_sample_lsm', type=float, default=None, help='Plot passed quantiles for points of sample land sea mask.')
+    parser.add_argument('--concentration_quantiles_sample_lsm', type=float, default=None, help='Plot passed quantiles for points of sample land sea mask.')
 
     # spread values
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
@@ -123,9 +123,9 @@ def _main():
                 measurements.plot.data.means_for_sample_lsm(
                     mi, overwrite=args.overwrite)
 
-            if args.quantiles_sample_lsm:
-                measurements.plot.data.quantiles_for_sample_lsm(
-                    mi, args.quantiles_sample_lsm,
+            if args.concentration_quantiles_sample_lsm:
+                measurements.plot.data.concentration_quantiles_for_sample_lsm(
+                    mi, args.concentration_quantiles_sample_lsm,
                     overwrite=args.overwrite)
 
             # spread values
