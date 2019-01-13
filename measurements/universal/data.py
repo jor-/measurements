@@ -94,10 +94,6 @@ class Measurements():
     def means(self):
         raise NotImplementedError()
 
-    @abc.abstractmethod
-    def quantiles(self, quantile, min_measurements=None):
-        raise NotImplementedError()
-
     @property  # TODO no property
     @abc.abstractmethod
     def standard_deviations(self):
@@ -194,21 +190,6 @@ class MeasurementsAnnualPeriodicBase(Measurements):
     @overrides.overrides
     def means(self):
         data = self.sample_means
-        if data.count() == len(data):
-            return data.data
-        else:
-            raise TooFewValuesError('It was not possible to calculate all values from the sample values, because to few sample values are available.')
-
-    # quantiles
-
-    def sample_quantiles(self, quantile, min_measurements=None):
-        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return self._sample_data.sample_concentration_quantiles(quantile, min_measurements=min_measurements)
-
-    @overrides.overrides
-    def quantiles(self, quantile, min_measurements=None):
-        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        data = self.sample_quantiles(quantile, min_measurements=min_measurements)
         if data.count() == len(data):
             return data.data
         else:
@@ -553,11 +534,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     def means(self):
         return self._data_for_sample_points('concentration_means')
 
-    @overrides.overrides
-    def quantiles(self, quantile, min_measurements=None):
-        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return self._data_for_sample_points('concentration_quantiles', quantile, min_measurements=min_measurements)
-
     @property
     @overrides.overrides
     def concentration_standard_deviations(self):
@@ -714,10 +690,6 @@ class MeasurementsNearWater(Measurements):
     @overrides.overrides
     def means(self):
         return self._project_left_side(self.base_measurements.means)
-
-    @overrides.overrides
-    def quantiles(self, quantile, min_measurements=None):
-        return self._project_left_side(self.base_measurements.quantiles(quantile, min_measurements=min_measurements))
 
     @property
     @overrides.overrides
@@ -937,12 +909,6 @@ class MeasurementsCollection(Measurements):
     @overrides.overrides
     def means(self):
         values = np.concatenate(tuple(map(lambda measurement: measurement.means, self.measurements_list)))
-        assert len(values) == self.number_of_measurements
-        return values
-
-    @overrides.overrides
-    def quantiles(self, quantile, min_measurements=None):
-        values = np.concatenate(tuple(map(lambda measurement: measurement.quantiles(quantile, min_measurements=min_measurements), self.measurements_list)))
         assert len(values) == self.number_of_measurements
         return values
 
@@ -1190,21 +1156,6 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_measurements=min_measurements,
             fill_strategy=fill_strategy,
             quantile=quantile)
-
-    @util.cache.memory.method_decorator(dependency=(
-        'self.tracer',
-        'self.data_set_name',
-        'self.sample_lsm.name',
-        'self.fill_strategy'))
-    @util.cache.file.decorator()
-    @overrides.overrides
-    def quantiles(self, quantile, min_measurements=None):
-        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return super().quantiles(quantile, min_measurements=min_measurements)
-
-    def quantiles_cache_file(self, quantile, min_measurements=None):
-        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return self._quantile_cache_file('sample_points', quantile, min_measurements)
 
     @util.cache.memory.method_decorator(dependency=(
         'self.tracer',
@@ -1570,10 +1521,6 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
     @overrides.overrides
     def means_cache_file(self):
         return self.base_measurements.means_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
-
-    @overrides.overrides
-    def quantiles_cache_file(self, quantile, min_measurements=None):
-        return self.base_measurements.quantiles_cache_file(quantile, min_measurements=min_measurements).replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
     def concentration_standard_deviations_cache_file(self):

@@ -25,7 +25,6 @@ def _main():
     parser.add_argument('--points_and_values', action='store_true', help='Calculate and save points and values of measurements.')
 
     parser.add_argument('--means', action='store_true', help='Calculate and save means for measurement points.')
-    parser.add_argument('--quantiles', action='store', type=float, help='Calculate and save the passed quantile for measurement points.')
     parser.add_argument('--concentration_standard_deviations', action='store_true', help='Calculate and save concentration standard deviations for measurement points.')
     parser.add_argument('--noise_standard_deviations', action='store_true', help='Calculate and save noise standard deviations of measurements.')
     parser.add_argument('--standard_deviations', action='store_true', help='Calculate and save standard deviations of measurements.')
@@ -63,8 +62,6 @@ def _main():
             m.values
         if args.means:
             m.means
-        if args.quantiles is not None:
-            m.quantiles(args.quantiles)
         if args.concentration_standard_deviations:
             m.concentration_standard_deviations
         if args.noise_standard_deviations:
