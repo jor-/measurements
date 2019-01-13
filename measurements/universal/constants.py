@@ -64,7 +64,7 @@ QUANTILE_MIN_MEASUREMENTS = 3
 QUANTILE_DIR = os.path.join(MEASUREMENT_DIR, 'quantile')
 
 QUANTILE_FILE = os.path.join(QUANTILE_DIR, SEPERATOR.join([
-    'concentration_quantile',
+    '{quantile_type}',
     'for_{target}',
     'sample_{sample_lsm}',
     'min_values_{min_measurements:d}',

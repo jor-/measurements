@@ -272,7 +272,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     POSSIBLE_FILL_STRATEGIES = ('auto', 'point_average', 'lsm_average', 'constant', 'interpolate')
-    POSSIBLE_KINDS = ('concentration_means', 'concentration_quantiles', 'concentration_standard_deviations', 'average_noise_standard_deviations')
+    POSSIBLE_KINDS = ('concentration_means', 'concentration_quantiles', 'average_noise_quantiles', 'concentration_standard_deviations', 'average_noise_standard_deviations')
 
     def __init__(self, tracer=None, data_set_name=None):
         self._interpolator_options = {}
@@ -381,6 +381,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
             data_map_indices_dict = self._sample_data.sample_concentration_means_map_indices_dict(*args, min_measurements=self.min_measurements_mean, **kargs)
         elif kind == 'concentration_quantiles':
             data_map_indices_dict = self._sample_data.sample_concentration_quantiles_map_indices_dict(*args, **kargs)
+        elif kind == 'average_noise_quantiles':
+            data_map_indices_dict = self._sample_data.sample_average_noise_quantiles_map_indices_dict(*args, **kargs)
         elif kind == 'concentration_standard_deviations':
             data_map_indices_dict = self._sample_data.sample_concentration_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=0, **kargs)
         elif kind == 'average_noise_standard_deviations':
@@ -432,6 +434,12 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
     def concentration_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
         values = self._data_for_sample_lsm('concentration_quantiles', quantile, min_measurements=min_measurements)
+        assert values.shape == self.sample_lsm.dim
+        return values
+
+    def average_noise_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
+        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
+        values = self._data_for_sample_lsm('average_noise_quantiles', quantile, min_measurements=min_measurements)
         assert values.shape == self.sample_lsm.dim
         return values
 
@@ -760,6 +768,9 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
 
     def concentration_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
         return self.base_measurements.concentration_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
+
+    def average_noise_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
+        return self.base_measurements.average_noise_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
 
     def concentration_standard_deviations_for_sample_lsm(self):
         return self.base_measurements.concentration_standard_deviations_for_sample_lsm()
@@ -1145,10 +1156,11 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
     # *** quantiles *** #
 
-    def _quantile_cache_file(self, target, quantile, min_measurements):
-        fill_strategy = self._fill_strategy_id('concentration_quantiles')
+    def _quantile_cache_file(self, quantile_type, target, quantile, min_measurements):
+        fill_strategy = self._fill_strategy_id(quantile_type)
         quantile = float(quantile)
         return measurements.universal.constants.QUANTILE_FILE.format(
+            quantile_type=quantile_type,
             tracer=self.tracer,
             data_set=self.data_set_name,
             target=target,
@@ -1170,7 +1182,22 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
     def concentration_quantiles_for_sample_lsm_cache_file(self, quantile, min_measurements=None):
         min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
-        return self._quantile_cache_file(str(self.sample_lsm), quantile, min_measurements=min_measurements)
+        return self._quantile_cache_file('concentration_quantiles', str(self.sample_lsm), quantile, min_measurements=min_measurements)
+
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.sample_lsm.name',
+        'self.fill_strategy'))
+    @util.cache.file.decorator()
+    @overrides.overrides
+    def average_noise_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
+        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
+        return super().average_noise_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
+
+    def average_noise_quantiles_for_sample_lsm_cache_file(self, quantile, min_measurements=None):
+        min_measurements = self._min_measurements(min_measurements, self.min_measurements_quantile)
+        return self._quantile_cache_file('average_noise_quantiles', str(self.sample_lsm), quantile, min_measurements=min_measurements)
 
     # *** deviation *** #
 
