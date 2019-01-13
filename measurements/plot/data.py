@@ -54,6 +54,26 @@ def _change_t_dim(data, new_t_dim=None):
     return new_data
 
 
+def _average_data(data, sample_lsm, exclude_axis=None):
+    dtype = np.float128
+    if exclude_axis is None or exclude_axis == 0:
+        # average all without time
+        weights_map = sample_lsm.normalized_volume_weights_map(t_dim=None, dtype=dtype)
+        data_averaged = np.nansum(data * weights_map, axis=(1, 2, 3), dtype=dtype)
+        assert data_averaged.shape == (data.shape[0],)
+        # average time
+        if exclude_axis is None:
+            data_averaged = np.nanmean(data_averaged)
+    elif exclude_axis == 3:
+        volumes_map = sample_lsm.volumes_map(t_dim=None, dtype=dtype)
+        weights_map = volumes_map / (data.shape[0] * np.nansum(volumes_map, dtype=dtype, axis=(0, 1)))
+        data_averaged = np.nansum(data * weights_map, axis=(0, 1, 2), dtype=dtype)
+        assert data_averaged.shape == (data.shape[3],)
+    else:
+        raise ValueError(f'Unsupported exclude axis value {data_averaged}.')
+    return data_averaged
+
+
 def plot_time_space_depth(data, file, v_max=None, overwrite=False, t_dim=None, colorbar=True):
     assert data.ndim == 4
     data = _change_t_dim(data, new_t_dim=t_dim)
@@ -94,14 +114,10 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False):
     file = _append_to_filename(base_file, '_-_depth')
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
-        dtype = np.float128
-        volumes_map = sample_lsm.volumes_map(t_dim=None, dtype=dtype)
-        weights_map = volumes_map / (data.shape[0] * np.nansum(volumes_map, dtype=dtype, axis=(0, 1)))
-        data_averaged_all_without_depth = np.nansum(data * weights_map, dtype=dtype, axis=(0, 1, 2))
-        assert data_averaged_all_without_depth.shape == (data.shape[3],)
+        data_averaged = _average_data(data, sample_lsm, exclude_axis=3)
         if v_max is None:
-            v_max = util.plot.auxiliary.v_max(data_averaged_all_without_depth)
-        util.plot.save.line(file, sample_lsm.z_center, data_averaged_all_without_depth, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
+            v_max = util.plot.auxiliary.v_max(data_averaged)
+        util.plot.save.line(file, sample_lsm.z_center, data_averaged, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
 
 
 def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
@@ -111,13 +127,9 @@ def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
     file = _append_to_filename(base_file, '_-_time')
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
-        # average
-        dtype = np.float128
-        weights_map = sample_lsm.normalized_volume_weights_map(t_dim=None, dtype=dtype)
-        data_averaged = np.nansum(data * weights_map, dtype=dtype, axis=(1, 2, 3))
+        data_averaged = _average_data(data, sample_lsm, exclude_axis=0)
         # x values
         t_dim = data.shape[0]
-        assert data_averaged.shape == (t_dim,)
         x = np.arange(t_dim) / (t_dim - 1)
         # v max
         if v_max is None:
