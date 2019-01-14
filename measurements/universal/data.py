@@ -481,7 +481,7 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         assert values.shape == self.sample_lsm.dim
         return values
 
-    def quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
+    def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
         # get min measurements
         try:
             len(min_measurements)
@@ -750,7 +750,7 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
            'concentration_standard_deviations_for_sample_lsm', 'average_noise_standard_deviations_for_sample_lsm',
            'standard_deviations_for_sample_lsm',
            'concentration_relative_standard_deviations_for_sample_lsm', 'relative_standard_deviations_for_sample_lsm',
-           'concentration_interquartile_range_for_sample_lsm', 'quartile_coefficient_of_dispersion_for_sample_lsm'))
+           'concentration_interquartile_range_for_sample_lsm', 'concentration_quartile_coefficient_of_dispersion_for_sample_lsm'))
 
     def __init__(self, base_measurements):
         MeasurementsNearWater.__init__(self, base_measurements)

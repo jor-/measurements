@@ -296,7 +296,7 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, 
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
-def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
+def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         # make kind id
         try:
@@ -317,9 +317,9 @@ def quartile_coefficient_of_dispersion_for_sample_lsm(measurements_object, min_m
             data_set=measurements_object.data_set_name,
             kind=os.path.join('dispersion', 'quartile_coefficient_of_dispersion'),
             kind_id=kind_id,
-            plot_name='quartile_coefficient_of_dispersion_for_sample_lsm')
+            plot_name='concentration_quartile_coefficient_of_dispersion_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
-    data = measurements_object.quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
+    data = measurements_object.concentration_quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
         data = np.minimum(data, v_max)
