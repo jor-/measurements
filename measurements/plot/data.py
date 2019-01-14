@@ -275,6 +275,21 @@ def concentration_interquartile_range_for_sample_lsm(measurements_object, min_me
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
+def average_noise_interquartile_range_for_sample_lsm(measurements_object, min_measurements=None, file=None, plot_type='all', v_max=None, overwrite=False):
+    if file is None:
+        kind_id = measurements_object.quantile_id(0, min_measurements=min_measurements)
+        kind_id = measurements.universal.constants.SEPERATOR.join(kind_id.split(measurements.universal.constants.SEPERATOR)[1:])
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('dispersion', 'interquartile_range'),
+            kind_id=kind_id,
+            plot_name='average_noise_interquartile_range_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
+    data = measurements_object.average_noise_interquartile_range_for_sample_lsm(min_measurements=min_measurements)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
+
+
 def concentration_relative_standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         # make kind id
