@@ -275,6 +275,27 @@ def concentration_interquartile_range_for_sample_lsm(measurements_object, min_me
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
+def concentration_relative_standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
+    if file is None:
+        # make kind id
+        kind_id = measurements_object.mean_id.split(measurements.universal.constants.SEPERATOR)[:-1]
+        kind_id += measurements_object.standard_deviation_id.split(measurements.universal.constants.SEPERATOR)[1:]
+        kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
+        # make file name
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('dispersion', 'relative_standard_deviations'),
+            kind_id=kind_id,
+            plot_name='concentration_relative_standard_deviations_for_sample_lsm')
+        file = _append_v_max_to_filename(file, v_max)
+    data = measurements_object.concentration_relative_standard_deviations_for_sample_lsm()
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=RuntimeWarning)
+        data = np.minimum(data, v_max)
+    plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
+
+
 def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=None, overwrite=False):
     if file is None:
         # make kind id
