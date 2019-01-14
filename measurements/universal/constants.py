@@ -46,7 +46,7 @@ MEAN_MIN_MEASUREMENTS = 1
 MEAN_DIR = os.path.join(MEASUREMENT_DIR, 'mean')
 
 MEAN_FILE = os.path.join(MEAN_DIR, SEPERATOR.join([
-    'concentration_mean',
+    'concentration_means',
     'for_{target}',
     'sample_{sample_lsm}',
     'min_values_{min_measurements:d}',
