@@ -45,7 +45,7 @@ def _main():
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Plot standard deviations for points of sample land sea mask.')
     parser.add_argument('--relative_standard_deviations_sample_lsm', action='store_true', help='Plot relative standard deviations for points of sample land sea mask.')
 
-    parser.add_argument('--interquartile_range_sample_lsm', action='store_true', help='Plot interquartile range for points of sample land sea mask.')
+    parser.add_argument('--concentration_interquartile_range_sample_lsm', action='store_true', help='Plot interquartile range for points of sample land sea mask.')
     parser.add_argument('--quartile_coefficient_of_dispersion_sample_lsm', action='store_true', help='Plot quartile coefficient of dispersion for points of sample land sea mask.')
 
     # sample correlation
@@ -146,8 +146,8 @@ def _main():
                 measurements.plot.data.relative_standard_deviations_for_sample_lsm(
                     mi, overwrite=args.overwrite)
 
-            if args.interquartile_range_sample_lsm:
-                measurements.plot.data.interquartile_range_for_sample_lsm(
+            if args.concentration_interquartile_range_sample_lsm:
+                measurements.plot.data.concentration_interquartile_range_for_sample_lsm(
                     mi, overwrite=args.overwrite)
 
             if args.quartile_coefficient_of_dispersion_sample_lsm:

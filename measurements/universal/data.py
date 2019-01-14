@@ -458,13 +458,6 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         assert values.shape == self.sample_lsm.dim
         return values
 
-    def interquartile_range_for_sample_lsm(self, min_measurements=None):
-        q_25 = self.concentration_quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
-        q_75 = self.concentration_quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
-        values = q_75 - q_25
-        assert values.shape == self.sample_lsm.dim
-        return values
-
     def concentration_relative_standard_deviations_for_sample_lsm(self):
         standard_deviations = self.concentration_standard_deviations_for_sample_lsm()
         means = self.means_for_sample_lsm()
@@ -478,6 +471,13 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         means = self.means_for_sample_lsm()
         with np.errstate(divide='ignore'):
             values = standard_deviations / np.abs(means)
+        assert values.shape == self.sample_lsm.dim
+        return values
+
+    def concentration_interquartile_range_for_sample_lsm(self, min_measurements=None):
+        q_25 = self.concentration_quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
+        q_75 = self.concentration_quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
+        values = q_75 - q_25
         assert values.shape == self.sample_lsm.dim
         return values
 
@@ -750,7 +750,7 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
            'concentration_standard_deviations_for_sample_lsm', 'average_noise_standard_deviations_for_sample_lsm',
            'standard_deviations_for_sample_lsm',
            'concentration_relative_standard_deviations_for_sample_lsm', 'relative_standard_deviations_for_sample_lsm',
-           'interquartile_range_for_sample_lsm', 'quartile_coefficient_of_dispersion_for_sample_lsm'))
+           'concentration_interquartile_range_for_sample_lsm', 'quartile_coefficient_of_dispersion_for_sample_lsm'))
 
     def __init__(self, base_measurements):
         MeasurementsNearWater.__init__(self, base_measurements)
