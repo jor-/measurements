@@ -481,6 +481,13 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         assert values.shape == self.sample_lsm.dim
         return values
 
+    def average_noise_interquartile_range_for_sample_lsm(self, min_measurements=None):
+        q_25 = self.average_noise_quantiles_for_sample_lsm(0.25, min_measurements=min_measurements)
+        q_75 = self.average_noise_quantiles_for_sample_lsm(0.75, min_measurements=min_measurements)
+        values = q_75 - q_25
+        assert values.shape == self.sample_lsm.dim
+        return values
+
     def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
         # get min measurements
         try:
@@ -750,7 +757,8 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
            'concentration_standard_deviations_for_sample_lsm', 'average_noise_standard_deviations_for_sample_lsm',
            'standard_deviations_for_sample_lsm',
            'concentration_relative_standard_deviations_for_sample_lsm', 'relative_standard_deviations_for_sample_lsm',
-           'concentration_interquartile_range_for_sample_lsm', 'concentration_quartile_coefficient_of_dispersion_for_sample_lsm'))
+           'concentration_interquartile_range_for_sample_lsm', 'average_noise_interquartile_range_for_sample_lsm',
+           'concentration_quartile_coefficient_of_dispersion_for_sample_lsm'))
 
     def __init__(self, base_measurements):
         MeasurementsNearWater.__init__(self, base_measurements)
