@@ -57,7 +57,7 @@ class SampleData():
         data_function(data_dict)
         return data_dict
 
-    def _sample_data_dict_average_noise_based(self, data_function, calculation_method='mean', return_values_at_points=True):
+    def _sample_data_dict_average_noise_based(self, data_function, calculation_method='mean'):
         data_dict = self.measurement_dict
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
         data_function(data_dict)
@@ -71,7 +71,7 @@ class SampleData():
         calculation_method(min_number_of_values=1, min_value=self.min_value, return_type='self')
         return data_dict
 
-    def _sample_data_dict_noise_based(self, data_function, return_values_at_points=True):
+    def _sample_data_dict_noise_based(self, data_function):
         data_dict = self.measurement_dict
         data_dict.coordinates_to_map_indices(self.sample_lsm, int_indices=True)
         data_function(data_dict)
