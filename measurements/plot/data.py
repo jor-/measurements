@@ -267,7 +267,7 @@ def concentration_interquartile_range_for_sample_lsm(measurements_object, min_me
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('dispersion', 'interquartile_range'),
+            kind=os.path.join('dispersion', 'interquartile_range', 'concentration_interquartile_range'),
             kind_id=kind_id,
             plot_name='concentration_interquartile_range_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
@@ -282,7 +282,7 @@ def average_noise_interquartile_range_for_sample_lsm(measurements_object, min_me
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('dispersion', 'interquartile_range'),
+            kind=os.path.join('dispersion', 'interquartile_range', 'average_noise_interquartile_range'),
             kind_id=kind_id,
             plot_name='average_noise_interquartile_range_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
@@ -300,7 +300,7 @@ def concentration_relative_standard_deviations_for_sample_lsm(measurements_objec
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('dispersion', 'relative_standard_deviations'),
+            kind=os.path.join('dispersion', 'relative_standard_deviations', 'concentration_relative_standard_deviations'),
             kind_id=kind_id,
             plot_name='concentration_relative_standard_deviations_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
@@ -325,7 +325,7 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, 
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('dispersion', 'relative_standard_deviations'),
+            kind=os.path.join('dispersion', 'relative_standard_deviations', 'relative_standard_deviations'),
             kind_id=kind_id,
             plot_name='relative_standard_deviations_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
@@ -359,7 +359,7 @@ def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(measurements
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('dispersion', 'quartile_coefficient_of_dispersion'),
+            kind=os.path.join('dispersion', 'quartile_coefficient_of_dispersion', 'concentration_quartile_coefficient_of_dispersion'),
             kind_id=kind_id,
             plot_name='concentration_quartile_coefficient_of_dispersion_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
