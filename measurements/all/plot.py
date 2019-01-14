@@ -43,6 +43,7 @@ def _main():
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
     parser.add_argument('--average_noise_standard_deviations_sample_lsm', action='store_true', help='Plot average noise standard deviations for points of sample land sea mask.')
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Plot standard deviations for points of sample land sea mask.')
+    parser.add_argument('--concentration_relative_standard_deviations_sample_lsm', action='store_true', help='Plot concentration relative standard deviations for points of sample land sea mask.')
     parser.add_argument('--relative_standard_deviations_sample_lsm', action='store_true', help='Plot relative standard deviations for points of sample land sea mask.')
 
     parser.add_argument('--concentration_interquartile_range_sample_lsm', action='store_true', help='Plot interquartile range for points of sample land sea mask.')
@@ -140,6 +141,10 @@ def _main():
 
             if args.standard_deviations_sample_lsm:
                 measurements.plot.data.standard_deviations_for_sample_lsm(
+                    mi, overwrite=args.overwrite)
+
+            if args.concentration_relative_standard_deviations_sample_lsm:
+                measurements.plot.data.concentration_relative_standard_deviations_for_sample_lsm(
                     mi, overwrite=args.overwrite)
 
             if args.relative_standard_deviations_sample_lsm:
