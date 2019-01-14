@@ -305,9 +305,13 @@ def concentration_relative_standard_deviations_for_sample_lsm(measurements_objec
             plot_name='concentration_relative_standard_deviations_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.concentration_relative_standard_deviations_for_sample_lsm()
+    if v_max is not None and v_max != 'fixed':
+        data_max = v_max
+    else:
+        data_max = util.plot.auxiliary.v_max(data)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        data = np.minimum(data, v_max)
+        data = np.minimum(data, data_max)
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
@@ -326,9 +330,13 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, 
             plot_name='relative_standard_deviations_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.relative_standard_deviations_for_sample_lsm()
+    if v_max is not None and v_max != 'fixed':
+        data_max = v_max
+    else:
+        data_max = util.plot.auxiliary.v_max(data)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        data = np.minimum(data, v_max)
+        data = np.minimum(data, data_max)
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
@@ -356,9 +364,13 @@ def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(measurements
             plot_name='concentration_quartile_coefficient_of_dispersion_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
     data = measurements_object.concentration_quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
+    if v_max is not None and v_max != 'fixed':
+        data_max = v_max
+    else:
+        data_max = util.plot.auxiliary.v_max(data)
     with warnings.catch_warnings():
         warnings.simplefilter("ignore", category=RuntimeWarning)
-        data = np.minimum(data, v_max)
+        data = np.minimum(data, data_max)
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite)
 
 
