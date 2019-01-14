@@ -730,15 +730,19 @@ class MeasurementsNearWater(Measurements):
 
 class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnnualPeriodic):
 
-    _PROPERTIES_OF_BASE_MEASUREMENTS = (MeasurementsNearWater._PROPERTIES_OF_BASE_MEASUREMENTS
-                                        + ('sample_lsm',
-                                           'min_measurements_mean',
-                                           'min_measurements_quantile',
-                                           'min_measurements_standard_deviation',
-                                           'min_measurements_correlation',
-                                           'min_standard_deviation',
-                                           'min_abs_correlation',
-                                           'max_abs_correlation'))
+    _PROPERTIES_OF_BASE_MEASUREMENTS = (
+        MeasurementsNearWater._PROPERTIES_OF_BASE_MEASUREMENTS
+        + ('sample_lsm', 'fill_strategy',
+           'min_measurements_mean', 'min_measurements_quantile',
+           'min_measurements_standard_deviation', 'min_measurements_correlation',
+           'min_standard_deviation',
+           'min_abs_correlation', 'max_abs_correlation',
+           'means_for_sample_lsm',
+           'concentration_quantiles_for_sample_lsm', 'average_noise_quantiles_for_sample_lsm',
+           'concentration_standard_deviations_for_sample_lsm', 'average_noise_standard_deviations_for_sample_lsm',
+           'standard_deviations_for_sample_lsm',
+           'relative_standard_deviations_for_sample_lsm',
+           'interquartile_range_for_sample_lsm', 'quartile_coefficient_of_dispersion_for_sample_lsm'))
 
     def __init__(self, base_measurements):
         MeasurementsNearWater.__init__(self, base_measurements)
@@ -760,45 +764,6 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
     @overrides.overrides
     def average_noise_standard_deviations(self):
         return self._project_left_side(self.base_measurements.average_noise_standard_deviations)
-
-    # data for sample lsm
-
-    def means_for_sample_lsm(self):
-        return self.base_measurements.means_for_sample_lsm()
-
-    def concentration_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
-        return self.base_measurements.concentration_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
-
-    def average_noise_quantiles_for_sample_lsm(self, quantile, min_measurements=None):
-        return self.base_measurements.average_noise_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
-
-    def concentration_standard_deviations_for_sample_lsm(self):
-        return self.base_measurements.concentration_standard_deviations_for_sample_lsm()
-
-    def average_noise_standard_deviations_for_sample_lsm(self):
-        return self.base_measurements.average_noise_standard_deviations_for_sample_lsm()
-
-    def standard_deviations_for_sample_lsm(self):
-        return self.base_measurements.standard_deviations_for_sample_lsm()
-
-    def interquartile_range_for_sample_lsm(self, min_measurements=None):
-        return self.base_measurements.interquartile_range_for_sample_lsm(min_measurements=min_measurements)
-
-    def relative_standard_deviations_for_sample_lsm(self):
-        return self.base_measurements.relative_standard_deviations_for_sample_lsm()
-
-    def quartile_coefficient_of_dispersion_for_sample_lsm(self, min_measurements=None):
-        return self.base_measurements.quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
-
-    # getter and setter from base measurement
-
-    @property
-    def fill_strategy(self):
-        return self.base_measurements.fill_strategy
-
-    @fill_strategy.setter
-    def fill_strategy(self, value):
-        self.base_measurements.fill_strategy = value
 
 
 class MeasurementsAnnualPeriodicUnion(MeasurementsAnnualPeriodic):
