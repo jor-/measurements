@@ -465,6 +465,14 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
         assert values.shape == self.sample_lsm.dim
         return values
 
+    def concentration_relative_standard_deviations_for_sample_lsm(self):
+        standard_deviations = self.concentration_standard_deviations_for_sample_lsm()
+        means = self.means_for_sample_lsm()
+        with np.errstate(divide='ignore'):
+            values = standard_deviations / np.abs(means)
+        assert values.shape == self.sample_lsm.dim
+        return values
+
     def relative_standard_deviations_for_sample_lsm(self):
         standard_deviations = self.standard_deviations_for_sample_lsm()
         means = self.means_for_sample_lsm()
@@ -741,7 +749,7 @@ class MeasurementsAnnualPeriodicNearWater(MeasurementsNearWater, MeasurementsAnn
            'concentration_quantiles_for_sample_lsm', 'average_noise_quantiles_for_sample_lsm',
            'concentration_standard_deviations_for_sample_lsm', 'average_noise_standard_deviations_for_sample_lsm',
            'standard_deviations_for_sample_lsm',
-           'relative_standard_deviations_for_sample_lsm',
+           'concentration_relative_standard_deviations_for_sample_lsm', 'relative_standard_deviations_for_sample_lsm',
            'interquartile_range_for_sample_lsm', 'quartile_coefficient_of_dispersion_for_sample_lsm'))
 
     def __init__(self, base_measurements):
