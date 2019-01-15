@@ -149,18 +149,26 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
         plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
         if v_max is None:
+            # plot with fixed v_max
+            fixed_base_file = _append_v_max_to_filename(base_file, 'fixed')
+            plot_time_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite)
+            plot_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite)
+            # plot seasonal values
+            if data.ndim == 4:
+                t_dim = data.shape[0]
+                if t_dim % 4 == 0:
+                    seasonal_data = _change_t_dim(data, new_t_dim=4)
+                    plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite)
+                    plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite, colorbar=False)
+                    plot_time_space_depth(seasonal_data, fixed_base_file, v_max='fixed', overwrite=overwrite)
+                    plot_time_space_depth(seasonal_data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=False)
             # plot time difference
             diff = _data_abs_time_difference(data)
             diff_base_file = _append_to_filename(base_file, '_-_abs_time_diff')
-            plot_space_depth(diff, diff_base_file, v_max=v_max, overwrite=overwrite)
-            plot_depth(diff, diff_base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
-            # plot with fixed v_max
-            v_max = 'fixed'
-            fixed_base_file = _append_v_max_to_filename(base_file, v_max)
-            plot_time_space_depth(data, fixed_base_file, v_max=v_max, overwrite=overwrite)
-            plot_space_depth(data, fixed_base_file, v_max=v_max, overwrite=overwrite)
-            fixed_diff_base_file = _append_v_max_to_filename(diff_base_file, v_max)
-            plot_space_depth(diff, fixed_diff_base_file, v_max=v_max, overwrite=overwrite)
+            plot_space_depth(diff, diff_base_file, v_max=None, overwrite=overwrite)
+            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite)
+            fixed_diff_base_file = _append_v_max_to_filename(diff_base_file, 'fixed')
+            plot_space_depth(diff, fixed_diff_base_file, v_max='fixed', overwrite=overwrite)
     elif plot_type == 'time_space_depth':
         plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
     elif plot_type == 'space_depth':
