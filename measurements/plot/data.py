@@ -84,27 +84,16 @@ def plot_time_space_depth(data, file, v_max=None, overwrite=False, t_dim=None, c
     # prepare base file
     if not colorbar:
         file = _append_to_filename(file, '_-_no_colorbar')
-    file = _append_to_filename(file, '_-_time_{time}_depth_{depth}')
+    if data.shape[0] > 1:
+        file = _append_to_filename(file, '_-_time_{time}_depth_{depth}')
+    else:
+        file = _append_to_filename(file, '_-_depth_{depth}')
     # plot data
     util.plot.save.data(file, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=False, colorbar=colorbar, overwrite=overwrite)
 
 
 def plot_space_depth(data, file, v_max=None, overwrite=False, colorbar=True):
-    assert data.ndim == 4
-    v_min = 0
-    # average time_
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", category=RuntimeWarning)
-        data_time_averaged = np.nanmean(data, axis=0)
-    # fix v_max if needed
-    if v_max == 'fixed':
-        v_max = util.plot.auxiliary.v_max(data)
-    # prepare base file
-    if not colorbar:
-        file = _append_to_filename(file, '_-_no_colorbar')
-    file = _append_to_filename(file, '_-_depth_{depth}')
-    # plot time averaged
-    util.plot.save.data(file, data_time_averaged, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=False, colorbar=colorbar, overwrite=overwrite)
+    plot_time_space_depth(data, file, v_max=v_max, overwrite=overwrite, t_dim=1, colorbar=colorbar)
 
 
 def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False):
