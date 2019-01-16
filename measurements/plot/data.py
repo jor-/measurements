@@ -32,15 +32,15 @@ def _data_abs_time_difference(data):
     return diff
 
 
-def _change_t_dim(data, new_t_dim=None):
-    t_dim = data.shape[0]
-    if new_t_dim is None:
-        new_t_dim = t_dim
-    factor = t_dim / new_t_dim
+def _change_t_dim(data, t_dim=None):
+    old_t_dim = data.shape[0]
+    if t_dim is None:
+        t_dim = old_t_dim
+    factor = old_t_dim / t_dim
     if factor.is_integer() and factor >= 1:
         if factor > 1:
             factor = int(factor)
-            new_shape = (new_t_dim,) + data.shape[1:]
+            new_shape = (t_dim,) + data.shape[1:]
             new_data = np.zeros(new_shape)
             for i in range(factor):
                 new_data += data[i::factor]
@@ -48,9 +48,9 @@ def _change_t_dim(data, new_t_dim=None):
         else:
             new_data = data
     else:
-        raise ValueError(f'Old time dim {t_dim} must be a mutiple of new time dim {new_t_dim}.')
+        raise ValueError(f'Old time dim {old_t_dim} must be a mutiple of new time dim {t_dim}.')
     assert new_data.ndim == data.ndim
-    assert new_data.shape[0] == new_t_dim
+    assert new_data.shape[0] == t_dim
     return new_data
 
 
@@ -76,7 +76,7 @@ def _average_data(data, sample_lsm, exclude_axis=None):
 
 def plot_time_space_depth(data, file, v_max=None, overwrite=False, colorbar=True, t_dim=None):
     assert data.ndim == 4
-    data = _change_t_dim(data, new_t_dim=t_dim)
+    data = _change_t_dim(data, t_dim=t_dim)
     v_min = 0
     # fix v_max if needed
     if v_max == 'fixed':
@@ -157,7 +157,7 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
             if data.ndim == 4:
                 t_dim = data.shape[0]
                 if t_dim % 4 == 0:
-                    seasonal_data = _change_t_dim(data, new_t_dim=4)
+                    seasonal_data = _change_t_dim(data, t_dim=4)
                     plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite)
                     plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite, colorbar=False)
                     plot_time_space_depth(seasonal_data, fixed_base_file, v_max='fixed', overwrite=overwrite)
