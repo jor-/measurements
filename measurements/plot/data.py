@@ -32,6 +32,14 @@ def _data_abs_time_difference(data):
     return diff
 
 
+def _data_abs_depth_difference(data):
+    diff = np.full_like(data, np.nan)
+    m = data.shape[-1] - 1
+    diff[..., :m] = data[..., 1:] - data[..., :m]
+    diff = np.abs(diff)
+    return diff
+
+
 def _change_t_dim(data, t_dim=None):
     old_t_dim = data.shape[0]
     if t_dim is None:
@@ -96,7 +104,7 @@ def plot_space_depth(data, file, v_max=None, overwrite=False, colorbar=True):
     plot_time_space_depth(data, file, v_max=v_max, overwrite=overwrite, t_dim=1, colorbar=colorbar)
 
 
-def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False):
+def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_values='center'):
     assert data.ndim == 4
     v_min = 0
     # prepare base file
@@ -106,7 +114,15 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False):
         data_averaged = _average_data(data, sample_lsm, exclude_axis=3)
         if v_max is None:
             v_max = util.plot.auxiliary.v_max(data_averaged)
-        util.plot.save.line(file, sample_lsm.z_center, data_averaged, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
+        if z_values == 'center':
+            x = sample_lsm.z_center
+        elif z_values == 'right':
+            x = sample_lsm.z_right
+        elif z_values == 'left':
+            x = sample_lsm.z_left
+        else:
+            raise ValueError(f'Unknown z_values {z_values}. Only "center", "right" and "left" are supported.')
+        util.plot.save.line(file, x, data_averaged, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
 
 
 def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
@@ -169,6 +185,10 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
             plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite)
             fixed_diff_base_file = _append_v_max_to_filename(diff_base_file, 'fixed')
             plot_space_depth(diff, fixed_diff_base_file, v_max='fixed', overwrite=overwrite)
+            # plot depth difference
+            diff = _data_abs_depth_difference(data)
+            diff_base_file = _append_to_filename(base_file, '_-_abs_depth_diff')
+            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, z_values='right')
     elif plot_type == 'time_space_depth':
         plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
     elif plot_type == 'space_depth':
@@ -186,6 +206,10 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
             plot_space_depth(diff, diff_base_file, v_max=v_max, overwrite=overwrite, **kargs)
         if plot_type == 'depth_of_time_diff':
             plot_depth(diff, diff_base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
+    elif plot_type == 'depth_of_depth_diff':
+        diff = _data_abs_depth_difference(data)
+        diff_base_file = _append_to_filename(base_file, '_-_abs_depth_diff')
+        plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, z_values='right')
     else:
         raise ValueError(f'Unknown plot type {plot_type}.')
 
