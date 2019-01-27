@@ -321,7 +321,7 @@ def concentration_relative_standard_deviations_for_sample_lsm(measurements_objec
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('dispersion', 'relative_standard_deviations', 'concentration_relative_standard_deviations'),
+            kind=os.path.join('dispersion', 'relative_standard_deviation', 'concentration_relative_standard_deviations'),
             kind_id=kind_id,
             plot_name='concentration_relative_standard_deviations_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
@@ -346,7 +346,7 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, 
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('dispersion', 'relative_standard_deviations', 'relative_standard_deviations'),
+            kind=os.path.join('dispersion', 'relative_standard_deviation', 'relative_standard_deviations'),
             kind_id=kind_id,
             plot_name='relative_standard_deviations_for_sample_lsm')
         file = _append_v_max_to_filename(file, v_max)
