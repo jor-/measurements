@@ -169,3 +169,16 @@ def per_space(measurements_object, use_log_scale=True, file=None, overwrite=Fals
     util.plot.save.data(file, data_sum, no_data_value=no_data_value, v_min=1, v_max=None,
                         use_log_scale=use_log_scale, contours=False, colorbar=True,
                         tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
+
+
+def _number_of_estimations(measurements_object, min_number_of_measurements_for_estimation=1, min_number_of_estimations=1):
+    points = measurements_object.points
+    lsm = m.sample_lsm
+    map_indices = m.sample_lsm.coordinates_to_map_indices(points, int_indices=True, discard_year=False)
+    data, counts = np.unique(map_indices, axis=0, return_counts=True)
+    data = data[counts >= min_number_of_measurements_for_estimation]
+    data[:, 0] = data[:, 0] % lsm.t_dim
+    data, counts = np.unique(map_indices, axis=0, return_counts=True)
+    data_with_counts = np.concatenate(data, counts, axis=1)
+    data_with_counts = data_with_counts[counts >= min_number_of_estimations]
+    return data_with_counts
