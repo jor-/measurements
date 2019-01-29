@@ -19,7 +19,7 @@ SUPPORTED_TRACERS = (measurements.wod.po4.constants.TRACER,) + measurements.wod.
 
 # *** cruise collection *** #
 
-def cruises_collection_calculate(tracer):
+def cruises_collection_calculate(tracer, data_set_name):
     # init cruise collection
     if tracer == 'po4':
         cruises_class = measurements.wod.po4.cruise.CruisePO4
@@ -31,46 +31,46 @@ def cruises_collection_calculate(tracer):
         raise ValueError('Tracer {} is not supported. Only {} are supported.'.format(tracer, SUPPORTED_TRACERS))
     cruises_collection = measurements.wod.cruise.CruisesCollection(cruises_class)
     # load cruises
-    cruises_file = measurements.wod.constants.CRUISES_FILE.format(tracer=tracer)
+    cruises_file = measurements.wod.constants.CRUISES_FILE.format(tracer=tracer, data_set_name=data_set_name)
     cruises_collection.add_cruises_from_netcdf_files_in_tar_file(cruises_file)
     # return cruise collection
     return cruises_collection
 
 
-def cruises_collection_file(tracer):
-    return measurements.wod.constants.CRUISES_COLLECTION_FILE.format(tracer=tracer)
+def cruises_collection_file(tracer, data_set_name):
+    return measurements.wod.constants.CRUISES_COLLECTION_FILE.format(tracer=tracer, data_set_name=data_set_name)
 
 
 @util.cache.file.decorator(cache_file_function=cruises_collection_file, load_function=util.io.object.load, save_function=util.io.object.save)
-def cruises_collection(tracer):
-    return cruises_collection_calculate(tracer)
+def cruises_collection(tracer, data_set_name):
+    return cruises_collection_calculate(tracer, data_set_name)
 
 
 # *** measurement dict *** #
 
-def measurements_dict_calculate(tracer):
-    cruises_collection_tracer = cruises_collection(tracer)
+def measurements_dict_calculate(tracer, data_set_name):
+    cruises_collection_tracer = cruises_collection(tracer, data_set_name)
     m = measurements.wod.dict.MeasurementsDict()
     m.add_cruises(cruises_collection_tracer)
     return m
 
 
-def measurements_dict_file(tracer):
-    return measurements.wod.constants.MEASUREMENTS_DICT_FILE.format(tracer=tracer)
+def measurements_dict_file(tracer, data_set_name):
+    return measurements.wod.constants.MEASUREMENTS_DICT_FILE.format(tracer=tracer, data_set_name=data_set_name)
 
 
 @util.cache.file.decorator(cache_file_function=measurements_dict_file, load_function=measurements.wod.dict.load, save_function=measurements.wod.dict.save)
-def measurements_dict(tracer):
-    return measurements_dict_calculate(tracer)
+def measurements_dict(tracer, data_set_name):
+    return measurements_dict_calculate(tracer, data_set_name)
 
 
 # *** points and results *** #
 
-def points_and_results_calculate(tracer):
+def points_and_results_calculate(tracer, data_set_name):
     util.logging.debug('Loading and calculating measurements.')
 
     # load measurements
-    m = measurements_dict(tracer)
+    m = measurements_dict(tracer, data_set_name)
 
     values = m.items()
     assert values.ndim == 2
@@ -88,44 +88,45 @@ def points_and_results_calculate(tracer):
     return values
 
 
-def points_and_results_file(tracer):
-    return measurements.wod.constants.POINTS_AND_RESULTS_FILE.format(tracer=tracer)
+def points_and_results_file(tracer, data_set_name):
+    return measurements.wod.constants.POINTS_AND_RESULTS_FILE.format(tracer=tracer, data_set_name=data_set_name)
 
 
 @util.cache.file.decorator(cache_file_function=points_and_results_file, load_function=util.io.np.load, save_function=util.io.np.save)
-def points_and_results(tracer):
-    return points_and_results_calculate(tracer)
+def points_and_results(tracer, data_set_name):
+    return points_and_results_calculate(tracer, data_set_name)
 
 
-def points(tracer):
-    return points_and_results(tracer)[:, :-1]
+def points(tracer, data_set_name):
+    return points_and_results(tracer, data_set_name)[:, :-1]
 
 
-def results(tracer):
-    return points_and_results(tracer)[:, -1]
+def results(tracer, data_set_name):
+    return points_and_results(tracer, data_set_name)[:, -1]
 
 
 # ***  measurement classes *** #
 
 class MeasurementsBase(measurements.universal.data.MeasurementsAnnualPeriodicCache):
 
-    def __init__(self, tracer):
-        data_set_name = measurements.wod.constants.DATA_SET_NAME
+    def __init__(self, tracer, data_set_name=None):
+        if data_set_name is None:
+            data_set_name = measurements.wod.constants.WOD_18_DATA_SET_NAME
         super().__init__(tracer=tracer, data_set_name=data_set_name)
 
     @property
     @overrides.overrides
     def points(self):
-        return points(self.tracer)
+        return points(self.tracer, self.data_set_name)
 
     @property
     @overrides.overrides
     def values(self):
-        return results(self.tracer)
+        return results(self.tracer, self.data_set_name)
 
 
 class Measurements(measurements.universal.data.MeasurementsAnnualPeriodicNearWaterCache):
 
-    def __init__(self, tracer):
-        measurements = MeasurementsBase(tracer)
+    def __init__(self, tracer, data_set_name=None):
+        measurements = MeasurementsBase(tracer, data_set_name)
         super().__init__(measurements)

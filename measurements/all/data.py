@@ -1,4 +1,5 @@
 import measurements.dop.data
+import measurements.wod.constants
 import measurements.wod.plankton.data
 import measurements.wod.po4.data
 import measurements.land_sea_mask.lsm
@@ -68,9 +69,9 @@ def all_measurements(tracers=None,
         if tracer == 'dop':
             measurements_object = measurements.dop.data.Measurements()
         elif tracer == 'po4':
-            measurements_object = measurements.wod.po4.data.Measurements()
+            measurements_object = measurements.wod.po4.data.Measurements(measurements.wod.constants.WOD_13_DATA_SET_NAME)
         elif tracer in ('phytoplankton', 'zooplankton'):
-            measurements_object = measurements.wod.plankton.data.Measurements(tracer)
+            measurements_object = measurements.wod.plankton.data.Measurements(tracer, measurements.wod.constants.WOD_13_DATA_SET_NAME)
         elif tracer == 'detritus':
             measurements_object = None
         else:

@@ -63,15 +63,16 @@ LONGITUDE_UNIT = b'degrees_east'
 LONGITUDE_UNIT_NAME = 'units'
 
 
-# general informations
+# data set names
 
-DATA_SET_NAME = 'wod_2013'
+WOD_13_DATA_SET_NAME = 'wod_2013'
+WOD_18_DATA_SET_NAME = 'wod_2018'
 
 
 # data dirs and files
 
-DATA_DIR = os.path.join(measurements.constants.BASE_DIR, '{tracer}', DATA_SET_NAME, 'data')
-CRUISES_FILE = os.path.join(DATA_DIR, 'raw', 'cruises.tar')
+DATA_DIR = os.path.join(measurements.constants.BASE_DIR, '{tracer}', '{data_set_name}', 'data')
+CRUISES_FILE = os.path.join(DATA_DIR, 'raw', 'cruises.tar.bz2')
 CRUISES_COLLECTION_FILE = os.path.join(DATA_DIR, 'cruises_collection.ppy')
 MEASUREMENTS_DICT_FILE = os.path.join(DATA_DIR, 'measurement_dict.ppy')
 POINTS_AND_RESULTS_FILE = os.path.join(DATA_DIR, 'points_and_results.npz')
