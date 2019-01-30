@@ -17,26 +17,26 @@ class Cruise(measurements.wod.cruise.Cruise):
         # check each variable
         for name, variable in file.variables.items():
             # check if data record
-            if name.startswith(measurements.wod.plankton.constants.DATA_NAME_PREFIX):
+            if name.startswith(measurements.wod.plankton.constants.DATA_VARIABLE['name_prefix']):
                 # check wanted plankton
                 try:
-                    plankton_group_code = getattr(variable, measurements.wod.plankton.constants.DATA_PLANKTON_GROUPE_CODE_NAME)
+                    plankton_group_code = getattr(variable, measurements.wod.plankton.constants.DATA_VARIABLE['plankton_group_code_name'])
                 except AttributeError:
-                    util.logging.warn('Value {} missing for variable {}.'.format(measurements.wod.plankton.constants.DATA_PLANKTON_GROUPE_CODE_NAME, name))
+                    util.logging.warn('Value {} missing for variable {}.'.format(measurements.wod.plankton.constants.DATA_VARIABLE['plankton_group_code_name'], name))
                 else:
                     if plankton_group_code == self.PLANKTON_GROUP_CODE:
                         # check quality flag
                         try:
-                            flag_value = getattr(variable, measurements.wod.plankton.constants.DATA_FLAG_NAME)
+                            flag_value = getattr(variable, measurements.wod.plankton.constants.DATA_VARIABLE['flag_name'])
                         except AttributeError:
-                            util.logging.warn('Value {} missing for variable {}.'.format(measurements.wod.plankton.constants.DATA_FLAG_NAME, name))
+                            util.logging.warn('Value {} missing for variable {}.'.format(measurements.wod.plankton.constants.DATA_VARIABLE['flag_name'], name))
                         else:
-                            if flag_value == measurements.wod.plankton.constants.DATA_VALID_FLAG:
+                            if flag_value == measurements.wod.plankton.constants.DATA_VARIABLE['flag_valid_value']:
                                 # check unit and data format
-                                unit = getattr(variable, measurements.wod.plankton.constants.DATA_UNIT_NAME)
-                                assert unit == measurements.wod.plankton.constants.DATA_UNIT
-                                comment = getattr(variable, measurements.wod.plankton.constants.DATA_COMMENT_NAME)
-                                assert comment == measurements.wod.plankton.constants.DATA_COMMENT
+                                unit = getattr(variable, measurements.wod.plankton.constants.DATA_VARIABLE['unit_name'])
+                                assert unit == measurements.wod.plankton.constants.DATA_VARIABLE['unit']
+                                comment = getattr(variable, measurements.wod.plankton.constants.DATA_VARIABLE['comment_name'])
+                                assert comment == measurements.wod.plankton.constants.DATA_VARIABLE['comment']
 
                                 # add data
                                 values = variable.data
@@ -46,8 +46,8 @@ class Cruise(measurements.wod.cruise.Cruise):
                                 data.append(value)
 
                                 # add depth
-                                upper_depth = getattr(variable, measurements.wod.plankton.constants.DATA_UPPER_DEPTH_NAME)
-                                lower_depth = getattr(variable, measurements.wod.plankton.constants.DATA_LOWER_DEPTH_NAME)
+                                upper_depth = getattr(variable, measurements.wod.plankton.constants.DATA_VARIABLE['upper_depth_name'])
+                                lower_depth = getattr(variable, measurements.wod.plankton.constants.DATA_VARIABLE['lower_depth_name'])
                                 assert 0 <= upper_depth <= lower_depth
                                 depth = (upper_depth + lower_depth) / 2
                                 depths.append(depth)

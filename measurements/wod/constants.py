@@ -37,31 +37,6 @@ LONGITUDE_VARIABLE = {
     'unit': b'degrees_east',
     'unit_name': 'units'}
 
-DATE_NAME = 'date'
-DATE_UNIT = b'YYYYMMDD'
-DATE_UNIT_NAME = 'comment'
-
-TIME_NAME = 'GMT_time'
-TIME_UNIT = None
-TIME_UNIT_NAME = None
-
-START_TIME_NAME = 'GMT_sample_start_time'
-START_TIME_UNIT = b'hour'
-START_TIME_UNIT_NAME = 'units'
-
-DATE_TIME_NAME = 'time'
-DATE_TIME_UNIT = b'days since 1770-01-01 00:00:00'
-DATE_TIME_UNIT_NAME = 'units'
-DATE_TIME_BASE = datetime.datetime(1770, 1, 1)
-
-LATITUDE_NAME = 'lat'
-LATITUDE_UNIT = b'degrees_north'
-LATITUDE_UNIT_NAME = 'units'
-
-LONGITUDE_NAME = 'lon'
-LONGITUDE_UNIT = b'degrees_east'
-LONGITUDE_UNIT_NAME = 'units'
-
 
 # data set names
 

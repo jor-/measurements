@@ -113,7 +113,7 @@ class Cruise(metaclass=abc.ABCMeta):
             try:
                 days = float(date_time)
                 date_time_offset = datetime.timedelta(days=days)
-                date_time = measurements.wod.constants.DATE_TIME_BASE + date_time_offset
+                date_time = self.DATE_TIME_VARIABLE['base'] + date_time_offset
             except ValueError as e:
                 raise InvalidValueError(self.DATE_TIME_VARIABLE['name'], date_time) from e
             return date_time

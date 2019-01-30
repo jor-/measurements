@@ -1,19 +1,18 @@
+from measurements.universal.constants import SAMPLE_LSM
+
 # informations for the wod cruises
 
-DATA_NAME_PREFIX = 'Taxon_count_'
-
-DATA_UNIT = b'#/m3'
-DATA_UNIT_NAME = 'CBV_units'
-DATA_COMMENT = b'contains two values: first value is value as originally measured or observed.  Second values is the common biological value as converted to common units for comparison.'
-DATA_COMMENT_NAME = 'comment'
-
-DATA_FLAG_NAME = 'CBV_flag'
-DATA_VALID_FLAG = 0
-
-DATA_PLANKTON_GROUPE_CODE_NAME = 'PGC_group_code'
-
-DATA_UPPER_DEPTH_NAME = 'upper_depth'
-DATA_LOWER_DEPTH_NAME = 'lower_depth'
+DATA_VARIABLE = {
+    'name_prefix': 'Taxon_count_',
+    'unit': b'#/m3',
+    'unit_name': 'CBV_units',
+    'flag_name': 'CBV_flag',
+    'flag_valid_value': 0,
+    'comment': b'contains two values: first value is value as originally measured or observed.  Second values is the common biological value as converted to common units for comparison.',
+    'comment_name': 'comment',
+    'plankton_group_code_name': 'PGC_group_code',
+    'upper_depth_name': 'upper_depth',
+    'lower_depth_name': 'lower_depth'}
 
 PHYTOPLANKTON_GROUP_CODE = 2000000
 ZOOPLANKTON_GROUP_CODE = 4000000
@@ -22,8 +21,6 @@ ZOOPLANKTON_GROUP_CODE = 4000000
 # sample informations
 
 TRACERS = ('zooplankton', 'phytoplankton')
-
-from measurements.universal.constants import SAMPLE_LSM
 
 STANDARD_DEVIATION_MIN_VALUE = 0.5
 CORRELATION_MIN_MEASUREMENTS = 40
