@@ -182,29 +182,29 @@ def _main():
 
         mc = measurements.universal.correlation.CorrelationCache(m)
         if args.sample_correlation_correlations is not None:
-            mc.plot_correlation(axis=args.sample_correlation_correlations,
-                                use_sample_correlation=True,
-                                overwrite=args.overwrite)
+            mc.plot_correlation_averages(axis=args.sample_correlation_correlations,
+                                         use_sample_correlation=True,
+                                         overwrite=args.overwrite)
         if args.sample_correlation_autocorrelations is not None:
-            mc.plot_autocorrelation(axis=args.sample_correlation_autocorrelations,
-                                    use_sample_correlation=True,
-                                    overwrite=args.overwrite)
+            mc.plot_autocorrelation_averages(axis=args.sample_correlation_autocorrelations,
+                                             use_sample_correlation=True,
+                                             overwrite=args.overwrite)
         if args.sample_correlation_violin_autocorrelations is not None:
-            mc.plot_violin_autocorrelation(axis=args.sample_correlation_violin_autocorrelations,
-                                           use_sample_correlation=True,
-                                           overwrite=args.overwrite)
+            mc.plot_autocorrelation_violins(axis=args.sample_correlation_violin_autocorrelations,
+                                            use_sample_correlation=True,
+                                            overwrite=args.overwrite)
         if args.correlation_correlations is not None:
-            mc.plot_correlation(axis=args.correlation_correlations,
-                                use_sample_correlation=False,
-                                overwrite=args.overwrite)
+            mc.plot_correlation_averages(axis=args.correlation_correlations,
+                                         use_sample_correlation=False,
+                                         overwrite=args.overwrite)
         if args.correlation_autocorrelations is not None:
-            mc.plot_autocorrelation(axis=args.correlation_autocorrelations,
-                                    use_sample_correlation=False,
-                                    overwrite=args.overwrite)
+            mc.plot_autocorrelation_averages(axis=args.correlation_autocorrelations,
+                                             use_sample_correlation=False,
+                                             overwrite=args.overwrite)
         if args.correlation_violin_autocorrelations is not None:
-            mc.plot_violin_autocorrelation(axis=args.correlation_violin_autocorrelations,
-                                           use_sample_correlation=False,
-                                           overwrite=args.overwrite)
+            mc.plot_autocorrelation_violins(axis=args.correlation_violin_autocorrelations,
+                                            use_sample_correlation=False,
+                                            overwrite=args.overwrite)
 
 
 if __name__ == "__main__":
