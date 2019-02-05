@@ -996,6 +996,15 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsAnnualPeriodicBase):
         return standard_deviation_id
 
     @property
+    def sample_correlation_id(self):
+        return measurements.universal.constants.SAMPLE_CORRELATION_ID.format(
+            sample_lsm=self.sample_lsm,
+            min_measurements_correlation=self.min_measurements_correlation,
+            min_abs_correlation=self.min_abs_correlation,
+            max_abs_correlation=self.max_abs_correlation,
+            standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
+
+    @property
     def correlation_id(self):
         return measurements.universal.constants.CORRELATION_ID.format(
             sample_lsm=self.sample_lsm,

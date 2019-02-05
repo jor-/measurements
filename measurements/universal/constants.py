@@ -108,7 +108,12 @@ CORRELATION_DECOMPOSITION_TYPE = matrix.constants.LDL_DECOMPOSITION_TYPE
 CORRELATION_DTYPE = np.dtype(np.float32)
 CORRELATION_FORMAT = 'csc'
 
-# files
+SAMPLE_CORRELATION_ID = SEPERATOR.join([
+    'sample_{sample_lsm}',
+    'min_values_{min_measurements_correlation:0>2d}',
+    'min_abs_{min_abs_correlation}',
+    'max_abs_{max_abs_correlation}',
+    'dev:_{standard_deviation_id}'])
 
 CORRELATION_ID = SEPERATOR.join([
     'sample_{sample_lsm}',
@@ -119,6 +124,8 @@ CORRELATION_ID = SEPERATOR.join([
     'permutation_{permutation_method_decomposition_correlation}',
     'min_diag_{decomposition_min_diag_value:.0e}',
     'dev:_{standard_deviation_id}'])
+
+# files
 
 CORRELATION_DIR = os.path.join(MEASUREMENT_DIR, 'correlation')
 
