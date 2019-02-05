@@ -407,57 +407,43 @@ def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(measurements
 # *** correlation *** #
 
 def sample_correlation_sparsity_pattern(measurements_object, file=None, permutation_method=None, overwrite=False):
-    # set permutation method
-    permutation_method_decomposition_correlation_old = measurements_object.permutation_method_decomposition_correlation
-    measurements_object.permutation_method_decomposition_correlation = permutation_method
     # get file name
     if file is None:
+        plot_name = f'sample_correlation_sparsity_pattern_-_permutation_{permutation_method}'
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
             kind=os.path.join('correlation', 'sample_correlation', 'sparsity_pattern'),
-            kind_id=measurements_object.correlation_id,
-            plot_name='sample_correlation_sparsity_pattern')
-        file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
-            decomposition_type=measurements_object.decomposition_type_correlations,
-            seperator=measurements.universal.constants.SEPERATOR), '')
+            kind_id=measurements_object.sample_correlation_id,
+            plot_name=plot_name)
     # plot if not existing
     if overwrite or not os.path.exists(file):
         # get data
         A = measurements_object.correlations_own_sample_matrix
         if permutation_method is not None:
+            permutation_method_decomposition_correlation_old = measurements_object.permutation_method_decomposition_correlation
+            measurements_object.permutation_method_decomposition_correlation = permutation_method
             permutation_vector = measurements_object.correlations_own_permutation_vector
+            measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
             A = A.tocoo(copy=False)
             A = matrix.permute.symmetric(A, permutation_vector)
         # plot
         util.plot.save.sparse_matrix_pattern(file, A, axis_labels=False)
-    # reset old permutation method
-    measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
 
 
 def sample_correlation_histogram(measurements_object, file=None, use_abs=False, overwrite=False):
     # get file name
     if file is None:
-        if use_abs:
-            plot_name = 'abs_sample_correlation_histogram'
-        else:
-            plot_name = 'sample_correlation_histogram'
+        plot_name = f'sample_correlation_histogram_-_abs_{use_abs}' + '_-_log_scale_{use_log_scale}'
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
             kind=os.path.join('correlation', 'sample_correlation', 'histogram'),
-            kind_id=measurements_object.correlation_id,
+            kind_id=measurements_object.sample_correlation_id,
             plot_name=plot_name)
-        file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
-            decomposition_type=measurements_object.decomposition_type_correlations,
-            seperator=measurements.universal.constants.SEPERATOR), '')
-        file = file.replace('permutation_{permutation_method_decomposition_correlation}{seperator}'.format(
-            permutation_method_decomposition_correlation=measurements_object.permutation_method_decomposition_correlation,
-            seperator=measurements.universal.constants.SEPERATOR), '')
     # plot if not existing
-    filename, file_extension = os.path.splitext(file)
     for use_log_scale in (False, True):
-        file_with_scale = file.replace(file_extension, f'_log_scale_{use_log_scale}{file_extension}')
+        file_with_scale = file.format(use_log_scale=use_log_scale)
         if overwrite or not os.path.exists(file_with_scale):
             # get data
             A = measurements_object.correlations_own_sample_matrix
@@ -483,12 +469,9 @@ def correlation_and_sample_correlation_sparsity_pattern(measurements_object, fil
         file = measurements.plot.constants.PLOT_FILE.format(
             tracer=measurements_object.tracer,
             data_set=measurements_object.data_set_name,
-            kind=os.path.join('correlation', 'sample_correlation', 'sparsity_pattern'),
+            kind=os.path.join('correlation', 'correlation', 'sparsity_pattern'),
             kind_id=measurements_object.correlation_id,
-            plot_name=correlation_and_sample_correlation_sparsity_pattern)
-        file = file.replace('decomposition_{decomposition_type}{seperator}'.format(
-            decomposition_type=measurements_object.decomposition_type_correlations,
-            seperator=measurements.universal.constants.SEPERATOR), '')
+            plot_name='correlation_and_sample_correlation_sparsity_pattern')
 
     # plot if not existing
     if overwrite or not os.path.exists(file):
