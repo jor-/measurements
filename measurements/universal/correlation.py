@@ -103,41 +103,44 @@ class Correlation():
         return autocorrelation_array
 
     def plot_correlation(self, axis, file, use_sample_correlation=False, overwrite=False):
-        axis = self._prepare_axis(axis)
-        if len(axis) != 1:
-            raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
+        if overwrite or not pathlib.Path(file).exists():
+            axis = self._prepare_axis(axis)
+            if len(axis) != 1:
+                raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
 
-        correlation = self.correlation_array(axis=axis, use_sample_correlation=use_sample_correlation)
-        assert correlation.shape[1] == 3
+            correlation = self.correlation_array(axis=axis, use_sample_correlation=use_sample_correlation)
+            assert correlation.shape[1] == 3
 
-        util.plot.save.imshow_dataset_means(file, correlation, use_abs=True, overwrite=overwrite)
+            util.plot.save.imshow_dataset_means(file, correlation, use_abs=True, overwrite=overwrite)
         return file
 
     def plot_autocorrelation(self, axis, file, use_sample_correlation=False, overwrite=False):
-        axis = self._prepare_axis(axis)
-        if len(axis) > 2:
-            raise ValueError(f'The parameter axis has to be one or two integer values but it is {axis}.')
+        if overwrite or not pathlib.Path(file).exists():
+            axis = self._prepare_axis(axis)
+            if len(axis) > 2:
+                raise ValueError(f'The parameter axis has to be one or two integer values but it is {axis}.')
 
-        autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
-        assert autocorrelation.shape[1] == len(axis) + 1
+            autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
+            assert autocorrelation.shape[1] == len(axis) + 1
 
-        util.plot.save.scatter_dataset_means(file, autocorrelation, use_abs=True, overwrite=overwrite)
+            util.plot.save.scatter_dataset_means(file, autocorrelation, use_abs=True, overwrite=overwrite)
         return file
 
     def plot_violin_autocorrelation(self, axis, file, use_sample_correlation=False, overwrite=False):
-        axis = self._prepare_axis(axis)
-        if len(axis) != 1:
-            raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
+        if overwrite or not pathlib.Path(file).exists():
+            axis = self._prepare_axis(axis)
+            if len(axis) != 1:
+                raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
 
-        autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
-        assert autocorrelation.shape[1] == 2
+            autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
+            assert autocorrelation.shape[1] == 2
 
-        x = autocorrelation[:, 0]
-        y = autocorrelation[:, 1]
-        positions = np.unique(x)
-        dataset = tuple(np.sort(y[x == p]) for p in positions)
+            x = autocorrelation[:, 0]
+            y = autocorrelation[:, 1]
+            positions = np.unique(x)
+            dataset = tuple(np.sort(y[x == p]) for p in positions)
 
-        util.plot.save.violin(file, positions, dataset, overwrite=overwrite)
+            util.plot.save.violin(file, positions, dataset, overwrite=overwrite)
         return file
 
 
@@ -195,29 +198,27 @@ class CorrelationCache(Correlation):
     # *** plot files *** #
 
     @overrides.overrides
-    def plot_correlation(self, axis, file=None, use_sample_correlation=False):
+    def plot_correlation(self, axis, file=None, use_sample_correlation=False, overwrite=False):
         if file is None:
             array_cache_file = self.correlation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
             plot_file = measurements.universal.constants.plot_file(array_cache_file)
             file = str(plot_file)
         # plot
-        if not pathlib.Path(file).exists():
-            super().plot_correlation(axis, file, use_sample_correlation=use_sample_correlation)
+        super().plot_correlation(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
 
     @overrides.overrides
-    def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False):
+    def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False, overwrite=False):
         if file is None:
             array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
             plot_file = measurements.universal.constants.plot_file(array_cache_file)
             file = str(plot_file)
         # plot
-        if not pathlib.Path(file).exists():
-            super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
+        super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
 
     @overrides.overrides
-    def plot_violin_autocorrelation(self, axis, file=None, use_sample_correlation=False):
+    def plot_violin_autocorrelation(self, axis, file=None, use_sample_correlation=False, overwrite=False):
         if file is None:
             array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
             plot_file = measurements.universal.constants.plot_file(array_cache_file)
@@ -225,6 +226,5 @@ class CorrelationCache(Correlation):
             plot_file = plot_file.parent.joinpath('violin_' + plot_file.name)
             file = str(plot_file)
         # plot
-        if not pathlib.Path(file).exists():
-            super().plot_violin_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
+        super().plot_violin_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
