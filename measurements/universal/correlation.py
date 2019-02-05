@@ -197,34 +197,53 @@ class CorrelationCache(Correlation):
 
     # *** plot files *** #
 
+    def _plot_format_filename(self, folder_name, plot_name, axis, use_sample_correlation=False):
+        axis = self._prepare_axis(axis)
+        axis_str = ','.join(map(str, axis))
+
+        m = self.measurements_object
+
+        if use_sample_correlation:
+            kind_id = m.sample_correlation_id
+            kind_folder_name = 'sample_correlation'
+        else:
+            kind_id = m.correlation_id
+            kind_folder_name = 'correlation'
+
+        plot_name = plot_name.format(axis=axis_str)
+
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=m.tracer,
+            data_set=m.data_set_name,
+            kind=str(pathlib.PurePath('correlation', kind_folder_name, folder_name)),
+            kind_id=kind_id,
+            plot_name=plot_name)
+
+        return file
+
     @overrides.overrides
     def plot_correlation(self, axis, file=None, use_sample_correlation=False, overwrite=False):
         if file is None:
-            array_cache_file = self.correlation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-            plot_file = measurements.universal.constants.plot_file(array_cache_file)
-            file = str(plot_file)
-        # plot
+            folder_name = 'correlation_averages'
+            plot_name = folder_name + '_-_axis_{axis}' + f'_-_abs_{use_abs}'
+            file = self._plot_format_filename(folder_name, plot_name, axis, use_sample_correlation=use_sample_correlation)
         super().plot_correlation(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
 
     @overrides.overrides
     def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False, overwrite=False):
         if file is None:
-            array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-            plot_file = measurements.universal.constants.plot_file(array_cache_file)
-            file = str(plot_file)
-        # plot
+            folder_name = 'auto_correlation_averages'
+            plot_name = folder_name + '_-_axis_{axis}' + f'_-_abs_{use_abs}'
+            file = self._plot_format_filename(folder_name, plot_name, axis, use_sample_correlation=use_sample_correlation)
         super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
 
     @overrides.overrides
     def plot_violin_autocorrelation(self, axis, file=None, use_sample_correlation=False, overwrite=False):
         if file is None:
-            array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-            plot_file = measurements.universal.constants.plot_file(array_cache_file)
-            plot_file = pathlib.PurePath(plot_file)
-            plot_file = plot_file.parent.joinpath('violin_' + plot_file.name)
-            file = str(plot_file)
-        # plot
+            folder_name = 'correlation_violins'
+            plot_name = folder_name + '_-_axis_{axis}'
+            file = self._plot_format_filename(folder_name, plot_name, axis, use_sample_correlation=use_sample_correlation)
         super().plot_violin_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
