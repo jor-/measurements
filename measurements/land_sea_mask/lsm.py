@@ -698,21 +698,22 @@ class LandSeaMask():
         return value_map
 
     # plot
-    def plot(self, use_depth=True, overwrite=False):
+    def plot(self, file=None, use_depth=True, overwrite=False):
         import util.plot.save
         import matplotlib.pyplot
 
         scaling_factor = 1 / 10**3
 
         # get filename
-        filename = str(self)
-        if use_depth:
-            data = self.z[self.lsm] * scaling_factor
-            filename += '_with_depth'
-        else:
-            data = self.lsm
-            filename += '_with_depth_level'
-        file = '/tmp/{}.png'.format(filename)
+        if file is None:
+            filename = str(self)
+            if use_depth:
+                data = self.z[self.lsm] * scaling_factor
+                filename += '_with_depth'
+            else:
+                data = self.lsm
+                filename += '_with_depth_level'
+            file = '/tmp/{}.svg'.format(filename)
 
         # plot
         cm = matplotlib.pyplot.cm.winter_r
