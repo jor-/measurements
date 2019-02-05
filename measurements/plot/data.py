@@ -439,10 +439,15 @@ def correlation_histogram(measurements_object, file=None, use_abs=False, use_sam
             # plot
             if use_abs:
                 x_min = 0
-                tick_number = 3
             else:
                 x_min = -1
-                tick_number = 5
+            if use_log_scale:
+                tick_number = None
+            else:
+                if use_abs:
+                    tick_number = 3
+                else:
+                    tick_number = 5
             util.plot.save.histogram(file_with_scale, data, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
 
 
