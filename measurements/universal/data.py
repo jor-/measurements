@@ -256,7 +256,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
         'self.max_abs_correlation',
         'self.matrix_format_correlation',
         'self.dtype_correlation'))
-    def _sample_correlation(self):
+    def _sample_correlation_object(self):
         return measurements.universal.sample_data.SampleCorrelationMatrix(
             self, self.sample_lsm, self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
@@ -266,7 +266,7 @@ class MeasurementsAnnualPeriodicBase(Measurements):
 
     @property
     def correlations_own_sample_matrix(self):
-        return self._sample_correlation.correlation_matrix
+        return self._sample_correlation_object.correlation_matrix
 
 
 class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
@@ -1317,7 +1317,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
 
     @property
     @overrides.overrides
-    def _sample_correlation(self):
+    def _sample_correlation_object(self):
         return measurements.universal.sample_data.SampleCorrelationMatrixCache(
             self, self.sample_lsm, self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
@@ -1556,7 +1556,7 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         return self.base_measurements.standard_deviations_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     def correlations_own_sample_matrix_cache_file(self):
-        return self.base_measurements._sample_correlation.correlation_matrix_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
+        return self.base_measurements._sample_correlation_object.correlation_matrix_cache_file().replace(self.base_measurements.data_set_name, self.data_set_name)
 
     @overrides.overrides
     def correlations_own_decomposition_cache_file(self):
@@ -1636,7 +1636,7 @@ class MeasurementsCollectionCache(MeasurementsCollection):
         return measurements.universal.constants.MEASUREMENT_DIR.format(tracer=self.tracer_str, data_set=self.data_set_name_str)
 
     def correlations_own_sample_matrix_cache_file(self):
-        return self._merge_files(self.measurements_dir, [measurement._sample_correlation.correlation_matrix_cache_file() for measurement in self.measurements_list])
+        return self._merge_files(self.measurements_dir, [measurement._sample_correlation_object.correlation_matrix_cache_file() for measurement in self.measurements_list])
 
     def correlations_own_decomposition_cache_file(self):
         return self._merge_files(self.measurements_dir, [measurement.correlations_own_decomposition_cache_file() for measurement in self.measurements_list])
