@@ -262,11 +262,7 @@ CORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
     CORRELATION_DIR,
     'array_sample_correlation', SEPERATOR.join([
         'correlation',
-        'sample_{sample_lsm}',
-        'min_values_{min_measurements_correlation:0>2d}',
-        'min_abs_{min_abs_correlation}',
-        'max_abs_{max_abs_correlation}',
-        'dev:_{standard_deviation_id}',
+        '{sample_correlation_id}',
         '{dtype}',
         'axis_{axis}.npz']))
 
@@ -274,14 +270,7 @@ CORRELATION_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
     CORRELATION_DIR,
     'array_correlation', SEPERATOR.join([
         'correlation',
-        'sample_{sample_lsm}',
-        'min_values_{min_measurements_correlation:0>2d}',
-        'min_abs_{min_abs_correlation}',
-        'max_abs_{max_abs_correlation}',
-        '{decomposition_type}',
-        '{permutation_method_decomposition_correlation}',
-        'min_diag_{decomposition_min_diag_value:.0e}',
-        'dev:_{standard_deviation_id}',
+        '{correlation_id}',
         '{dtype}',
         'axis_{axis}.npz']))
 
@@ -289,11 +278,7 @@ AUTOCORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
     CORRELATION_DIR,
     'array_sample_correlation', SEPERATOR.join([
         'autocorrelation',
-        'sample_{sample_lsm}',
-        'min_values_{min_measurements_correlation:0>2d}',
-        'min_abs_{min_abs_correlation}',
-        'max_abs_{max_abs_correlation}',
-        'dev:_{standard_deviation_id}',
+        '{sample_correlation_id}',
         '{dtype}',
         'axis_{axis}.npz']))
 
@@ -301,14 +286,7 @@ AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
     CORRELATION_DIR,
     'array_correlation', SEPERATOR.join([
         'autocorrelation',
-        'sample_{sample_lsm}',
-        'min_values_{min_measurements_correlation:0>2d}',
-        'min_abs_{min_abs_correlation}',
-        'max_abs_{max_abs_correlation}',
-        '{decomposition_type}',
-        '{permutation_method_decomposition_correlation}',
-        'min_diag_{decomposition_min_diag_value:.0e}',
-        'dev:_{standard_deviation_id}',
+        '{correlation_id}',
         '{dtype}',
         'axis_{axis}.npz']))
 

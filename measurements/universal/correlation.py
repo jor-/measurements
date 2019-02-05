@@ -145,44 +145,26 @@ class CorrelationCache(Correlation):
 
     # *** array files *** #
 
-    def _format_file_sample_correlation(self, file, axis):
+    def _format_filename(self, base_file, axis, use_sample_correlation=False):
         axis = self._prepare_axis(axis)
         axis_str = ','.join(map(str, axis))
 
         m = self.measurements_object
 
-        file = file.format(
-            tracer=m.tracer,
-            data_set=m.data_set_name,
-            sample_lsm=m.sample_lsm,
-            min_measurements_correlation=m.min_measurements_correlation,
-            min_abs_correlation=m.min_abs_correlation,
-            max_abs_correlation=m.max_abs_correlation,
-            standard_deviation_id=m.standard_deviation_id_without_sample_lsm,
-            dtype=m.dtype_correlation,
-            axis=axis_str)
-
-        return file
-
-    def _format_file_correlation(self, file, axis):
-        axis = self._prepare_axis(axis)
-        axis_str = ','.join(map(str, axis))
-
-        m = self.measurements_object
-
-        file = file.format(
-            tracer=m.tracer,
-            data_set=m.data_set_name,
-            sample_lsm=m.sample_lsm,
-            min_measurements_correlation=m.min_measurements_correlation,
-            min_abs_correlation=m.min_abs_correlation,
-            max_abs_correlation=m.max_abs_correlation,
-            decomposition_type=m.decomposition_type_correlations,
-            permutation_method_decomposition_correlation=m.permutation_method_decomposition_correlation,
-            decomposition_min_diag_value=m.min_diag_value_decomposition_correlation,
-            standard_deviation_id=m.standard_deviation_id_without_sample_lsm,
-            dtype=m.dtype_correlation,
-            axis=axis_str)
+        if use_sample_correlation:
+            file = base_file.format(
+                tracer=m.tracer,
+                data_set=m.data_set_name,
+                sample_correlation_id=m.sample_correlation_id,
+                dtype=m.dtype_correlation,
+                axis=axis_str)
+        else:
+            file = base_file.format(
+                tracer=m.tracer,
+                data_set=m.data_set_name,
+                correlation_id=m.correlation_id,
+                dtype=m.dtype_correlation,
+                axis=axis_str)
 
         return file
 
@@ -193,9 +175,10 @@ class CorrelationCache(Correlation):
 
     def correlation_array_cache_file(self, axis=None, use_sample_correlation=False):
         if use_sample_correlation:
-            return self._format_file_sample_correlation(measurements.universal.constants.CORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE, axis)
+            base_file = measurements.universal.constants.CORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE
         else:
-            return self._format_file_correlation(measurements.universal.constants.CORRELATION_ARRAY_CORRELATION_MATRIX_FILE, axis)
+            base_file = measurements.universal.constants.CORRELATION_ARRAY_CORRELATION_MATRIX_FILE
+        return self._format_filename(base_file, axis, use_sample_correlation=use_sample_correlation)
 
     @util.cache.file.decorator()
     @overrides.overrides
@@ -204,49 +187,44 @@ class CorrelationCache(Correlation):
 
     def autocorrelation_array_cache_file(self, axis=None, use_sample_correlation=False):
         if use_sample_correlation:
-            return self._format_file_sample_correlation(measurements.universal.constants.AUTOCORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE, axis)
+            base_file = measurements.universal.constants.AUTOCORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE
         else:
-            return self._format_file_correlation(measurements.universal.constants.AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE, axis)
+            base_file = measurements.universal.constants.AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE
+        return self._format_filename(base_file, axis, use_sample_correlation=use_sample_correlation)
 
     # *** plot files *** #
 
     @overrides.overrides
     def plot_correlation(self, axis, file=None, use_sample_correlation=False):
         if file is None:
-            file = self.plot_correlation_file(axis, use_sample_correlation=use_sample_correlation)
+            array_cache_file = self.correlation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
+            plot_file = measurements.universal.constants.plot_file(array_cache_file)
+            file = str(plot_file)
+        # plot
         if not pathlib.Path(file).exists():
             super().plot_correlation(axis, file, use_sample_correlation=use_sample_correlation)
         return file
 
-    def plot_correlation_file(self, axis, use_sample_correlation=False):
-        array_cache_file = self.correlation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-        plot_file = measurements.universal.constants.plot_file(array_cache_file)
-        return str(plot_file)
-
     @overrides.overrides
     def plot_autocorrelation(self, axis, file=None, use_sample_correlation=False):
         if file is None:
-            file = self.plot_autocorrelation_file(axis, use_sample_correlation=use_sample_correlation)
+            array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
+            plot_file = measurements.universal.constants.plot_file(array_cache_file)
+            file = str(plot_file)
+        # plot
         if not pathlib.Path(file).exists():
             super().plot_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
         return file
 
-    def plot_autocorrelation_file(self, axis, use_sample_correlation=False):
-        array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-        plot_file = measurements.universal.constants.plot_file(array_cache_file)
-        return str(plot_file)
-
     @overrides.overrides
     def plot_violin_autocorrelation(self, axis, file=None, use_sample_correlation=False):
         if file is None:
-            file = self.plot_violin_autocorrelation_file(axis, use_sample_correlation=use_sample_correlation)
+            array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
+            plot_file = measurements.universal.constants.plot_file(array_cache_file)
+            plot_file = pathlib.PurePath(plot_file)
+            plot_file = plot_file.parent.joinpath('violin_' + plot_file.name)
+            file = str(plot_file)
+        # plot
         if not pathlib.Path(file).exists():
             super().plot_violin_autocorrelation(axis, file, use_sample_correlation=use_sample_correlation)
         return file
-
-    def plot_violin_autocorrelation_file(self, axis, use_sample_correlation=False):
-        array_cache_file = self.autocorrelation_array_cache_file(axis=axis, use_sample_correlation=use_sample_correlation)
-        plot_file = measurements.universal.constants.plot_file(array_cache_file)
-        plot_file = pathlib.PurePath(plot_file)
-        plot_file = plot_file.parent.joinpath('violin_' + plot_file.name)
-        return str(plot_file)
