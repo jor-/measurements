@@ -702,10 +702,12 @@ class LandSeaMask():
         import util.plot.save
         import matplotlib.pyplot
 
+        scaling_factor = 1 / 10**3
+
         # get filename
         filename = str(self)
         if use_depth:
-            data = self.z[self.lsm] / 10**3
+            data = self.z[self.lsm] * scaling_factor
             filename += '_with_depth'
         else:
             data = self.lsm
@@ -714,7 +716,8 @@ class LandSeaMask():
 
         # plot
         cm = matplotlib.pyplot.cm.winter_r
-        util.plot.save.data(file, data, land_value=0, colormap=cm, overwrite=overwrite)
+        v_max = self.z[-1] * scaling_factor
+        util.plot.save.data(file, data, land_value=0, v_max=v_max, colormap=cm, overwrite=overwrite)
 
     # copy
     def copy(self):
