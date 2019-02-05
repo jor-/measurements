@@ -406,63 +406,13 @@ def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(measurements
 
 # *** correlation *** #
 
-def sample_correlation_sparsity_pattern(measurements_object, file=None, permutation_method=None, overwrite=False):
-    # get file name
-    if file is None:
-        plot_name = f'sample_correlation_sparsity_pattern_-_permutation_{permutation_method}'
-        file = measurements.plot.constants.PLOT_FILE.format(
-            tracer=measurements_object.tracer,
-            data_set=measurements_object.data_set_name,
-            kind=os.path.join('correlation', 'sample_correlation', 'sparsity_pattern'),
-            kind_id=measurements_object.sample_correlation_id,
-            plot_name=plot_name)
-    # plot if not existing
-    if overwrite or not os.path.exists(file):
-        # get data
-        A = measurements_object.correlations_own_sample_matrix
-        if permutation_method is not None:
-            permutation_method_decomposition_correlation_old = measurements_object.permutation_method_decomposition_correlation
-            measurements_object.permutation_method_decomposition_correlation = permutation_method
-            permutation_vector = measurements_object.correlations_own_permutation_vector
-            measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
-            A = A.tocoo(copy=False)
-            A = matrix.permute.symmetric(A, permutation_vector)
-        # plot
-        util.plot.save.sparse_matrix_pattern(file, A, axis_labels=False)
-
-
-def correlation_and_sample_correlation_sparsity_pattern(measurements_object, file=None, overwrite=False):
-    # get file name
-    if file is None:
-        file = measurements.plot.constants.PLOT_FILE.format(
-            tracer=measurements_object.tracer,
-            data_set=measurements_object.data_set_name,
-            kind=os.path.join('correlation', 'correlation', 'sparsity_pattern'),
-            kind_id=measurements_object.correlation_id,
-            plot_name='correlation_and_sample_correlation_sparsity_pattern')
-
-    # plot if not existing
-    if overwrite or not os.path.exists(file):
-        # prepare data
-        min_abs_value = 10**-4
-        A = measurements_object.correlations_own_sample_matrix.tocsc(copy=False)
-        A.data[np.abs(A.data) < min_abs_value] = 0
-        B = measurements_object.correlations_own.tocsc(copy=False)
-        B.data[np.abs(B.data) < min_abs_value] = 0
-        # plot
-        util.plot.save.sparse_matrices_patterns_with_differences(
-            file, A, B,
-            colors=((1, 0, 0), (1, 1, 1), (1, 0, 1), (0, 0, 1)),
-            labels=('removed', 'inserted', 'changed', 'unchanged'),)
-
-
 def correlation_histogram(measurements_object, file=None, use_abs=False, use_sample_correlation=False, overwrite=False):
     if file is None:
         if use_sample_correlation:
-            kind_id = m.sample_correlation_id
+            kind_id = measurements_object.sample_correlation_id
             kind_folder_name = 'sample_correlation'
         else:
-            kind_id = m.correlation_id
+            kind_id = measurements_object.correlation_id
             kind_folder_name = 'correlation'
         plot_name = kind_folder_name + f'_histogram_-_abs_{use_abs}' + '_-_log_scale_{use_log_scale}'
         file = measurements.plot.constants.PLOT_FILE.format(
@@ -494,3 +444,65 @@ def correlation_histogram(measurements_object, file=None, use_abs=False, use_sam
                 x_min = -1
                 tick_number = 5
             util.plot.save.histogram(file_with_scale, data, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
+
+
+def correlation_sparsity_pattern(measurements_object, file=None, permutation_method=None, use_sample_correlation=False, overwrite=False):
+    # set permutation method
+    permutation_method_decomposition_correlation_old = measurements_object.permutation_method_decomposition_correlation
+    if permutation_method is not None:
+        measurements_object.permutation_method_decomposition_correlation = permutation_method
+    # get file name
+    if file is None:
+        if use_sample_correlation:
+            kind_id = measurements_object.sample_correlation_id
+            if permutation_method is not None:
+                kind_id += f'_-_permutation_{permutation_method}'
+            kind_folder_name = 'sample_correlation'
+        else:
+            kind_id = measurements_object.correlation_id
+            kind_folder_name = 'correlation'
+        plot_name = kind_folder_name + '_sparsity_pattern'
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('correlation', kind_folder_name, 'sparsity_pattern'),
+            kind_id=kind_id,
+            plot_name=plot_name)
+    # plot if not existing
+    if overwrite or not os.path.exists(file):
+        # get matrix
+        if use_sample_correlation:
+            permutation_vector = measurements_object.correlations_own_permutation_vector
+            A = measurements_object.correlations_own_sample_matrix.tocoo(copy=False)
+            A = matrix.permute.symmetric(A, permutation_vector)
+        else:
+            A = measurements_object.correlations_own
+        # plot
+        util.plot.save.sparse_matrix_pattern(file, A, axis_labels=False)
+    # restore permutation method
+    measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
+
+
+def correlation_and_sample_correlation_sparsity_pattern(measurements_object, file=None, overwrite=False):
+    # get file name
+    if file is None:
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('correlation', 'correlation', 'sparsity_pattern'),
+            kind_id=measurements_object.correlation_id,
+            plot_name='correlation_and_sample_correlation_sparsity_pattern')
+
+    # plot if not existing
+    if overwrite or not os.path.exists(file):
+        # prepare data
+        min_abs_value = 10**-4
+        A = measurements_object.correlations_own_sample_matrix.tocsc(copy=False)
+        A.data[np.abs(A.data) < min_abs_value] = 0
+        B = measurements_object.correlations_own.tocsc(copy=False)
+        B.data[np.abs(B.data) < min_abs_value] = 0
+        # plot
+        util.plot.save.sparse_matrices_patterns_with_differences(
+            file, A, B,
+            colors=((1, 0, 0), (1, 1, 1), (1, 0, 1), (0, 0, 1)),
+            labels=('removed', 'inserted', 'changed', 'unchanged'),)

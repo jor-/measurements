@@ -167,8 +167,9 @@ def _main():
         # sample correlation and correlation
 
         if args.sample_correlation_sparsity_pattern is not None:
-            measurements.plot.data.sample_correlation_sparsity_pattern(
+            measurements.plot.data.correlation_sparsity_pattern(
                 m, permutation_method=args.sample_correlation_sparsity_pattern,
+                use_sample_correlation=True,
                 overwrite=args.overwrite)
 
         if args.sample_correlation_histogram is not None:
