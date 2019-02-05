@@ -53,15 +53,15 @@ def _main():
     # sample correlation
     parser.add_argument('--sample_correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, default=None, help='Plot sparsity pattern of sample correlation of measurements with passed permutation method.')
     parser.add_argument('--sample_correlation_histogram', type=bool, choices=(True, False), default=None, help='Plot histogram of sample correlation of measurements with passed using abs.')
-    parser.add_argument('--sample_correlation_correlations', action='store', default=None, nargs='*', help='Plot correlation of sample correlation of measurements.')
-    parser.add_argument('--sample_correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements.')
-    parser.add_argument('--sample_correlation_violin_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements as violin plot.')
+    parser.add_argument('--sample_correlation_averages', action='store', default=None, nargs='*', help='Plot correlation of sample correlation of measurements.')
+    parser.add_argument('--sample_correlation_auto_averages', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements.')
+    parser.add_argument('--sample_correlation_auto_violins', action='store', default=None, nargs='*', help='Plot autocorrelation of sample correlation of measurements as violin plot.')
 
     # correlation
     parser.add_argument('--correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of correlation and sample correlation of measurements in one plot.')
-    parser.add_argument('--correlation_correlations', action='store', default=None, nargs='*', help='Plot correlation of correlation of measurements.')
-    parser.add_argument('--correlation_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements.')
-    parser.add_argument('--correlation_violin_autocorrelations', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements as violin plot.')
+    parser.add_argument('--correlation_averages', action='store', default=None, nargs='*', help='Plot correlation of correlation of measurements.')
+    parser.add_argument('--correlation_auto_averages', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements.')
+    parser.add_argument('--correlation_auto_violins', action='store', default=None, nargs='*', help='Plot autocorrelation of correlation of measurements as violin plot.')
 
     # overwrite
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files.')
@@ -181,28 +181,28 @@ def _main():
                 m, overwrite=args.overwrite)
 
         mc = measurements.universal.correlation.CorrelationCache(m)
-        if args.sample_correlation_correlations is not None:
-            mc.plot_correlation_averages(axis=args.sample_correlation_correlations,
+        if args.sample_correlation_averages is not None:
+            mc.plot_correlation_averages(axis=args.sample_correlation_averages,
                                          use_sample_correlation=True,
                                          overwrite=args.overwrite)
-        if args.sample_correlation_autocorrelations is not None:
-            mc.plot_autocorrelation_averages(axis=args.sample_correlation_autocorrelations,
-                                             use_sample_correlation=True,
-                                             overwrite=args.overwrite)
-        if args.sample_correlation_violin_autocorrelations is not None:
-            mc.plot_autocorrelation_violins(axis=args.sample_correlation_violin_autocorrelations,
+        if args.sample_correlation_auto_averages is not None:
+            mc.plot_correlation_auto_averages(axis=args.sample_correlation_auto_averages,
+                                              use_sample_correlation=True,
+                                              overwrite=args.overwrite)
+        if args.sample_correlation_auto_violins is not None:
+            mc.plot_autocorrelation_violins(axis=args.sample_correlation_auto_violins,
                                             use_sample_correlation=True,
                                             overwrite=args.overwrite)
-        if args.correlation_correlations is not None:
-            mc.plot_correlation_averages(axis=args.correlation_correlations,
+        if args.correlation_averages is not None:
+            mc.plot_correlation_averages(axis=args.correlation_averages,
                                          use_sample_correlation=False,
                                          overwrite=args.overwrite)
-        if args.correlation_autocorrelations is not None:
-            mc.plot_autocorrelation_averages(axis=args.correlation_autocorrelations,
+        if args.correlation_auto_averages is not None:
+            mc.plot_autocorrelation_averages(axis=args.correlation_auto_averages,
                                              use_sample_correlation=False,
                                              overwrite=args.overwrite)
-        if args.correlation_violin_autocorrelations is not None:
-            mc.plot_autocorrelation_violins(axis=args.correlation_violin_autocorrelations,
+        if args.correlation_auto_violins is not None:
+            mc.plot_autocorrelation_violins(axis=args.correlation_auto_violins,
                                             use_sample_correlation=False,
                                             overwrite=args.overwrite)
 
