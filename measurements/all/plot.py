@@ -172,8 +172,9 @@ def _main():
                 overwrite=args.overwrite)
 
         if args.sample_correlation_histogram is not None:
-            measurements.plot.data.sample_correlation_histogram(
+            measurements.plot.data.correlation_histogram(
                 m, use_abs=args.sample_correlation_histogram,
+                use_sample_correlation=True,
                 overwrite=args.overwrite)
 
         if args.correlation_sparsity_pattern:

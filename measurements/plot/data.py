@@ -431,38 +431,6 @@ def sample_correlation_sparsity_pattern(measurements_object, file=None, permutat
         util.plot.save.sparse_matrix_pattern(file, A, axis_labels=False)
 
 
-def sample_correlation_histogram(measurements_object, file=None, use_abs=False, overwrite=False):
-    # get file name
-    if file is None:
-        plot_name = f'sample_correlation_histogram_-_abs_{use_abs}' + '_-_log_scale_{use_log_scale}'
-        file = measurements.plot.constants.PLOT_FILE.format(
-            tracer=measurements_object.tracer,
-            data_set=measurements_object.data_set_name,
-            kind=os.path.join('correlation', 'sample_correlation', 'histogram'),
-            kind_id=measurements_object.sample_correlation_id,
-            plot_name=plot_name)
-    # plot if not existing
-    for use_log_scale in (False, True):
-        file_with_scale = file.format(use_log_scale=use_log_scale)
-        if overwrite or not os.path.exists(file_with_scale):
-            # get data
-            A = measurements_object.correlations_own_sample_matrix
-            A.tocsc(copy=False)
-            A.eliminate_zeros()
-            data = A.data
-            del A
-            if use_abs:
-                data = np.abs(data)
-            # plot
-            if use_abs:
-                x_min = 0
-                tick_number = 3
-            else:
-                x_min = -1
-                tick_number = 5
-            util.plot.save.histogram(file_with_scale, data, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
-
-
 def correlation_and_sample_correlation_sparsity_pattern(measurements_object, file=None, overwrite=False):
     # get file name
     if file is None:
@@ -486,3 +454,43 @@ def correlation_and_sample_correlation_sparsity_pattern(measurements_object, fil
             file, A, B,
             colors=((1, 0, 0), (1, 1, 1), (1, 0, 1), (0, 0, 1)),
             labels=('removed', 'inserted', 'changed', 'unchanged'),)
+
+
+def correlation_histogram(measurements_object, file=None, use_abs=False, use_sample_correlation=False, overwrite=False):
+    if file is None:
+        if use_sample_correlation:
+            kind_id = m.sample_correlation_id
+            kind_folder_name = 'sample_correlation'
+        else:
+            kind_id = m.correlation_id
+            kind_folder_name = 'correlation'
+        plot_name = kind_folder_name + f'_histogram_-_abs_{use_abs}' + '_-_log_scale_{use_log_scale}'
+        file = measurements.plot.constants.PLOT_FILE.format(
+            tracer=measurements_object.tracer,
+            data_set=measurements_object.data_set_name,
+            kind=os.path.join('correlation', kind_folder_name, 'histogram'),
+            kind_id=kind_id,
+            plot_name=plot_name)
+    # plot if not existing
+    for use_log_scale in (False, True):
+        file_with_scale = file.format(use_log_scale=use_log_scale)
+        if overwrite or not os.path.exists(file_with_scale):
+            # get data
+            if use_sample_correlation:
+                A = measurements_object.correlations_own_sample_matrix
+            else:
+                A = measurements_object.correlations_own
+            A.tocsc(copy=False)
+            A.eliminate_zeros()
+            data = A.data
+            del A
+            if use_abs:
+                data = np.abs(data)
+            # plot
+            if use_abs:
+                x_min = 0
+                tick_number = 3
+            else:
+                x_min = -1
+                tick_number = 5
+            util.plot.save.histogram(file_with_scale, data, step_size=0.05, x_min=x_min, x_max=1, tick_number=tick_number, use_log_scale=use_log_scale)
