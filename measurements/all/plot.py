@@ -15,29 +15,29 @@ def _main():
     parser = argparse.ArgumentParser(description='Save data from measurements.')
 
     # tracer and points
-    parser.add_argument('--tracers', nargs='+', choices=measurements.all.data.TRACERS, default=measurements.all.data.TRACERS, help='The tracers for which the data should be saved.')
+    parser.add_argument('--tracers', choices=measurements.all.data.TRACERS, default=measurements.all.data.TRACERS, nargs='+', help='The tracers for which the data should be saved.')
     parser.add_argument('--max_box_distance_to_water', type=int, default=None, help='The maximal number of boxes allowed as distance to a water box.')
     parser.add_argument('--water_lsm', choices=measurements.all.data.LAND_SEA_MASKS, default='TMM', help='The land sea mask used to calculate the distances to water boxes.')
 
     # min measurements
-    parser.add_argument('--min_measurements_mean', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate means applied to each tracer.')
-    parser.add_argument('--min_measurements_quantile', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate quantiles applied to each tracer.')
-    parser.add_argument('--min_measurements_standard_deviation', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate standard deviations applied to each tracer.')
-    parser.add_argument('--min_measurements_correlation', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
+    parser.add_argument('--min_measurements_mean', type=int, default=None, nargs='+', help='The minimal number of measurements used to calculate means applied to each tracer.')
+    parser.add_argument('--min_measurements_quantile', type=int, default=None, nargs='+', help='The minimal number of measurements used to calculate quantiles applied to each tracer.')
+    parser.add_argument('--min_measurements_standard_deviation', type=int, default=None, nargs='+', help='The minimal number of measurements used to calculate standard deviations applied to each tracer.')
+    parser.add_argument('--min_measurements_correlation', type=int, default=None, nargs='+', help='The minimal number of measurements used to calculate correlations applied to each tracer.')
 
     # min values
-    parser.add_argument('--min_standard_deviation', type=float, nargs='+', default=None, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
+    parser.add_argument('--min_standard_deviation', type=float, default=None, nargs='+', help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
 
     # number of measurements
-    parser.add_argument('--number_of_measurements_per_time', type=float, default=None, help='Plots the number of measurements per passed time step.')
-    parser.add_argument('--number_of_measurements_per_year', type=int, default=None, help='Plots the number of measurements within a year per passed number of bins.')
-    parser.add_argument('--number_of_measurements_per_depth', type=float, default=None, help='Plots the number of measurements per passed depth step.')
+    parser.add_argument('--number_of_measurements_per_time', type=float, help='Plots the number of measurements per passed time step.')
+    parser.add_argument('--number_of_measurements_per_year', type=int, help='Plots the number of measurements within a year per passed number of bins.')
+    parser.add_argument('--number_of_measurements_per_depth', type=float, help='Plots the number of measurements per passed depth step.')
     parser.add_argument('--number_of_measurements_per_space', action='store_true', help='Plots the number of measurements per sample land sea mask grid summed up.')
     parser.add_argument('--number_of_measurements_per_space_each_depth', action='store_true', help='Plots the number of measurements per sample land sea mask grid.')
 
     # expectation values
     parser.add_argument('--means_sample_lsm', action='store_true', help='Plot means for points of sample land sea mask.')
-    parser.add_argument('--concentration_quantiles_sample_lsm', type=float, default=None, help='Plot passed quantiles for points of sample land sea mask.')
+    parser.add_argument('--concentration_quantiles_sample_lsm', type=float, help='Plot passed quantiles for points of sample land sea mask.')
 
     # spread values
     parser.add_argument('--concentration_standard_deviations_sample_lsm', action='store_true', help='Plot concentration standard deviations for points of sample land sea mask.')
@@ -51,12 +51,12 @@ def _main():
     parser.add_argument('--concentration_quartile_coefficient_of_dispersion_sample_lsm', action='store_true', help='Plot quartile coefficient of dispersion for points of sample land sea mask.')
 
     # correlation
-    parser.add_argument('--correlation_histogram', action='store_true', default=None, help='Plot histogram of correlation of measurements with passed using abs.')
-    parser.add_argument('--correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS, default=None, help='Plot sparsity pattern of  correlation of measurements with passed permutation method.')
+    parser.add_argument('--correlation_histogram', action='store_true', help='Plot histogram of correlation of measurements with passed using abs.')
+    parser.add_argument('--correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS + ('default',), nargs='?', const='default', help='Plot sparsity pattern of  correlation of measurements with passed permutation method.')
     parser.add_argument('--correlation_and_sample_correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of correlation and sample correlation of measurements in one plot.')
-    parser.add_argument('--correlation_averages', action='store', default=None, nargs='*', help='Plot average correlations of correlation of measurements for passed axis.')
-    parser.add_argument('--correlation_auto_averages', action='store', default=None, nargs='*', help='Plot average autocorrelations of correlation of measurements for passed axis.')
-    parser.add_argument('--correlation_auto_violins', action='store', default=None, nargs='*', help='Plot autocorrelations of correlation of measurements as violin plot for passed axis.')
+    parser.add_argument('--correlation_averages', action='store', nargs='+', help='Plot average correlations of correlation of measurements for passed axis.')
+    parser.add_argument('--correlation_auto_averages', action='store', nargs='+', help='Plot average autocorrelations of correlation of measurements for passed axis.')
+    parser.add_argument('--correlation_auto_violins', action='store', nargs='+', help='Plot autocorrelations of correlation of measurements as violin plot for passed axis.')
     parser.add_argument('--use_sample_correlation', action='store_true', help='Use sample correlation instead of correlation for plots.')
     parser.add_argument('--use_abs', action='store_true', help='Use abs values for supported correlation plots.')
 
@@ -170,8 +170,12 @@ def _main():
                 overwrite=args.overwrite)
 
         if args.correlation_sparsity_pattern is not None:
+            if args.correlation_sparsity_pattern == 'default':
+                permutation_method = None
+            else:
+                permutation_method = args.correlation_sparsity_pattern
             measurements.plot.data.correlation_sparsity_pattern(
-                m, permutation_method=args.correlation_sparsity_pattern,
+                m, permutation_method=permutation_method,
                 use_sample_correlation=args.use_sample_correlation,
                 overwrite=args.overwrite)
 
