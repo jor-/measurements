@@ -5,6 +5,7 @@ import matrix.constants
 import util.logging
 
 import measurements.all.data
+import measurements.plot.constants
 import measurements.plot.data
 import measurements.plot.number_of_measurements
 import measurements.universal.correlation
@@ -63,10 +64,16 @@ def _main():
     # overwrite
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files.')
 
+    # file extnesion
+    parser.add_argument('--file_extension', default=measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION, help='The file extension that should be used to store the plot.')
+
     # debug
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
     parser.add_argument('-v', '--version', action='version', version='%(prog)s {}'.format(measurements.__version__))
     args = parser.parse_args()
+
+    # set file extension
+    measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION = args.file_extension
 
     # call functions
     with util.logging.Logger(level=args.debug_level):
