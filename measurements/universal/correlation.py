@@ -217,7 +217,8 @@ class CorrelationCache(Correlation):
             data_set=m.data_set_name,
             kind=str(pathlib.PurePath('correlation', kind_folder_name, folder_name)),
             kind_id=kind_id,
-            plot_name=plot_name)
+            plot_name=plot_name,
+            file_extension=measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION)
 
         return file
 
