@@ -56,8 +56,10 @@ def _main():
     parser.add_argument('--correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS + ('default',), nargs='?', const='default', help='Plot sparsity pattern of  correlation of measurements with passed permutation method.')
     parser.add_argument('--correlation_and_sample_correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of correlation and sample correlation of measurements in one plot.')
     parser.add_argument('--correlation_means', action='store', nargs='+', help='Plot average correlations of correlation of measurements for passed axis.')
+    parser.add_argument('--correlation_standard_deviations', action='store', nargs='+', help='Plot standard deviations of correlation of measurements for passed axis.')
     parser.add_argument('--correlation_inter_quartile_ranges', action='store', nargs='+', help='Plot inter quantile ranges of correlation of measurements for passed axis.')
-    parser.add_argument('--correlation_auto_means', action='store', nargs='+', help='Plot average autocorrelations of correlation of measurements for passed axis.')
+    parser.add_argument('--correlation_auto_means', action='store', nargs='+', help='Plot average of autocorrelations of measurements for passed axis.')
+    parser.add_argument('--correlation_auto_standard_deviations', action='store', nargs='+', help='Plot standard deviations of autocorrelations of measurements for passed axis.')
     parser.add_argument('--correlation_auto_inter_quartile_ranges', action='store', nargs='+', help='Plot inter quantile ranges of autocorrelations of measurements for passed axis.')
     parser.add_argument('--correlation_auto_violins', action='store', nargs='+', help='Plot autocorrelations of correlation of measurements as violin plot for passed axis.')
     parser.add_argument('--use_sample_correlation', action='store_true', help='Use sample correlation instead of correlation for plots.')
@@ -199,6 +201,12 @@ def _main():
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
                                 overwrite=args.overwrite)
+        if args.correlation_standard_deviations is not None:
+            mc.plot_correlation(axis=args.correlation_standard_deviations,
+                                plot_type='standard_deviations',
+                                use_abs=args.use_abs,
+                                use_sample_correlation=args.use_sample_correlation,
+                                overwrite=args.overwrite)
         if args.correlation_inter_quartile_ranges is not None:
             mc.plot_correlation(axis=args.correlation_inter_quartile_ranges,
                                 plot_type='inter_quartile_ranges',
@@ -208,6 +216,12 @@ def _main():
         if args.correlation_auto_means is not None:
             mc.plot_autocorrelation(axis=args.correlation_auto_means,
                                     plot_type='means',
+                                    use_abs=args.use_abs,
+                                    use_sample_correlation=args.use_sample_correlation,
+                                    overwrite=args.overwrite)
+        if args.correlation_auto_standard_deviations is not None:
+            mc.plot_autocorrelation(axis=args.correlation_auto_standard_deviations,
+                                    plot_type='standard_deviations',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
                                     overwrite=args.overwrite)
