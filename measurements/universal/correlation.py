@@ -102,7 +102,20 @@ class Correlation():
         autocorrelation_array = correlation_array[:, n:]
         return autocorrelation_array
 
-    def plot_correlation_averages(self, axis, file, use_abs=True, use_sample_correlation=False, overwrite=False):
+    def _value_function(self, plot_type):
+        if plot_type == 'means':
+            value_function = np.mean
+        elif plot_type == 'inter_quartile_ranges':
+            value_function = scipy.stats.iqr
+        elif plot_type == 'standard_deviations':
+            value_function = lambda x: np.std(x, ddof=1)
+        elif plot_type == 'variances':
+            value_function = lambda x: np.var(x, ddof=1)
+        else:
+            raise ValueError(f'Plot type {plot_type} is unknown.')
+        return value_function
+
+    def plot_correlation(self, axis, file, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
         if overwrite or not pathlib.Path(file).exists():
             axis = self._prepare_axis(axis)
             if len(axis) != 1:
@@ -111,10 +124,11 @@ class Correlation():
             correlation = self.correlation_array(axis=axis, use_sample_correlation=use_sample_correlation)
             assert correlation.shape[1] == 3
 
-            util.plot.save.imshow_dataset_means(file, correlation, use_abs=use_abs, overwrite=overwrite)
+            value_function = self._value_function(plot_type)
+            util.plot.save.imshow_dataset_values(file, correlation, value_function, use_abs=use_abs, overwrite=overwrite)
         return file
 
-    def plot_autocorrelation_averages(self, axis, file, use_abs=True, use_sample_correlation=False, overwrite=False):
+    def plot_autocorrelation(self, axis, file, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
         if overwrite or not pathlib.Path(file).exists():
             axis = self._prepare_axis(axis)
             if len(axis) > 2:
@@ -123,7 +137,8 @@ class Correlation():
             autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
             assert autocorrelation.shape[1] == len(axis) + 1
 
-            util.plot.save.scatter_dataset_means(file, autocorrelation, use_abs=use_abs, overwrite=overwrite)
+            value_function = self._value_function(plot_type)
+            util.plot.save.scatter_dataset_values(file, autocorrelation, value_function, use_abs=use_abs, overwrite=overwrite)
         return file
 
     def plot_autocorrelation_violins(self, axis, file, use_sample_correlation=False, overwrite=False):
@@ -223,21 +238,21 @@ class CorrelationCache(Correlation):
         return file
 
     @overrides.overrides
-    def plot_correlation_averages(self, axis, file=None, use_abs=True, use_sample_correlation=False, overwrite=False):
+    def plot_correlation(self, axis, file=None, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
         if file is None:
-            folder_name = 'correlation_averages'
+            folder_name = f'correlation_{plot_type}'
             plot_name = folder_name + '_-_axis_{axis}' + f'_-_abs_{use_abs}'
             file = self._plot_format_filename(folder_name, plot_name, axis, use_sample_correlation=use_sample_correlation)
-        super().plot_correlation_averages(axis, file, use_abs=use_abs, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
+        super().plot_correlation(axis, file, plot_type=plot_type, use_abs=use_abs, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
 
     @overrides.overrides
-    def plot_autocorrelation_averages(self, axis, file=None, use_abs=True, use_sample_correlation=False, overwrite=False):
+    def plot_autocorrelation(self, axis, file=None, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
         if file is None:
-            folder_name = 'auto_correlation_averages'
+            folder_name = f'auto_correlation_{plot_type}'
             plot_name = folder_name + '_-_axis_{axis}' + f'_-_abs_{use_abs}'
             file = self._plot_format_filename(folder_name, plot_name, axis, use_sample_correlation=use_sample_correlation)
-        super().plot_autocorrelation_averages(axis, file, use_abs=use_abs, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
+        super().plot_autocorrelation(axis, file, plot_type=plot_type, use_abs=use_abs, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
 
     @overrides.overrides

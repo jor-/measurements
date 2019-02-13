@@ -192,15 +192,17 @@ def _main():
 
         mc = measurements.universal.correlation.CorrelationCache(m)
         if args.correlation_averages is not None:
-            mc.plot_correlation_averages(axis=args.correlation_averages,
-                                         use_abs=args.use_abs,
-                                         use_sample_correlation=args.use_sample_correlation,
-                                         overwrite=args.overwrite)
+            mc.plot_correlation(axis=args.correlation_averages,
+                                plot_type='means',
+                                use_abs=args.use_abs,
+                                use_sample_correlation=args.use_sample_correlation,
+                                overwrite=args.overwrite)
         if args.correlation_auto_averages is not None:
-            mc.plot_autocorrelation_averages(axis=args.correlation_auto_averages,
-                                             use_abs=args.use_abs,
-                                             use_sample_correlation=args.use_sample_correlation,
-                                             overwrite=args.overwrite)
+            mc.plot_autocorrelation(axis=args.correlation_auto_averages,
+                                    plot_type='means',
+                                    use_abs=args.use_abs,
+                                    use_sample_correlation=args.use_sample_correlation,
+                                    overwrite=args.overwrite)
         if args.correlation_auto_violins is not None:
             mc.plot_autocorrelation_violins(axis=args.correlation_auto_violins,
                                             use_sample_correlation=args.use_sample_correlation,
