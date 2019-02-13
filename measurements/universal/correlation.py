@@ -115,7 +115,8 @@ class Correlation():
             raise ValueError(f'Plot type {plot_type} is unknown.')
         return value_function
 
-    def plot_correlation(self, axis, file, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
+    def plot_correlation(self, axis, file, plot_type='means', use_abs=True,
+                         use_sample_correlation=False, v_min=None, v_max=None, overwrite=False):
         if overwrite or not pathlib.Path(file).exists():
             axis = self._prepare_axis(axis)
             if len(axis) != 1:
@@ -125,10 +126,14 @@ class Correlation():
             assert correlation.shape[1] == 3
 
             value_function = self._value_function(plot_type)
-            util.plot.save.imshow_dataset_values(file, correlation, value_function, use_abs=use_abs, overwrite=overwrite)
+            if plot_type != 'means' and v_min is None:
+                v_min = 0
+            util.plot.save.imshow_dataset_values(file, correlation, value_function, use_abs=use_abs,
+                                                 v_min=v_min, v_max=v_max, overwrite=overwrite)
         return file
 
-    def plot_autocorrelation(self, axis, file, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
+    def plot_autocorrelation(self, axis, file, plot_type='means', use_abs=True,
+                             use_sample_correlation=False, y_min=None, y_max=None, overwrite=False):
         if overwrite or not pathlib.Path(file).exists():
             axis = self._prepare_axis(axis)
             if len(axis) > 2:
@@ -138,7 +143,10 @@ class Correlation():
             assert autocorrelation.shape[1] == len(axis) + 1
 
             value_function = self._value_function(plot_type)
-            util.plot.save.scatter_dataset_values(file, autocorrelation, value_function, use_abs=use_abs, overwrite=overwrite)
+            if plot_type != 'means' and y_min is None:
+                y_min = 0
+            util.plot.save.scatter_dataset_values(file, autocorrelation, value_function, use_abs=use_abs,
+                                                  y_min=y_min, y_max=y_max, overwrite=overwrite)
         return file
 
     def plot_autocorrelation_violins(self, axis, file, use_sample_correlation=False, overwrite=False):
