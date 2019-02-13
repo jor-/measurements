@@ -1,5 +1,7 @@
 import argparse
 
+import matplotlib.pyplot as plt
+
 import matrix.constants
 
 import util.logging
@@ -68,8 +70,9 @@ def _main():
     # overwrite
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files.')
 
-    # file extnesion
+    # file extension and backend
     parser.add_argument('--file_extension', default=measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION, help='The file extension that should be used to store the plot.')
+    parser.add_argument('--backend', help='The plot backend matplotlib should use.')
 
     # debug
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
@@ -78,6 +81,10 @@ def _main():
 
     # set file extension
     measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION = args.file_extension
+
+    # set backend
+    if args.backend is not None:
+        plt.switch_backend(args.backend)
 
     # call functions
     with util.logging.Logger(level=args.debug_level):
