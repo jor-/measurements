@@ -174,13 +174,13 @@ def _main():
 
         # sample correlation and correlation
 
-        if args.correlation_histogram is not None:
+        if args.correlation_histogram:
             measurements.plot.data.correlation_histogram(
                 m, use_abs=args.use_abs,
                 use_sample_correlation=args.use_sample_correlation,
                 overwrite=args.overwrite)
 
-        if args.correlation_sparsity_pattern is not None:
+        if args.correlation_sparsity_pattern:
             if args.correlation_sparsity_pattern == 'default':
                 permutation_method = None
             else:
@@ -195,43 +195,43 @@ def _main():
                 m, overwrite=args.overwrite)
 
         mc = measurements.universal.correlation.CorrelationCache(m)
-        if args.correlation_means is not None:
+        if args.correlation_means:
             mc.plot_correlation(axis=args.correlation_means,
                                 plot_type='means',
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
                                 overwrite=args.overwrite)
-        if args.correlation_standard_deviations is not None:
+        if args.correlation_standard_deviations:
             mc.plot_correlation(axis=args.correlation_standard_deviations,
                                 plot_type='standard_deviations',
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
                                 overwrite=args.overwrite)
-        if args.correlation_inter_quartile_ranges is not None:
+        if args.correlation_inter_quartile_ranges:
             mc.plot_correlation(axis=args.correlation_inter_quartile_ranges,
                                 plot_type='inter_quartile_ranges',
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
                                 overwrite=args.overwrite)
-        if args.correlation_auto_means is not None:
+        if args.correlation_auto_means:
             mc.plot_autocorrelation(axis=args.correlation_auto_means,
                                     plot_type='means',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
                                     overwrite=args.overwrite)
-        if args.correlation_auto_standard_deviations is not None:
+        if args.correlation_auto_standard_deviations:
             mc.plot_autocorrelation(axis=args.correlation_auto_standard_deviations,
                                     plot_type='standard_deviations',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
                                     overwrite=args.overwrite)
-        if args.correlation_auto_inter_quartile_ranges is not None:
+        if args.correlation_auto_inter_quartile_ranges:
             mc.plot_autocorrelation(axis=args.correlation_auto_inter_quartile_ranges,
                                     plot_type='inter_quartile_ranges',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
                                     overwrite=args.overwrite)
-        if args.correlation_auto_violins is not None:
+        if args.correlation_auto_violins:
             mc.plot_autocorrelation_violins(axis=args.correlation_auto_violins,
                                             use_sample_correlation=args.use_sample_correlation,
                                             overwrite=args.overwrite)
