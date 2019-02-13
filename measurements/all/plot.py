@@ -55,8 +55,8 @@ def _main():
     parser.add_argument('--correlation_histogram', action='store_true', help='Plot histogram of correlation of measurements with passed using abs.')
     parser.add_argument('--correlation_sparsity_pattern', choices=matrix.constants.UNIVERSAL_PERMUTATION_METHODS + matrix.constants.SPARSE_ONLY_PERMUTATION_METHODS + ('default',), nargs='?', const='default', help='Plot sparsity pattern of  correlation of measurements with passed permutation method.')
     parser.add_argument('--correlation_and_sample_correlation_sparsity_pattern', action='store_true', help='Plot sparsity pattern of correlation and sample correlation of measurements in one plot.')
-    parser.add_argument('--correlation_averages', action='store', nargs='+', help='Plot average correlations of correlation of measurements for passed axis.')
-    parser.add_argument('--correlation_auto_averages', action='store', nargs='+', help='Plot average autocorrelations of correlation of measurements for passed axis.')
+    parser.add_argument('--correlation_means', action='store', nargs='+', help='Plot average correlations of correlation of measurements for passed axis.')
+    parser.add_argument('--correlation_auto_means', action='store', nargs='+', help='Plot average autocorrelations of correlation of measurements for passed axis.')
     parser.add_argument('--correlation_auto_violins', action='store', nargs='+', help='Plot autocorrelations of correlation of measurements as violin plot for passed axis.')
     parser.add_argument('--use_sample_correlation', action='store_true', help='Use sample correlation instead of correlation for plots.')
     parser.add_argument('--use_abs', action='store_true', help='Use abs values for supported correlation plots.')
@@ -191,14 +191,14 @@ def _main():
                 m, overwrite=args.overwrite)
 
         mc = measurements.universal.correlation.CorrelationCache(m)
-        if args.correlation_averages is not None:
-            mc.plot_correlation(axis=args.correlation_averages,
+        if args.correlation_means is not None:
+            mc.plot_correlation(axis=args.correlation_means,
                                 plot_type='means',
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
                                 overwrite=args.overwrite)
-        if args.correlation_auto_averages is not None:
-            mc.plot_autocorrelation(axis=args.correlation_auto_averages,
+        if args.correlation_auto_means is not None:
+            mc.plot_autocorrelation(axis=args.correlation_auto_means,
                                     plot_type='means',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
