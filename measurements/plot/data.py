@@ -445,7 +445,7 @@ def correlation_sparsity_pattern(measurements_object, file=None, permutation_met
         plot_name = kind_folder_name + '_sparsity_pattern'
         kind = os.path.join('correlation', kind_folder_name, 'sparsity_pattern')
         file = _format_filename(measurements_object, kind, kind_id, plot_name)
-    # plot if not existing
+    # plot correlation matrix sparsity pattern if not existing
     if overwrite or not os.path.exists(file):
         # get matrix
         if use_sample_correlation:
@@ -456,6 +456,12 @@ def correlation_sparsity_pattern(measurements_object, file=None, permutation_met
             A = measurements_object.correlations_own
         # plot
         util.plot.save.sparse_matrix_pattern(file, A, axis_labels=False)
+    # plot decomposition matrix sparsity pattern if not existing
+    if not use_sample_correlation:
+        file = _append_to_filename(file, '_-_L')
+        if overwrite or not os.path.exists(file):
+            A = measurements_object.correlations_own_decomposition.L
+            util.plot.save.sparse_matrix_pattern(file, A, axis_labels=False)
     # restore permutation method
     measurements_object.permutation_method_decomposition_correlation = permutation_method_decomposition_correlation_old
 
