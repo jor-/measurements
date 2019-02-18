@@ -471,11 +471,10 @@ def correlation_and_sample_correlation_sparsity_pattern(measurements_object, fil
     # plot if not existing
     if overwrite or not os.path.exists(file):
         # prepare data
-        min_abs_value = 10**-4
         A = measurements_object.correlations_own_sample_matrix.tocsc(copy=False)
-        A.data[np.abs(A.data) < min_abs_value] = 0
+        A.eliminate_zeros()
         B = measurements_object.correlations_own.tocsc(copy=False)
-        B.data[np.abs(B.data) < min_abs_value] = 0
+        B.eliminate_zeros()
         # plot
         util.plot.save.sparse_matrices_patterns_with_differences(
             file, A, B,
