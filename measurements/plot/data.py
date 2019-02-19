@@ -133,7 +133,7 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_value
             x = sample_lsm.z_left
         else:
             raise ValueError(f'Unknown z_values {z_values}. Only "center", "right" and "left" are supported.')
-        util.plot.save.line(file, x, data_averaged, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) * 2000, overwrite=overwrite)
+        util.plot.save.fill_between(file, x, data_averaged, y_min=v_min, y_max=v_max, color='b', xticks=np.arange(5) * 2000, overwrite=overwrite)
 
 
 def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
