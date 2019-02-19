@@ -94,7 +94,7 @@ def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None
                              tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
 
 
-def _number_of_measurements_map(measurements_object, no_data_value=0):
+def _number_of_measurements_map(measurements_object, no_data_value=0, land_value=np.nan):
     # calculate number of measurements including layers
     points = measurements_object.points
     assert points.ndim == 2
@@ -104,7 +104,7 @@ def _number_of_measurements_map(measurements_object, no_data_value=0):
     space_coordinates = lsm.coordinates_to_map_indices(space_points, int_indices=True)
     data, counts = np.unique(space_coordinates, axis=0, return_counts=True)
     data = np.concatenate((data, counts[:, np.newaxis]), axis=1)
-    number_of_measurements_map = lsm.insert_index_values_in_map(data, no_data_value=no_data_value)
+    number_of_measurements_map = lsm.insert_index_values_in_map(data, no_data_value=no_data_value, land_value=land_value)
     assert number_of_measurements_map.ndim == 3
     return number_of_measurements_map
 
@@ -123,14 +123,15 @@ def per_space_each_depth(measurements_object, max_value_fixed=True, use_log_scal
         file = _format_filename(measurements_object, plot_name)
     # calculate number of measurements including layers
     no_data_value = 0
-    data = _number_of_measurements_map(measurements_object, no_data_value=no_data_value)
+    land_value = np.nan
+    data = _number_of_measurements_map(measurements_object, no_data_value=no_data_value, land_value=land_value)
     if max_value_fixed:
         data_mask = np.logical_and(np.logical_not(np.isnan(data)), np.logical_not(data == np.inf))
         v_max = np.max(data[data_mask])
     else:
         v_max = None
     # plot number of measurements for each layers
-    util.plot.save.data(file, data, no_data_value=no_data_value, v_min=1, v_max=v_max,
+    util.plot.save.data(file, data, no_data_value=no_data_value, land_value=land_value, v_min=1, v_max=v_max,
                         use_log_scale=use_log_scale, contours=False, colorbar=True,
                         tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
 
@@ -147,14 +148,13 @@ def per_space(measurements_object, use_log_scale=True, file=None, overwrite=Fals
         file = _format_filename(measurements_object, plot_name)
     # calculate number of measurements add up all layers
     no_data_value = 0
-    data = _number_of_measurements_map(measurements_object, no_data_value=no_data_value)
-    data_sum = data[:, :, 0].copy()
-    for i in range(1, data.shape[-1]):
-        data_i = data[:, :, i]
-        mask_i = np.logical_not(np.isnan(data_i))
-        data_sum[mask_i] += data_i[mask_i]
+    land_value = np.nan
+    data = _number_of_measurements_map(measurements_object, no_data_value=no_data_value, land_value=land_value)
+    land_mask = np.isnan(data[:, :, 0])
+    data = np.nansum(data, axis=2)
+    data[land_mask] = land_value
     # plot summed number of measurements
-    util.plot.save.data(file, data_sum, no_data_value=no_data_value, v_min=1, v_max=None,
+    util.plot.save.data(file, data, no_data_value=no_data_value, land_value=land_value, v_min=1, v_max=None,
                         use_log_scale=use_log_scale, contours=False, colorbar=True,
                         tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
 
