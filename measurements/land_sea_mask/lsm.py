@@ -647,12 +647,12 @@ class LandSeaMask():
     def bool_mask(self):
         return self.masked_map(dtype=np.bool, default_value=True, land_value=False)
 
-    def insert_coordinate_values_in_map(self, values, no_data_value=0, skip_values_on_land=True):
+    def insert_coordinate_values_in_map(self, values, no_data_value=0, land_value=np.nan, skip_values_on_land=True):
         values = np.copy(values)
         values[:, :-1] = self.coordinates_to_map_indices(values[:, :-1], discard_year=True, int_indices=True)
-        return self.insert_index_values_in_map(values, no_data_value=no_data_value, skip_values_on_land=skip_values_on_land)
+        return self.insert_index_values_in_map(values, no_data_value=no_data_value, land_value=land_value, skip_values_on_land=skip_values_on_land)
 
-    def insert_index_values_in_map(self, values, no_data_value=0, skip_values_on_land=True):
+    def insert_index_values_in_map(self, values, no_data_value=0, land_value=np.nan, skip_values_on_land=True):
         util.logging.debug('Inserting {} values in map with value {} for no data.'.format(len(values), no_data_value))
 
         if values.shape[1] not in (4, 5):
@@ -667,7 +667,7 @@ class LandSeaMask():
 
         # init map
         dtype = np.promote_types(values.dtype, np.float16)
-        value_map = self.masked_map(default_value=no_data_value, land_value=np.nan, dtype=dtype)
+        value_map = self.masked_map(default_value=no_data_value, land_value=land_value, dtype=dtype)
         number_map = self.masked_map(default_value=0, land_value=0, dtype=np.int32)
 
         # insert values: sum and count for each box
