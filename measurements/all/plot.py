@@ -143,6 +143,7 @@ def _main():
             if args.concentration_quantiles_sample_lsm:
                 measurements.plot.data.concentration_quantiles_for_sample_lsm(
                     mi, args.concentration_quantiles_sample_lsm,
+                    min_measurements=args.min_measurements_quantile,
                     overwrite=args.overwrite)
 
             # spread values
@@ -169,15 +170,15 @@ def _main():
 
             if args.concentration_interquartile_range_sample_lsm:
                 measurements.plot.data.concentration_interquartile_range_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, overwrite=args.overwrite)
 
             if args.average_noise_interquartile_range_sample_lsm:
                 measurements.plot.data.average_noise_interquartile_range_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, overwrite=args.overwrite)
 
             if args.concentration_quartile_coefficient_of_dispersion_sample_lsm:
                 measurements.plot.data.concentration_quartile_coefficient_of_dispersion_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, overwrite=args.overwrite)
 
         # sample correlation and correlation
 
