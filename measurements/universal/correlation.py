@@ -2,6 +2,7 @@ import pathlib
 
 import numpy as np
 import scipy.sparse
+import scipy.stats
 
 import overrides
 
@@ -74,8 +75,8 @@ class Correlation():
             axis = self._prepare_axis(axis)
             for i in range(point_dim):
                 if i not in axis:
-                    mask = (mo.sample_lsm.coordinates_to_map_indices_single_axis(correlation_array[:, i], i, discard_year=False, int_indices=True) ==
-                            mo.sample_lsm.coordinates_to_map_indices_single_axis(correlation_array[:, i + point_dim], i, discard_year=False, int_indices=True))
+                    mask = (mo.sample_lsm.coordinates_to_map_indices_single_axis(correlation_array[:, i], i, discard_year=False, int_indices=True)
+                            == mo.sample_lsm.coordinates_to_map_indices_single_axis(correlation_array[:, i + point_dim], i, discard_year=False, int_indices=True))
                     correlation_array = correlation_array[mask]
             correlation_array_axes = axis.tolist() + (axis + point_dim).tolist() + [-1]
             correlation_array = correlation_array[:, correlation_array_axes]
@@ -101,6 +102,27 @@ class Correlation():
         # return correlation_lag array
         correlation_lag_array = correlation_array[:, n:]
         return correlation_lag_array
+
+    def correlation_lag_tuple_generator(self, min_values=1, use_sample_correlation=False):
+        if min_values is None:
+            min_values = 1
+        correlation_array = self.correlation_array(use_sample_correlation=use_sample_correlation)
+        lags = correlation_array[:, :-1]
+        correlations = correlation_array[:, -1]
+        unique_lags, lags_indices, counts = np.unique(lags, return_inverse=True, return_counts=True, axis=0)
+        correlation_lag_tuple_generator = (correlations[lags_indices == i] for i in range(len(counts)) if counts[i] >= min_values)
+        unique_lags = unique_lags[counts >= min_values]
+        return zip(unique_lags, correlation_lag_tuple_generator)
+
+    def correlation_lag_interquartile_ranges(self, min_values=1, use_sample_correlation=False):
+        lags = []
+        iqrs = []
+        correlation_lag_tuple_generator = self.correlation_lag_tuple_generator(min_values=min_values, use_sample_correlation=use_sample_correlation)
+        for lag, correlations in correlation_lag_tuple_generator:
+            lags.append(lag)
+            iqrs.append(scipy.stats.iqr(correlations))
+        values = np.hstack((lags, np.array(iqrs).reshape(-1, 1)))
+        return values
 
     def _value_function(self, plot_type):
         if plot_type == 'means':
@@ -171,27 +193,44 @@ class CorrelationCache(Correlation):
 
     # *** array files *** #
 
-    def _format_filename(self, base_file, axis, use_sample_correlation=False):
-        axis = self._prepare_axis(axis)
-        axis_str = ','.join(map(str, axis))
-
+    def _format_filename_without_axis(self, base_file, use_sample_correlation=False):
         m = self.measurements_object
-
         if use_sample_correlation:
             file = base_file.format(
                 tracer=m.tracer,
                 data_set=m.data_set_name,
                 sample_correlation_id=m.sample_correlation_id,
-                dtype=m.dtype_correlation,
-                axis=axis_str)
+                dtype=m.dtype_correlation)
         else:
             file = base_file.format(
                 tracer=m.tracer,
                 data_set=m.data_set_name,
                 correlation_id=m.correlation_id,
-                dtype=m.dtype_correlation,
-                axis=axis_str)
+                dtype=m.dtype_correlation)
+        return file
 
+    def _format_filename_axis(self, base_file, axis):
+        axis = self._prepare_axis(axis)
+        axis_str = ','.join(map(str, axis))
+
+        class SafeDict(dict):
+            def __missing__(self, key):
+                return '{' + key + '}'
+
+        file = base_file.format_map(SafeDict(axis=axis_str))
+        return file
+
+    def _format_filename_min_values(self, base_file, min_values):
+        class SafeDict(dict):
+            def __missing__(self, key):
+                return '{' + key + '}'
+
+        file = base_file.format_map(SafeDict(min_values=min_values))
+        return file
+
+    def _format_filename(self, file, axis, use_sample_correlation=False):
+        file = self._format_filename_axis(file, axis)
+        file = self._format_filename_without_axis(file, use_sample_correlation=use_sample_correlation)
         return file
 
     @util.cache.file.decorator()
@@ -217,6 +256,20 @@ class CorrelationCache(Correlation):
         else:
             base_file = measurements.universal.constants.CORRELATION_LAG_ARRAY_CORRELATION_MATRIX_FILE
         return self._format_filename(base_file, axis, use_sample_correlation=use_sample_correlation)
+
+    @util.cache.file.decorator()
+    @overrides.overrides
+    def correlation_lag_interquartile_ranges(self, min_values=1, use_sample_correlation=False):
+        return super().correlation_lag_interquartile_ranges(min_values=min_values, use_sample_correlation=use_sample_correlation)
+
+    def correlation_lag_interquartile_ranges_cache_file(self, min_values=1, use_sample_correlation=False):
+        if use_sample_correlation:
+            file = measurements.universal.constants.CORRELATION_LAG_INTERQUARTILE_RANGES_SAMPLE_CORRELATION_FILE
+        else:
+            file = measurements.universal.constants.CORRELATION_LAG_INTERQUARTILE_RANGES_CORRELATION_FILE
+        file = self._format_filename_min_values(file, min_values)
+        file = self._format_filename_without_axis(file, use_sample_correlation=use_sample_correlation)
+        return file
 
     # *** plot files *** #
 

@@ -290,6 +290,22 @@ CORRELATION_LAG_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
         '{dtype}',
         'axis_{axis}.npz']))
 
+CORRELATION_LAG_INTERQUARTILE_RANGES_SAMPLE_CORRELATION_FILE = os.path.join(
+    CORRELATION_DIR,
+    'array_sample_correlation', SEPERATOR.join([
+        'correlation_lag_interquartile_ranges',
+        '{sample_correlation_id}',
+        '{dtype}',
+        'min_values_{min_values}.npz']))
+
+CORRELATION_LAG_INTERQUARTILE_RANGES_CORRELATION_FILE = os.path.join(
+    CORRELATION_DIR,
+    'array_correlation', SEPERATOR.join([
+        'correlation_lag_interquartile_ranges',
+        '{correlation_id}',
+        '{dtype}',
+        'min_values_{min_values}.npz']))
+
 
 # *** plots *** #
 
