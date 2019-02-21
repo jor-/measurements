@@ -274,18 +274,18 @@ CORRELATION_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
         '{dtype}',
         'axis_{axis}.npz']))
 
-AUTOCORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
+CORRELATION_LAG_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
     CORRELATION_DIR,
     'array_sample_correlation', SEPERATOR.join([
-        'autocorrelation',
+        'correlation_lag',
         '{sample_correlation_id}',
         '{dtype}',
         'axis_{axis}.npz']))
 
-AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
+CORRELATION_LAG_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
     CORRELATION_DIR,
     'array_correlation', SEPERATOR.join([
-        'autocorrelation',
+        'correlation_lag',
         '{correlation_id}',
         '{dtype}',
         'axis_{axis}.npz']))

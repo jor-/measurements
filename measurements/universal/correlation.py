@@ -45,7 +45,7 @@ class Correlation():
             points = mo.sample_lsm.coordinates_to_map_indices(points, discard_year=False, int_indices=True)
             points = mo.sample_lsm.map_indices_to_coordinates(points)
 
-            # calculate autocorrelation
+            # calculate correlation_lag
             correlation_array_len = A.nnz
             point_dim = points.shape[1]
             correlation_array = np.empty((correlation_array_len, point_dim * 2 + 1))
@@ -84,7 +84,7 @@ class Correlation():
         # return
         return correlation_array
 
-    def autocorrelation_array(self, axis=None, use_sample_correlation=False):
+    def correlation_lag_array(self, axis=None, use_sample_correlation=False):
         correlation_array = self.correlation_array(axis=axis, use_sample_correlation=use_sample_correlation)
         # calculate dim of points
         assert correlation_array.ndim == 2
@@ -98,9 +98,9 @@ class Correlation():
         correlation_array[:, n:m] = correlation_array[:, :n] - correlation_array[:, n:m]
         correlation_array[:, n:m] = np.abs(correlation_array[:, n:m])
         correlation_array[:, n:m] = np.around(correlation_array[:, n:m], decimals=reliable_decimals)
-        # return autocorrelation array
-        autocorrelation_array = correlation_array[:, n:]
-        return autocorrelation_array
+        # return correlation_lag array
+        correlation_lag_array = correlation_array[:, n:]
+        return correlation_lag_array
 
     def _value_function(self, plot_type):
         if plot_type == 'means':
@@ -132,34 +132,34 @@ class Correlation():
                                                  v_min=v_min, v_max=v_max, overwrite=overwrite)
         return file
 
-    def plot_autocorrelation(self, axis, file, plot_type='means', use_abs=True,
+    def plot_correlation_lag(self, axis, file, plot_type='means', use_abs=True,
                              use_sample_correlation=False, y_min=None, y_max=None, overwrite=False):
         if overwrite or not pathlib.Path(file).exists():
             axis = self._prepare_axis(axis)
             if len(axis) > 2:
                 raise ValueError(f'The parameter axis has to be one or two integer values but it is {axis}.')
 
-            autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
-            assert autocorrelation.shape[1] == len(axis) + 1
+            correlation_lag = self.correlation_lag_array(axis=axis, use_sample_correlation=use_sample_correlation)
+            assert correlation_lag.shape[1] == len(axis) + 1
 
             value_function = self._value_function(plot_type)
             if plot_type != 'means' and y_min is None:
                 y_min = 0
-            util.plot.save.scatter_dataset_values(file, autocorrelation, value_function, use_abs=use_abs,
+            util.plot.save.scatter_dataset_values(file, correlation_lag, value_function, use_abs=use_abs,
                                                   y_min=y_min, y_max=y_max, overwrite=overwrite)
         return file
 
-    def plot_autocorrelation_violins(self, axis, file, use_sample_correlation=False, overwrite=False):
+    def plot_correlation_lag_violins(self, axis, file, use_sample_correlation=False, overwrite=False):
         if overwrite or not pathlib.Path(file).exists():
             axis = self._prepare_axis(axis)
             if len(axis) != 1:
                 raise ValueError(f'The parameter axis has to be an integer value but it is {axis}.')
 
-            autocorrelation = self.autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
-            assert autocorrelation.shape[1] == 2
+            correlation_lag = self.correlation_lag_array(axis=axis, use_sample_correlation=use_sample_correlation)
+            assert correlation_lag.shape[1] == 2
 
-            x = autocorrelation[:, 0]
-            y = autocorrelation[:, 1]
+            x = correlation_lag[:, 0]
+            y = correlation_lag[:, 1]
             positions = np.unique(x)
             dataset = tuple(np.sort(y[x == p]) for p in positions)
 
@@ -208,14 +208,14 @@ class CorrelationCache(Correlation):
 
     @util.cache.file.decorator()
     @overrides.overrides
-    def autocorrelation_array(self, axis=None, use_sample_correlation=False):
-        return super().autocorrelation_array(axis=axis, use_sample_correlation=use_sample_correlation)
+    def correlation_lag_array(self, axis=None, use_sample_correlation=False):
+        return super().correlation_lag_array(axis=axis, use_sample_correlation=use_sample_correlation)
 
-    def autocorrelation_array_cache_file(self, axis=None, use_sample_correlation=False):
+    def correlation_lag_array_cache_file(self, axis=None, use_sample_correlation=False):
         if use_sample_correlation:
-            base_file = measurements.universal.constants.AUTOCORRELATION_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE
+            base_file = measurements.universal.constants.CORRELATION_LAG_ARRAY_SAMPLE_CORRELATION_MATRIX_FILE
         else:
-            base_file = measurements.universal.constants.AUTOCORRELATION_ARRAY_CORRELATION_MATRIX_FILE
+            base_file = measurements.universal.constants.CORRELATION_LAG_ARRAY_CORRELATION_MATRIX_FILE
         return self._format_filename(base_file, axis, use_sample_correlation=use_sample_correlation)
 
     # *** plot files *** #
@@ -255,19 +255,19 @@ class CorrelationCache(Correlation):
         return file
 
     @overrides.overrides
-    def plot_autocorrelation(self, axis, file=None, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
+    def plot_correlation_lag(self, axis, file=None, plot_type='means', use_abs=True, use_sample_correlation=False, overwrite=False):
         if file is None:
-            folder_name = f'auto_correlation_{plot_type}'
+            folder_name = f'correlation_lag_{plot_type}'
             plot_name = folder_name + '_-_axis_{axis}' + f'_-_abs_{use_abs}'
             file = self._plot_format_filename(folder_name, plot_name, axis, use_sample_correlation=use_sample_correlation)
-        super().plot_autocorrelation(axis, file, plot_type=plot_type, use_abs=use_abs, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
+        super().plot_correlation_lag(axis, file, plot_type=plot_type, use_abs=use_abs, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
 
     @overrides.overrides
-    def plot_autocorrelation_violins(self, axis, file=None, use_sample_correlation=False, overwrite=False):
+    def plot_correlation_lag_violins(self, axis, file=None, use_sample_correlation=False, overwrite=False):
         if file is None:
-            folder_name = 'correlation_violins'
+            folder_name = 'correlation_lag'
             plot_name = folder_name + '_-_axis_{axis}'
             file = self._plot_format_filename(folder_name, plot_name, axis, use_sample_correlation=use_sample_correlation)
-        super().plot_autocorrelation_violins(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
+        super().plot_correlation_lag_violins(axis, file, use_sample_correlation=use_sample_correlation, overwrite=overwrite)
         return file
