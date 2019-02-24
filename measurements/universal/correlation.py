@@ -103,26 +103,49 @@ class Correlation():
         correlation_lag_array = correlation_array[:, n:]
         return correlation_lag_array
 
-    def correlation_lag_tuple_generator(self, min_values=1, use_sample_correlation=False):
+    def correlation_lag_array_lexsort_indices(self, use_sample_correlation=False):
+        lags = self.correlation_lag_array(use_sample_correlation=use_sample_correlation)[:, :-1]
+        indices = np.lexsort(lags.T)
+        assert len(indices) == len(lags)
+        return indices
+
+    def correlation_lag_unique_apply_function(self, fun, min_values=1, use_sample_correlation=False):
         if min_values is None:
             min_values = 1
-        correlation_array = self.correlation_array(use_sample_correlation=use_sample_correlation)
-        lags = correlation_array[:, :-1]
-        correlations = correlation_array[:, -1]
-        unique_lags, lags_indices, counts = np.unique(lags, return_inverse=True, return_counts=True, axis=0)
-        correlation_lag_tuple_generator = (correlations[lags_indices == i] for i in range(len(counts)) if counts[i] >= min_values)
-        unique_lags = unique_lags[counts >= min_values]
-        return zip(unique_lags, correlation_lag_tuple_generator)
+        indices = self.correlation_lag_array_lexsort_indices(use_sample_correlation=use_sample_correlation)
+        correlations_lag_array = self.correlation_lag_array(use_sample_correlation=use_sample_correlation)
+        lags = correlations_lag_array[:, :-1]
+        correlations = correlations_lag_array[:, -1]
+        # apply function to all values with same lag
+        unique_lags = []
+        unique_results = []
+        n = len(indices)
+        if n > 0:
+            # append result of same values
+            i_first = 0
+            lag_first = lags[indices[i_first]]
+            for i_next in range(1, n):
+                lag_next = lags[indices[i_next]]
+                if np.any(lag_first != lag_next):
+                    if i_next - i_first >= min_values:
+                        unique_lags.append(lag_first)
+                        result = fun(correlations[indices[i_first:i_next]])
+                        unique_results.append(result)
+                    i_first = i_next
+                    lag_first = lag_next
+            # append last value
+            if n - i_first >= min_values:
+                unique_lags.append(lag_first)
+                result = fun(correlations[indices[i_first]])
+                unique_results.append(result)
+        # stack to result array
+        result = np.hstack((unique_lags, np.array(unique_results).reshape(-1, 1)))
+        return result
 
     def correlation_lag_interquartile_ranges(self, min_values=1, use_sample_correlation=False):
-        lags = []
-        iqrs = []
-        correlation_lag_tuple_generator = self.correlation_lag_tuple_generator(min_values=min_values, use_sample_correlation=use_sample_correlation)
-        for lag, correlations in correlation_lag_tuple_generator:
-            lags.append(lag)
-            iqrs.append(scipy.stats.iqr(correlations))
-        values = np.hstack((lags, np.array(iqrs).reshape(-1, 1)))
-        return values
+        return self.correlation_lag_unique_apply_function(scipy.stats.iqr,
+                                                          min_values=min_values,
+                                                          use_sample_correlation=use_sample_correlation)
 
     def _value_function(self, plot_type):
         if plot_type == 'means':
@@ -256,6 +279,19 @@ class CorrelationCache(Correlation):
         else:
             base_file = measurements.universal.constants.CORRELATION_LAG_ARRAY_CORRELATION_MATRIX_FILE
         return self._format_filename(base_file, axis, use_sample_correlation=use_sample_correlation)
+
+    @util.cache.file.decorator()
+    @overrides.overrides
+    def correlation_lag_array_lexsort_indices(self, use_sample_correlation=False):
+        return super().correlation_lag_array_lexsort_indices(use_sample_correlation=use_sample_correlation)
+
+    def correlation_lag_array_lexsort_indices_cache_file(self, use_sample_correlation=False):
+        if use_sample_correlation:
+            file = measurements.universal.constants.CORRELATION_LAG_ARRAY_LEXSORT_INDICES_SAMPLE_CORRELATION_MATRIX_FILE
+        else:
+            file = measurements.universal.constants.CORRELATION_LAG_ARRAY_LEXSORT_INDICES_CORRELATION_MATRIX_FILE
+        file = self._format_filename_without_axis(file, use_sample_correlation=use_sample_correlation)
+        return file
 
     @util.cache.file.decorator()
     @overrides.overrides

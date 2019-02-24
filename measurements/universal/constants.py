@@ -290,6 +290,20 @@ CORRELATION_LAG_ARRAY_CORRELATION_MATRIX_FILE = os.path.join(
         '{dtype}',
         'axis_{axis}.npz']))
 
+CORRELATION_LAG_ARRAY_LEXSORT_INDICES_SAMPLE_CORRELATION_MATRIX_FILE = os.path.join(
+    CORRELATION_DIR,
+    'array_sample_correlation', SEPERATOR.join([
+        'correlation_lag_lexsorted_indices',
+        '{sample_correlation_id}',
+        '{dtype}.npz']))
+
+CORRELATION_LAG_ARRAY_LEXSORT_INDICES_CORRELATION_MATRIX_FILE = os.path.join(
+    CORRELATION_DIR,
+    'array_correlation', SEPERATOR.join([
+        'correlation_lag_lexsorted_indices',
+        '{correlation_id}',
+        '{dtype}.npz']))
+
 CORRELATION_LAG_INTERQUARTILE_RANGES_SAMPLE_CORRELATION_FILE = os.path.join(
     CORRELATION_DIR,
     'array_sample_correlation', SEPERATOR.join([
