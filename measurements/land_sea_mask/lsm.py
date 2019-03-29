@@ -716,9 +716,8 @@ class LandSeaMask():
             file = '/tmp/{}.svg'.format(filename)
 
         # plot
-        cm = matplotlib.pyplot.cm.winter_r
         v_max = self.z[-1] * scaling_factor
-        util.plot.save.data(file, data, land_value=0, v_max=v_max, colormap=cm, overwrite=overwrite)
+        util.plot.save.data(file, data, land_value=0, v_max=v_max, overwrite=overwrite)
 
     # copy
     def copy(self):
