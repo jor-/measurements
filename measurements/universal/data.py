@@ -929,29 +929,25 @@ class MeasurementsCollection(Measurements):
         assert correlations.shape == (self.number_of_measurements, self.number_of_measurements)
         return correlations
 
-    def _measurements_dict(self, convert_function=None):
-        if convert_function is None:
-            def convert_function(x):
-                return x
+    @property
+    def points_dict(self):
+        def convert_function(x):
+            return x.points
 
-        results = {}
+        points_dict = {}
 
         for measurement in self.measurements_list:
             tracer = measurement.tracer
             data_set_name = measurement.data_set_name
 
             try:
-                results[tracer]
+                points_dict[tracer]
             except KeyError:
-                results[tracer] = {}
+                points_dict[tracer] = {}
 
-            results[tracer][data_set_name] = convert_function(measurement)
+            points_dict[tracer][data_set_name] = convert_function(measurement)
 
-        return results
-
-    @property
-    def points_dict(self):
-        return self._measurements_dict(convert_function=lambda m: m.points)
+        return points_dict
 
     def convert_measurements_dict_to_array(self, measurements_dict):
         value_list = [measurements_dict[measurement.tracer][measurement.data_set_name] for measurement in self.measurements_list]
