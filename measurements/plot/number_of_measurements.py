@@ -3,7 +3,7 @@ import os.path
 import numpy as np
 
 import util.plot.save
-import measurements.plot.constants
+import measurements.plot.util
 
 
 def _get_int_if_possible(value):
@@ -18,15 +18,10 @@ def _get_int_if_possible(value):
             return value
 
 
-def _format_filename(measurements_object, plot_name):
-    file = measurements.plot.constants.PLOT_FILE.format(
-        tracer=measurements_object.tracer,
-        data_set=measurements_object.data_set_name,
-        kind='number_of_measurements',
-        kind_id=str(measurements_object.sample_lsm),
-        plot_name=plot_name,
-        file_extension=measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION)
-    return file
+def _filename(measurements_object, plot_name):
+    kind = 'number_of_measurements'
+    kind_id = str(measurements_object.sample_lsm)
+    return measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
 
 
 def per_time(measurements_object, step_size=None, file=None, overwrite=False):
@@ -37,7 +32,7 @@ def per_time(measurements_object, step_size=None, file=None, overwrite=False):
 
     if file is None:
         plot_name = f'number_of_measurements_per_time_-_step_size_{step_size}'
-        file = _format_filename(measurements_object, plot_name)
+        file = _filename(measurements_object, plot_name)
 
     points = measurements_object.points
     assert points.ndim == 2
@@ -58,7 +53,7 @@ def per_year(measurements_object, number_of_bins=None, file=None, overwrite=Fals
 
     if file is None:
         plot_name = f'number_of_measurements_within_a_year_-_number_of_bins_{number_of_bins}'
-        file = _format_filename(measurements_object, plot_name)
+        file = _filename(measurements_object, plot_name)
 
     points = measurements_object.points
     assert points.ndim == 2
@@ -83,7 +78,7 @@ def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None
             tick_power_limit_scientific_y = None
         else:
             tick_power_limit_scientific_y = 3
-        file = _format_filename(measurements_object, plot_name)
+        file = _filename(measurements_object, plot_name)
 
     points = measurements_object.points
     assert points.ndim == 2
@@ -120,7 +115,7 @@ def per_space_each_depth(measurements_object, max_value_fixed=True, use_log_scal
             tick_power_limit_scientific_y = 3
         if max_value_fixed:
             plot_name += '_-_max_value_fixed'
-        file = _format_filename(measurements_object, plot_name)
+        file = _filename(measurements_object, plot_name)
     # calculate number of measurements including layers
     no_data_value = 0
     land_value = np.nan
@@ -145,7 +140,7 @@ def per_space(measurements_object, use_log_scale=True, file=None, overwrite=Fals
             tick_power_limit_scientific_y = None
         else:
             tick_power_limit_scientific_y = 3
-        file = _format_filename(measurements_object, plot_name)
+        file = _filename(measurements_object, plot_name)
     # calculate number of measurements add up all layers
     no_data_value = 0
     land_value = np.nan
