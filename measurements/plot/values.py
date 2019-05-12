@@ -7,11 +7,13 @@ import measurements.universal.dict
 import measurements.plot.util
 
 
-def histogram_and_density_function(measurements_object, file=None, min_number_of_values=50, histogram_step_size=0.05, kde_linewidth=3, type='measurement_results', overwrite=False, **kwargs):
+def histogram_and_density_function(measurements_object, file=None, min_number_of_values=50, histogram_step_size='variable', kde_linewidth=3, type='measurement_results', overwrite=False, **kwargs):
     # check input
     SUPPORTED_TYPES = ('measurement_results', 'true_concentrations')
     if type not in SUPPORTED_TYPES:
         raise ValueError(f'Type {type} unknown. Only {SUPPORTED_TYPES} are supported.')
+    if histogram_step_size is None:
+        histogram_step_size = 'variable'
 
     # prepare data in measurement dict
     md = measurements.universal.dict.MeasurementsDict()
