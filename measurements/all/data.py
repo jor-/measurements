@@ -19,7 +19,7 @@ def all_measurements(tracers=None,
                      min_measurements_correlation=None,
                      min_standard_deviation=None,
                      max_box_distance_to_water=None,
-                     water_lsm='TMM'):
+                     water_lsm=None):
     # check and prepare tracers
     if tracers is None:
         tracers = TRACERS
