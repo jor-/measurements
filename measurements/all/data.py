@@ -19,7 +19,8 @@ def all_measurements(tracers=None,
                      min_measurements_correlation=None,
                      min_standard_deviation=None,
                      max_box_distance_to_water=None,
-                     water_lsm=None):
+                     water_lsm=None,
+                     sample_lsm=None):
     # check and prepare tracers
     if tracers is None:
         tracers = TRACERS
@@ -47,18 +48,22 @@ def all_measurements(tracers=None,
     min_measurements_standard_deviation = prepare_value_list(min_measurements_standard_deviation, 'min_measurements_standard_deviation')
     min_measurements_correlation = prepare_value_list(min_measurements_correlation, 'min_measurements_correlation')
 
-    # prepate water lsm
-    if water_lsm is not None:
-        water_lsm = water_lsm.upper()
+    # prepare lsms
+    def lsm_by_name(name, t_dim=None):
+        if name is not None:
+            name = name.upper()
+            if name == 'TMM':
+                return measurements.land_sea_mask.lsm.LandSeaMaskTMM(t_dim=t_dim)
+            elif name == 'WOA13':
+                return measurements.land_sea_mask.lsm.LandSeaMaskWOA13(t_dim=t_dim)
+            elif name == 'WOA13R':
+                return measurements.land_sea_mask.lsm.LandSeaMaskWOA13R(t_dim=t_dim)
+            else:
+                raise ValueError('Unknown land-sea-mask type {}.'.format(name))
+        return None
 
-        if water_lsm == 'TMM':
-            water_lsm = measurements.land_sea_mask.lsm.LandSeaMaskTMM()
-        elif water_lsm == 'WOA13':
-            water_lsm = measurements.land_sea_mask.lsm.LandSeaMaskWOA13()
-        elif water_lsm == 'WOA13R':
-            water_lsm = measurements.land_sea_mask.lsm.LandSeaMaskWOA13R()
-        else:
-            raise ValueError('Unknown land-sea-mask type {}.'.format(water_lsm))
+    water_lsm = lsm_by_name(water_lsm)
+    sample_lsm = lsm_by_name(sample_lsm, t_dim=12)
 
     # create measurements collection
     measurements_collection = []
@@ -82,6 +87,8 @@ def all_measurements(tracers=None,
             # set parameters
             if water_lsm is not None:
                 measurements_object.water_lsm = water_lsm
+            if sample_lsm is not None:
+                measurements_object.sample_lsm = sample_lsm
             if max_box_distance_to_water is not None:
                 measurements_object.max_box_distance_to_water = max_box_distance_to_water
 
