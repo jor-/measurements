@@ -14,6 +14,7 @@ def _main():
     parser.add_argument('--tracers', nargs='+', choices=measurements.all.data.TRACERS, default=None, help='The tracers for which the data should be saved.')
     parser.add_argument('--max_box_distance_to_water', type=int, default=None, help='The maximal number of boxes allowed as distance to a water box.')
     parser.add_argument('--water_lsm', choices=measurements.all.data.LAND_SEA_MASKS, default=None, help='The land sea mask used to calculate the distances to water boxes.')
+    parser.add_argument('--sample_lsm', choices=measurements.all.data.LAND_SEA_MASKS, default=None, help='The land sea mask used to calculate the statistical properties.')
 
     parser.add_argument('--min_measurements_mean', type=int, default=None, help='The minimal number of measurements used to calculate means applied to each tracer.')
     parser.add_argument('--min_measurements_quantile', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate quantiles applied to each tracer.')
@@ -55,7 +56,8 @@ def _main():
             min_measurements_correlation=args.min_measurements_correlation,
             min_standard_deviation=args.min_standard_deviation,
             max_box_distance_to_water=args.max_box_distance_to_water,
-            water_lsm=args.water_lsm)
+            water_lsm=args.water_lsm,
+            sample_lsm=args.sample_lsm)
 
         # calculate
         if args.points_and_values:
