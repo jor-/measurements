@@ -42,21 +42,15 @@ class LandSeaMask():
 
     @property
     def t_dim(self):
-        return self._t_dim
-
-    @t_dim.setter
-    def t_dim(self, new_t_dim):
-        self._t_dim = new_t_dim
-
-    @property
-    def t_dim_with_value_check(self):
-        t_dim = self.t_dim
+        t_dim = self._t_dim
         if t_dim is not None and t_dim != 0:
             return t_dim
         else:
             raise ValueError('T dim is not set.')
-        self.sea_indices.cache_clear()
-        self.sea_coordinates.cache_clear()
+
+    @t_dim.setter
+    def t_dim(self, new_t_dim):
+        self._t_dim = new_t_dim
 
     @property
     def x_dim(self):
@@ -76,10 +70,13 @@ class LandSeaMask():
 
     @property
     def dim(self):
-        if self.t_dim is None or self.t_dim == 0:
-            return (self.x_dim, self.y_dim, self.z_dim)
+        try:
+            t_dim = self.t_dim
+        except ValueError:
+            dim = (self.x_dim, self.y_dim, self.z_dim)
         else:
-            return (self.t_dim, self.x_dim, self.y_dim, self.z_dim)
+            dim = (t_dim, self.x_dim, self.y_dim, self.z_dim)
+        return dim
 
     @property
     def ndim(self):
@@ -115,7 +112,7 @@ class LandSeaMask():
 
     @property
     def separation_values(self):
-        return (1 / self.t_dim_with_value_check, 360 / self.x_dim, 180 / self.y_dim, self.z)
+        return (1 / self.t_dim, 360 / self.x_dim, 180 / self.y_dim, self.z)
 
     # lsm
 
@@ -140,13 +137,11 @@ class LandSeaMask():
     @property
     def name(self):
         try:
-            t_dim = self.t_dim_with_value_check
+            t_dim = self.t_dim
         except ValueError:
-            t_dim = None
-        if t_dim is not None:
-            return 'lsm_{}'.format(t_dim)
-        else:
             return 'lsm'
+        else:
+            return 'lsm_{}'.format(t_dim)
 
     def __str__(self):
         return self.name
@@ -154,7 +149,7 @@ class LandSeaMask():
     # indices
 
     @property
-    @util.cache.memory.method_decorator(dependency='self.t_dim')
+    @util.cache.memory.method_decorator(dependency='self._t_dim')
     def sea_indices(self):
         sea_indices = np.array(np.where(self.bool_mask)).transpose()
         util.logging.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
@@ -162,7 +157,7 @@ class LandSeaMask():
         return sea_indices
 
     @property
-    @util.cache.memory.method_decorator(dependency='self.t_dim')
+    @util.cache.memory.method_decorator(dependency='self._t_dim')
     def sea_coordinates(self):
         sea_coordinates = self.map_indices_to_coordinates(self.sea_indices)
         assert sea_coordinates.ndim == 2
@@ -181,7 +176,7 @@ class LandSeaMask():
                 raise ValueError('max_box_distance_to_water must be a non-negative integer but it is {}.'.format(max_box_distance_to_water))
 
             # calculate and check distance
-            old_t_dim = self.t_dim
+            old_t_dim = self._t_dim
             self.t_dim = 0
             sea_indices = self.sea_indices
             map_index = np.asarray(self.coordinate_to_map_index(*point, discard_year=True, int_indices=True))
@@ -245,10 +240,11 @@ class LandSeaMask():
         return box_bounds
 
     @property
-    @util.cache.memory.method_decorator(dependency='self.t_dim')
+    @util.cache.memory.method_decorator(dependency='self._t_dim')
     def number_of_map_indices(self):
-        t_dim = self.t_dim
-        if t_dim is None:
+        try:
+            t_dim = self.t_dim
+        except ValueError:
             t_dim = 1
         return self.lsm.sum() * self.t_dim
 
@@ -328,11 +324,11 @@ class LandSeaMask():
         util.logging.debug(f'Calculating volume map of t_dim {t_dim} with dtype {dtype}.')
         # use defualt t_dim
         if t_dim == 'default':
-            t_dim = self.t_dim
+            t_dim = self._t_dim
         # calculate without t_dim
         if t_dim is None or t_dim == 0:
             # save t_dim
-            old_t_dim = self.t_dim
+            old_t_dim = self._t_dim
             self.t_dim = None
             # calculate volume map without t_dim
             sea_indices = self.sea_indices
@@ -357,7 +353,7 @@ class LandSeaMask():
         util.logging.debug(f'Calculating normalized volume weight map of t_dim {t_dim} with dtype {dtype}.')
         # use defualt t_dim
         if t_dim == 'default':
-            t_dim = self.t_dim
+            t_dim = self._t_dim
         # calculate without t_dim
         if t_dim is None or t_dim == 0:
             volume_map = self.volumes_map(t_dim=t_dim, dtype=dtype)
@@ -392,7 +388,7 @@ class LandSeaMask():
     def t_to_map_index(self, t, discard_year=False, int_indices=True):
         # t (center of the box, wrap around)
         try:
-            t_dim = self.t_dim_with_value_check
+            t_dim = self.t_dim
         except ValueError:
             ti = None
         else:
@@ -540,10 +536,12 @@ class LandSeaMask():
 
     def coordinate_to_map_index(self, t, x, y, z, discard_year=False, int_indices=True):
         # convert to point
-        if self.t_dim is not None:
-            point = np.array((t, x, y, z))
-        else:
+        try:
+            t_dim = self.t_dim
+        except ValueError:
             point = np.array((x, y, z))
+        else:
+            point = np.array((t, x, y, z))
 
         # return
         map_index = self.coordinates_to_map_indices(point, discard_year=discard_year, int_indices=int_indices)
@@ -552,13 +550,13 @@ class LandSeaMask():
     def map_index_to_coordinate(self, ti, xi, yi, zi, use_modulo_for_x=True):
         # t (left or center of the box, wrap around)
         try:
-            t_dim = self.t_dim_with_value_check
+            t_dim = self.t_dim
         except ValueError:
             t_dim = None
-        if t_dim is not None:
+        else:
             if self.t_centered:
                 ti += 0.5
-            t = ti / self.t_dim_with_value_check
+            t = ti / t_dim
 
         # x (center of the box, wrap around)
         x = xi + 0.5
@@ -662,7 +660,7 @@ class LandSeaMask():
 
         # remove time dim if values have no time
         if values.shape[1] == 4:
-            old_t_dim = self.t_dim
+            old_t_dim = self._t_dim
             self.t_dim = None
 
         # init map
@@ -737,7 +735,7 @@ class LandSeaMaskCache(LandSeaMask):
 
     def volumes_map_cache_file(self, t_dim='default', dtype=np.float64):
         if t_dim == 'default':
-            t_dim = self.t_dim
+            t_dim = self._t_dim
         if t_dim is None or t_dim == 0:
             dtype = np.dtype(dtype)
             filename = measurements.land_sea_mask.constants.VOLUMES_MAP_FILENAME.format(dtype=dtype)
@@ -752,7 +750,7 @@ class LandSeaMaskCache(LandSeaMask):
 
     def normalized_volume_weights_map_cache_file(self, t_dim='default', dtype=np.float64):
         if t_dim == 'default':
-            t_dim = self.t_dim
+            t_dim = self._t_dim
         if t_dim is None or t_dim == 0:
             dtype = np.dtype(dtype)
             filename = measurements.land_sea_mask.constants.NORMALIZED_VOLUMES_WEIGHTS_MAP_FILENAME.format(dtype=dtype)
