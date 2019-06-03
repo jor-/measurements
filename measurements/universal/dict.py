@@ -79,8 +79,10 @@ class MeasurementsDict(util.multi_dict.MultiDict):
                     try:
                         value_right = separation_value[index_right]
                     except IndexError:
-                        raise ValueError('Index value %d exceeds range of separation values (right sight of separation values is %d).' % (index[i], value_left))
-                    index[i] = (value_left + value_right) / 2.0
+                        value = np.inf
+                    else:
+                        value = (value_left + value_right) / 2.0
+                    index[i] = value
 
         index = tuple(index)
         return index
