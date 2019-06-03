@@ -428,8 +428,7 @@ class LandSeaMask():
         # to int index
         if int_indices:
             yi = self._float_index_to_int_index(yi, dtype=np.min_scalar_type(y_dim - 1))
-        # y = 90 degree
-        if int_indices:
+            # case y is 90 degree
             yi = np.asanyarray(yi)
             yi[yi == y_dim] = y_dim - 1
         # return
@@ -464,7 +463,7 @@ class LandSeaMask():
                                   / (r[zi[mask_between]] - c[zi[mask_between]])
                                   + 0.5 * (np.maximum(z[mask_between], r[zi[mask_between]]) - r[zi[mask_between]])
                                   / (c[zi[mask_between] + 1] - r[zi[mask_between]]))
-        zi = zi.astype(np.float, copy=False)
+        zi = np.asanyarray(zi, dtype=np.float)
         if len(zi_mask_between_offset) > 0:
             zi[mask_between] = zi[mask_between] + zi_mask_between_offset
         del mask_between
