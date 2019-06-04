@@ -17,11 +17,12 @@ def _main():
     parser.add_argument('--sample_lsm', choices=measurements.all.data.LAND_SEA_MASKS, default=None, help='The land sea mask used to calculate the statistical properties.')
 
     parser.add_argument('--min_measurements_mean', type=int, default=None, help='The minimal number of measurements used to calculate means applied to each tracer.')
-    parser.add_argument('--min_measurements_quantile', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate quantiles applied to each tracer.')
+    parser.add_argument('--min_measurements_quantile', nargs='+', type=int, default=None, help='The minimal number of measurements used to calculate quantiles applied to each tracer.')
     parser.add_argument('--min_measurements_standard_deviation', type=int, default=None, help='The minimal number of measurements used to calculate standard deviations applied to each tracer.')
-    parser.add_argument('--min_measurements_correlation', type=int, nargs='+', default=None, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
+    parser.add_argument('--min_measurements_correlation', nargs='+', type=int, default=None, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
 
     parser.add_argument('--min_standard_deviation', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
+    parser.add_argument('--min_diag_value_decomposition_correlation', default=None, type=float, help='The minimal value in the diagonal matrix of the decomposition of the correlation matrix.')
 
     parser.add_argument('--points_and_values', action='store_true', help='Calculate and save points and values of measurements.')
 
@@ -58,6 +59,9 @@ def _main():
             max_box_distance_to_water=args.max_box_distance_to_water,
             water_lsm=args.water_lsm,
             sample_lsm=args.sample_lsm)
+
+        if args.min_diag_value_decomposition_correlation is not None:
+            m.min_diag_value_decomposition_correlation = args.min_diag_value_decomposition_correlation
 
         # calculate
         if args.points_and_values:
