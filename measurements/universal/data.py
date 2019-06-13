@@ -5,8 +5,7 @@ import numpy as np
 import scipy.sparse
 import overrides
 
-import matrix.approximate
-import matrix.constants
+import matrix.approximation.positive_semidefinite
 import matrix.decompositions
 
 import measurements.universal.dict
@@ -109,7 +108,7 @@ class Measurements():
 
     @property  # TODO no property
     def correlations_own_permutation_vector(self):
-        if self.permutation_method_decomposition_correlation in matrix.constants.APPROXIMATION_ONLY_PERMUTATION_METHODS:
+        if self.permutation_method_decomposition_correlation in matrix.approximation.positive_semidefinite.APPROXIMATION_ONLY_PERMUTATION_METHODS:
             permutation_vector = self.correlations_own_decomposition.p
         else:
             permutation_vector = matrix.permute.permutation_vector(
@@ -119,11 +118,11 @@ class Measurements():
 
     @property  # TODO no property
     def correlations_own_decomposition(self):
-        if self.permutation_method_decomposition_correlation in matrix.constants.APPROXIMATION_ONLY_PERMUTATION_METHODS:
+        if self.permutation_method_decomposition_correlation in matrix.approximation.positive_semidefinite.APPROXIMATION_ONLY_PERMUTATION_METHODS:
             permutation = self.permutation_method_decomposition_correlation
         else:
             permutation = self.correlations_own_permutation_vector
-        correlation_matrix_decomposition = matrix.approximate.decomposition(
+        correlation_matrix_decomposition = matrix.approximation.positive_semidefinite.decomposition(
             self.correlations_own_sample_matrix,
             min_diag_B=1, max_diag_B=1,
             min_diag_D=self.min_diag_value_decomposition_correlation,

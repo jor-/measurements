@@ -70,7 +70,7 @@ setuptools.setup(
         'scipy',
         'matplotlib',
         'overrides',
-        'matrix-decomposition',
+        'matrix-decomposition>=1.1',
         'utillib[cache,options,interpolate,plot]',
     ],
     extras_require={
