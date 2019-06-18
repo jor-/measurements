@@ -22,7 +22,6 @@ import util.logging
 
 class Measurements():
 
-    min_diag_value_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE
     permutation_method_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_PERMUTATION_METHOD
     decomposition_type_correlations = measurements.universal.constants.CORRELATION_DECOMPOSITION_TYPE
     matrix_format_correlation = measurements.universal.constants.CORRELATION_FORMAT
@@ -115,6 +114,20 @@ class Measurements():
                 self.correlations_own_sample_matrix,
                 self.permutation_method_decomposition_correlation)
         return permutation_vector
+
+    @property
+    def min_diag_value_decomposition_correlation(self):
+        try:
+            min_diag_value_decomposition_correlation = self._min_diag_value_decomposition_correlation
+        except AttributeError:
+            min_diag_value_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE
+        return min_diag_value_decomposition_correlation
+
+    @min_diag_value_decomposition_correlation.setter
+    def min_diag_value_decomposition_correlation(self, value):
+        if value < 0 or value > 1:
+            raise ValueError(f'min_diag_value_decomposition_correlation has to be between 0 and 1 but it should be set to {min_diag_value_decomposition_correlation}.')
+        self._min_diag_value_decomposition_correlation = value
 
     @property  # TODO no property
     def correlations_own_decomposition(self):
