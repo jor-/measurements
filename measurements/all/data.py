@@ -18,6 +18,7 @@ def all_measurements(tracers=None,
                      min_measurements_standard_deviation=None,
                      min_measurements_correlation=None,
                      min_standard_deviation=None,
+                     min_diag_correlations=None,
                      max_box_distance_to_water=None,
                      water_lsm=None,
                      sample_lsm=None):
@@ -103,6 +104,8 @@ def all_measurements(tracers=None,
 
             if min_standard_deviation[i] is not None:
                 measurements_object.min_standard_deviation = min_standard_deviation[i]
+            if min_diag_correlations is not None:
+                measurements_object.min_diag_value_decomposition_correlation = min_diag_correlations
 
             # add to collection
             util.logging.debug('Measurements {} used for tracer {} with {} data.'.format(measurements_object, tracer, measurements_object.number_of_measurements))
@@ -110,7 +113,10 @@ def all_measurements(tracers=None,
 
     number_of_measurements_objects = len(measurements_collection)
     if number_of_measurements_objects > 1:
-        return measurements.universal.data.MeasurementsCollectionCache(*measurements_collection)
+        measurements_object = measurements.universal.data.MeasurementsCollectionCache(*measurements_collection)
+        if min_diag_correlations is not None:
+            measurements_object.min_diag_value_decomposition_correlation = min_diag_correlations
+        return measurements_object
     elif number_of_measurements_objects == 1:
         return measurements_collection[0]
     else:
