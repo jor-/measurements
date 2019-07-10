@@ -39,6 +39,7 @@ def _main():
     parser.add_argument('--standard_deviations_sample_lsm', action='store_true', help='Calculate and save standard deviations for points of sample land sea mask.')
 
     parser.add_argument('--sample_correlation', action='store_true', help='Calculate and save sample correlation of measurements.')
+    parser.add_argument('--not_use_correlations_of_base_measurements', action='store_true', help='Do not use correlations calculated for all measurements not filtered with water land sea mask.')
     parser.add_argument('--correlation', action='store_true', help='Calculate and save correlation of measurements.')
     parser.add_argument('--sample_correlation_autocorrelation', action='store', nargs='*', help='Calculate and save autocorrelation of sample correlation of measurements.')
     parser.add_argument('--correlation_autocorrelation', action='store', nargs='*', help='Calculate and save autocorrelation of correlation of measurements.')
@@ -57,6 +58,7 @@ def _main():
             min_measurements_correlation=args.min_measurements_correlation,
             min_standard_deviation=args.min_standard_deviation,
             max_box_distance_to_water=args.max_box_distance_to_water,
+            use_correlations_of_base_measurements=not args.not_use_correlations_of_base_measurements,
             water_lsm=args.water_lsm,
             sample_lsm=args.sample_lsm)
 

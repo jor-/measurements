@@ -20,6 +20,7 @@ def all_measurements(tracers=None,
                      min_standard_deviation=None,
                      min_diag_correlations=None,
                      max_box_distance_to_water=None,
+                     use_correlations_of_base_measurements=True,
                      water_lsm=None,
                      sample_lsm=None):
     # check and prepare tracers
@@ -92,6 +93,7 @@ def all_measurements(tracers=None,
                 measurements_object.sample_lsm = sample_lsm
             if max_box_distance_to_water is not None:
                 measurements_object.max_box_distance_to_water = max_box_distance_to_water
+            measurements_object.use_correlations_of_base_measurements = use_correlations_of_base_measurements
 
             if min_measurements_mean[i] is not None:
                 measurements_object.min_measurements_mean = min_measurements_mean[i]

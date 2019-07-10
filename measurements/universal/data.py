@@ -589,8 +589,11 @@ class MeasurementsNearWater(Measurements):
         'matrix_format_correlation',
         'dtype_correlation')
 
-    def __init__(self, base_measurements):
+    def __init__(self, base_measurements, use_correlations_of_base_measurements=True):
         self.base_measurements = base_measurements
+        if use_correlations_of_base_measurements is None:
+            use_correlations_of_base_measurements = True
+        self.use_correlations_of_base_measurements = use_correlations_of_base_measurements
 
     # properties
     @property
@@ -734,7 +737,10 @@ class MeasurementsNearWater(Measurements):
     @property
     @overrides.overrides
     def correlations_own_sample_matrix(self):
-        return self._project_both_sides(self.base_measurements.correlations_own_sample_matrix)
+        if self.use_correlations_of_base_measurements:
+            return self._project_both_sides(self.base_measurements.correlations_own_sample_matrix)
+        else:
+            return super().correlations_own_sample_matrix
 
     @overrides.overrides
     def correlations_other(self, measurements=None):
