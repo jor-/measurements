@@ -624,11 +624,11 @@ class LandSeaMask():
         util.logging.debug('Transforming from map indices to coordinates done.')
         return new_points
 
-    # values to map
+    # values map
 
     def apply_mask(self, array, land_value=np.nan):
         if self.dim != array.shape:
-            raise ValueError('Array must have the same dims as lsm, but its shape is {} and it has to be {}.'.format(array.shape, self.dim))
+            raise ValueError(f'Array must have the same dims as lsm, but its shape is {array.shape} and it has to be {self.dim}.')
 
         for i in np.ndindex(self.dim[:-1]):
             z_max = self[i]
@@ -693,6 +693,15 @@ class LandSeaMask():
 
         # return
         return value_map
+
+    def value_in_map_from_coordinate(self, coordinate, value_map):
+        index = self.coordinate_to_map_index(*coordinate, discard_year=True, int_indices=True)
+        return self.value_in_map_from_index(index, value_map)
+
+    def value_in_map_from_index(self, index, value_map):
+        if self.dim != value_map.shape:
+            raise ValueError(f'Value map must have the same dims as lsm, but its shape is {value_map.shape} and it has to be {self.dim}.')
+        return value_map[index]
 
     # plot
     def plot(self, file=None, use_depth=True, overwrite=False):
