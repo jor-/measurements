@@ -948,6 +948,30 @@ class MeasurementsCollection(Measurements):
         return correlations
 
     @property
+    @overrides.overrides
+    def correlations_own_decomposition(self):
+        n = len(self.measurements_list)
+        # check if all pairwise correlations are zero
+        correlations_all_zero = True
+        for i in range(n):
+            measurements_i = self.measurements_list[i]
+            for j in range(i + 1, n):
+                measurements_j = self.measurements_list[j]
+                correlations_i_j = measurements_i.correlations(measurements_j)
+                correlations_all_zero = correlations_all_zero and correlations_i_j.nnz == 0
+        # stack correlations if correlation is block diagonal
+        if correlations_all_zero:
+            util.logging.debug('The different measurement sets are uncorrelated. Using Block diagonal decompositions.')
+            dec = self.measurements_list[0].correlations_own_decomposition
+            for measurements_i in self.measurements_list[1:]:
+                dec_i = measurements_i.correlations_own_decomposition
+                dec = dec.append_block_decomposition(dec_i)
+        else:
+            util.logging.debug('The different measurement sets are correlated. Calculating own decomposition.')
+            dec = super().correlations_own_decomposition
+        return dec
+
+    @property
     def points_dict(self):
         def convert_function(x):
             return x.points
