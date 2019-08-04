@@ -57,13 +57,11 @@ def _main():
             min_measurements_standard_deviation=args.min_measurements_standard_deviation,
             min_measurements_correlation=args.min_measurements_correlation,
             min_standard_deviation=args.min_standard_deviation,
+            min_diag_correlations=args.min_diag_value_decomposition_correlation,
             max_box_distance_to_water=args.max_box_distance_to_water,
             use_correlations_of_base_measurements=not args.not_use_correlations_of_base_measurements,
             water_lsm=args.water_lsm,
             sample_lsm=args.sample_lsm)
-
-        if args.min_diag_value_decomposition_correlation is not None:
-            m.min_diag_value_decomposition_correlation = args.min_diag_value_decomposition_correlation
 
         # calculate
         if args.points_and_values:
