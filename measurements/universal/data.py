@@ -80,6 +80,9 @@ class Measurements():
     def number_of_measurements(self):
         return len(self.points)
 
+    def __len__(self):
+        return self.number_of_measurements
+
     @property
     @util.cache.memory.method_decorator(dependency=('self.tracer', 'self.data_set_name'))
     def measurements_dict(self):
