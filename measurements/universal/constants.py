@@ -28,7 +28,8 @@ NEAR_WATER_DATA_SET_NAME = SEPERATOR.join([
     '{base_data_set_name}',
     '{water_lsm}_water_{max_box_distance_to_water:d}'])
 
-NEAR_WATER_PROJECTION_MASK_FILE = os.path.join(DATA_DIR, 'near_water_projection_matrix.{matrix_format}.npz')
+NEAR_WATER_PROJECTION_MASK_FILE = os.path.join(DATA_DIR, 'near_water_projection_mask.npz')
+NEAR_WATER_PROJECTION_MATRIX_FILE = os.path.join(DATA_DIR, 'near_water_projection_matrix.{matrix_format}.npz')
 
 INTERPOLATION_FILL_STRATEGY = 'interpolate_{scaling_values}_{interpolator_options}'
 

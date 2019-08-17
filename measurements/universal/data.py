@@ -686,10 +686,20 @@ class MeasurementsNearWater(Measurements):
         'self.data_set_name',
         'self.max_box_distance_to_water',
         'self.water_lsm.name'))
-    def near_water_projection_matrix(self):
+    def near_water_projection_mask(self):
         mask = self.water_lsm.coordinates_near_water_mask(
             self.base_measurements.points,
             max_box_distance_to_water=self.max_box_distance_to_water)
+        return mask
+
+    @property
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.max_box_distance_to_water',
+        'self.water_lsm.name'))
+    def near_water_projection_matrix(self):
+        mask = self.near_water_projection_mask
 
         n = mask.sum()
         m = len(mask)
@@ -707,7 +717,10 @@ class MeasurementsNearWater(Measurements):
 
     def _project_left_side(self, value):
         if self.is_restricted:
-            value = self.near_water_projection_matrix @ value
+            try:
+                value = value[self.near_water_projection_mask]
+            except TypeError:
+                value = self.near_water_projection_matrix @ value
         return value
 
     def _project_both_sides(self, value):
@@ -1539,6 +1552,17 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
         'self.water_lsm.name'))
     @util.cache.file.decorator()
     @overrides.overrides
+    def near_water_projection_mask(self):
+        return super().near_water_projection_mask
+
+    @property
+    @util.cache.memory.method_decorator(dependency=(
+        'self.tracer',
+        'self.data_set_name',
+        'self.max_box_distance_to_water',
+        'self.water_lsm.name'))
+    @util.cache.file.decorator()
+    @overrides.overrides
     def near_water_projection_matrix(self):
         return super().near_water_projection_matrix
 
@@ -1555,8 +1579,16 @@ class MeasurementsAnnualPeriodicNearWaterCache(MeasurementsAnnualPeriodicCache, 
 
     # *** cache files *** #
 
-    def near_water_projection_matrix_cache_file(self):
+    def near_water_projection_mask_cache_file(self):
         return measurements.universal.constants.NEAR_WATER_PROJECTION_MASK_FILE.format(
+            tracer=self.tracer,
+            data_set=self.data_set_name,
+            sample_lsm=self.sample_lsm,
+            water_lsm=self.water_lsm,
+            max_box_distance_to_water=self.max_box_distance_to_water)
+
+    def near_water_projection_matrix_cache_file(self):
+        return measurements.universal.constants.NEAR_WATER_PROJECTION_MATRIX_FILE.format(
             tracer=self.tracer,
             data_set=self.data_set_name,
             sample_lsm=self.sample_lsm,
