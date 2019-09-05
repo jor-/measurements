@@ -22,7 +22,8 @@ def _main():
     parser.add_argument('--min_measurements_correlation', nargs='+', type=int, default=None, help='The minimal number of measurements used to calculate correlations applied to each tracer.')
 
     parser.add_argument('--min_standard_deviation', nargs='+', default=None, type=float, help='The minimal standard deviations assumed for the measurement error applied for each tracer.')
-    parser.add_argument('--min_diag_value_decomposition_correlation', default=None, type=float, help='The minimal value in the diagonal matrix of the decomposition of the correlation matrix.')
+    parser.add_argument('--correlation_decomposition_min_value_D', default=None, type=float, help='The minimal value in the diagonal matrix of the decomposition of the correlation matrix.')
+    parser.add_argument('--correlation_decomposition_min_abs_value_L', default=None, type=float, help='The minimal absolute value in the matrix L of the decomposition of the correlation matrix.')
 
     parser.add_argument('--points_and_values', action='store_true', help='Calculate and save points and values of measurements.')
 
@@ -57,7 +58,8 @@ def _main():
             min_measurements_standard_deviation=args.min_measurements_standard_deviation,
             min_measurements_correlation=args.min_measurements_correlation,
             min_standard_deviation=args.min_standard_deviation,
-            min_diag_correlations=args.min_diag_value_decomposition_correlation,
+            correlation_decomposition_min_value_D=args.correlation_decomposition_min_value_D,
+            correlation_decomposition_min_abs_value_L=args.correlation_decomposition_min_abs_value_L,
             max_box_distance_to_water=args.max_box_distance_to_water,
             use_correlations_of_base_measurements=not args.not_use_correlations_of_base_measurements,
             water_lsm=args.water_lsm,

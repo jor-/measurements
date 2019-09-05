@@ -18,7 +18,8 @@ def all_measurements(tracers=None,
                      min_measurements_standard_deviation=None,
                      min_measurements_correlation=None,
                      min_standard_deviation=None,
-                     min_diag_correlations=None,
+                     correlation_decomposition_min_value_D=None,
+                     correlation_decomposition_min_abs_value_L=None,
                      max_box_distance_to_water=None,
                      use_correlations_of_base_measurements=True,
                      water_lsm=None,
@@ -106,8 +107,10 @@ def all_measurements(tracers=None,
 
             if min_standard_deviation[i] is not None:
                 measurements_object.min_standard_deviation = min_standard_deviation[i]
-            if min_diag_correlations is not None:
-                measurements_object.min_diag_value_decomposition_correlation = min_diag_correlations
+            if correlation_decomposition_min_value_D is not None:
+                measurements_object.correlation_decomposition_min_value_D = correlation_decomposition_min_value_D
+            if correlation_decomposition_min_abs_value_L is not None:
+                measurements_object.correlation_decomposition_min_abs_value_L = correlation_decomposition_min_abs_value_L
 
             # add to collection
             util.logging.debug('Measurements {} used for tracer {} with {} data.'.format(measurements_object, tracer, measurements_object.number_of_measurements))
@@ -116,8 +119,10 @@ def all_measurements(tracers=None,
     number_of_measurements_objects = len(measurements_collection)
     if number_of_measurements_objects > 1:
         measurements_object = measurements.universal.data.MeasurementsCollectionCache(*measurements_collection)
-        if min_diag_correlations is not None:
-            measurements_object.min_diag_value_decomposition_correlation = min_diag_correlations
+        if correlation_decomposition_min_value_D is not None:
+            measurements_object.correlation_decomposition_min_value_D = correlation_decomposition_min_value_D
+        if correlation_decomposition_min_abs_value_L is not None:
+            measurements_object.correlation_decomposition_min_abs_value_L = correlation_decomposition_min_abs_value_L
         return measurements_object
     elif number_of_measurements_objects == 1:
         return measurements_collection[0]

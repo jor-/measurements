@@ -1,3 +1,4 @@
+import math
 import os.path
 import pathlib
 
@@ -103,9 +104,12 @@ STANDARD_DEVIATION_ID = SEPERATOR.join([
 CORRELATION_MIN_MEASUREMENTS = 30
 CORRELATION_MIN_ABS_VALUE = 0.01
 CORRELATION_MAX_ABS_VALUE = 0.99
-CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE = 0.1
+CORRELATION_DECOMPOSITION_MIN_VALUE_D = 0.1
 CORRELATION_DECOMPOSITION_PERMUTATION_METHOD = matrix.sparse.constants.AMD_FILL_REDUCE_PERMUTATION_METHOD
 CORRELATION_DECOMPOSITION_TYPE = matrix.constants.LDL_DECOMPOSITION_TYPE
+CORRELATION_DTYPE_L = np.float64
+# CORRELATION_DECOMPOSITION_MIN_ABS_VALUE_L = 10**math.floor(math.log10(np.finfo(CORRELATION_DTYPE_L).resolution) / 3)
+CORRELATION_DECOMPOSITION_MIN_ABS_VALUE_L = 0
 CORRELATION_DTYPE = np.dtype(np.float32)
 CORRELATION_FORMAT = 'csc'
 
@@ -116,14 +120,33 @@ SAMPLE_CORRELATION_ID = SEPERATOR.join([
     'max_abs_{max_abs_correlation}',
     'dev:_{standard_deviation_id}'])
 
-CORRELATION_ID = SEPERATOR.join([
+DECOMPOSITION_ID_WITHOUT_MIN_ABS_L = SEPERATOR.join([
+    '{decomposition_type}',
+    '{permutation_method_decomposition_correlation}',
+    'min_diag_{min_value_D:.0e}'])
+
+DECOMPOSITION_ID = SEPERATOR.join([
+    '{decomposition_type}',
+    '{permutation_method_decomposition_correlation}',
+    'min_D_{min_value_D:.0e}',
+    'min_abs_L_{min_abs_value_L:.0e}'])
+
+CORRELATION_ID_WITHOUT_MIN_ABS_L = SEPERATOR.join([
     'sample_{sample_lsm}',
     'min_values_{min_measurements_correlation:0>2d}',
     'min_abs_{min_abs_correlation}',
     'max_abs_{max_abs_correlation}',
     'decomposition_{decomposition_type}',
     'permutation_{permutation_method_decomposition_correlation}',
-    'min_diag_{decomposition_min_diag_value:.0e}',
+    'min_diag_{min_value_D:.0e}',
+    'dev:_{standard_deviation_id}'])
+
+CORRELATION_ID = SEPERATOR.join([
+    'sample_{sample_lsm}',
+    'min_values_{min_measurements_correlation:0>2d}',
+    'min_abs_{min_abs_correlation}',
+    'max_abs_{max_abs_correlation}',
+    '{decomposition_id}',
     'dev:_{standard_deviation_id}'])
 
 # files
@@ -211,9 +234,7 @@ CORRELATION_MATRIX_DECOMPOSITION_FILE = os.path.join(
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        '{decomposition_type}',
-        '{permutation_method_decomposition_correlation}',
-        'min_diag_{decomposition_min_diag_value:.0e}',
+        '{decomposition_id}',
         'dev:_{standard_deviation_id}',
         '{dtype}.dec']))
 
@@ -225,9 +246,7 @@ CORRELATION_MATRIX_DECOMPOSITION_DELTA_FILE = os.path.join(
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        '{decomposition_type}',
-        '{permutation_method_decomposition_correlation}',
-        'min_diag_{decomposition_min_diag_value:.0e}',
+        '{decomposition_id}',
         'dev:_{standard_deviation_id}.npy']))
 
 CORRELATION_MATRIX_DECOMPOSITION_OMEGA_FILE = os.path.join(
@@ -238,9 +257,7 @@ CORRELATION_MATRIX_DECOMPOSITION_OMEGA_FILE = os.path.join(
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        '{decomposition_type}',
-        '{permutation_method_decomposition_correlation}',
-        'min_diag_{decomposition_min_diag_value:.0e}',
+        '{decomposition_id}',
         'dev:_{standard_deviation_id}.npy']))
 
 CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE = os.path.join(
@@ -251,9 +268,7 @@ CORRELATION_MATRIX_POSITIVE_DEFINITE_FILE = os.path.join(
         'min_values_{min_measurements_correlation:0>2d}',
         'min_abs_{min_abs_correlation}',
         'max_abs_{max_abs_correlation}',
-        '{decomposition_type}',
-        '{permutation_method_decomposition_correlation}',
-        'min_diag_{decomposition_min_diag_value:.0e}',
+        '{decomposition_id}',
         'dev:_{standard_deviation_id}',
         '{dtype}.{matrix_format}.npz']))
 

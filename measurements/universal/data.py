@@ -119,18 +119,32 @@ class Measurements():
         return permutation_vector
 
     @property
-    def min_diag_value_decomposition_correlation(self):
+    def correlation_decomposition_min_value_D(self):
         try:
-            min_diag_value_decomposition_correlation = self._min_diag_value_decomposition_correlation
+            correlation_decomposition_min_value_D = self._correlation_decomposition_min_value_D
         except AttributeError:
-            min_diag_value_decomposition_correlation = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_DIAG_VALUE
-        return min_diag_value_decomposition_correlation
+            correlation_decomposition_min_value_D = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_VALUE_D
+        return correlation_decomposition_min_value_D
 
-    @min_diag_value_decomposition_correlation.setter
-    def min_diag_value_decomposition_correlation(self, value):
+    @correlation_decomposition_min_value_D.setter
+    def correlation_decomposition_min_value_D(self, value):
         if value < 0 or value > 1:
-            raise ValueError(f'min_diag_value_decomposition_correlation has to be between 0 and 1 but it should be set to {min_diag_value_decomposition_correlation}.')
-        self._min_diag_value_decomposition_correlation = value
+            raise ValueError(f'correlation_decomposition_min_value_D has to be between 0 and 1 but it should be set to {correlation_decomposition_min_value_D}.')
+        self._correlation_decomposition_min_value_D = value
+
+    @property
+    def correlation_decomposition_min_abs_value_L(self):
+        try:
+            correlation_decomposition_min_abs_value_L = self._correlation_decomposition_min_abs_value_L
+        except AttributeError:
+            correlation_decomposition_min_abs_value_L = measurements.universal.constants.CORRELATION_DECOMPOSITION_MIN_ABS_VALUE_L
+        return correlation_decomposition_min_abs_value_L
+
+    @correlation_decomposition_min_abs_value_L.setter
+    def correlation_decomposition_min_abs_value_L(self, value):
+        if value < 0 or value > 1:
+            raise ValueError(f'correlation_decomposition_min_abs_value_L has to be between 0 and 1 but it should be set to {correlation_decomposition_min_abs_value_L}.')
+        self._correlation_decomposition_min_abs_value_L = value
 
     @property  # TODO no property
     def correlations_own_decomposition(self):
@@ -141,7 +155,8 @@ class Measurements():
         correlation_matrix_decomposition = matrix.approximation.positive_semidefinite.decomposition(
             self.correlations_own_sample_matrix,
             min_diag_B=1, max_diag_B=1,
-            min_diag_D=self.min_diag_value_decomposition_correlation,
+            min_diag_D=self.correlation_decomposition_min_value_D,
+            min_abs_value_L=self.correlation_decomposition_min_abs_value_L,
             permutation=permutation,
             return_type=self.decomposition_type_correlations)
         return correlation_matrix_decomposition
@@ -586,7 +601,8 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 class MeasurementsNearWater(Measurements):
 
     _PROPERTIES_OF_BASE_MEASUREMENTS = (
-        'min_diag_value_decomposition_correlation',
+        'correlation_decomposition_min_value_D',
+        'correlation_decomposition_min_abs_value_L',
         'permutation_method_decomposition_correlation',
         'decomposition_type_correlations',
         'matrix_format_correlation',
@@ -1059,16 +1075,40 @@ class MeasurementsAnnualPeriodicBaseCache(MeasurementsAnnualPeriodicBase):
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
     @property
+    def correlation_decomposition_id(self):
+        if self.correlation_decomposition_min_abs_value_L == 0:
+            return measurements.universal.constants.DECOMPOSITION_ID_WITHOUT_MIN_ABS_L.format(
+                decomposition_type=self.decomposition_type_correlations,
+                permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+                min_value_D=self.correlation_decomposition_min_value_D)
+        else:
+            return measurements.universal.constants.DECOMPOSITION_ID.format(
+                decomposition_type=self.decomposition_type_correlations,
+                permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+                min_value_D=self.correlation_decomposition_min_value_D,
+                min_abs_value_L=self.correlation_decomposition_min_abs_value_L)
+
+    @property
     def correlation_id(self):
-        return measurements.universal.constants.CORRELATION_ID.format(
-            sample_lsm=self.sample_lsm,
-            min_measurements_correlation=self.min_measurements_correlation,
-            min_abs_correlation=self.min_abs_correlation,
-            max_abs_correlation=self.max_abs_correlation,
-            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
-            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
-            decomposition_type=self.decomposition_type_correlations,
-            standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
+        if self.correlation_decomposition_min_abs_value_L == 0:
+            return measurements.universal.constants.CORRELATION_ID_WITHOUT_MIN_ABS_L.format(
+                sample_lsm=self.sample_lsm,
+                min_measurements_correlation=self.min_measurements_correlation,
+                min_abs_correlation=self.min_abs_correlation,
+                max_abs_correlation=self.max_abs_correlation,
+                decomposition_id=self.correlation_decomposition_id,
+                standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
+                decomposition_type=self.decomposition_type_correlations,
+                permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
+                min_value_D=self.correlation_decomposition_min_value_D)
+        else:
+            return measurements.universal.constants.CORRELATION_ID.format(
+                sample_lsm=self.sample_lsm,
+                min_measurements_correlation=self.min_measurements_correlation,
+                min_abs_correlation=self.min_abs_correlation,
+                max_abs_correlation=self.max_abs_correlation,
+                decomposition_id=self.correlation_decomposition_id,
+                standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
 
 class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, MeasurementsAnnualPeriodic):
@@ -1394,7 +1434,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         'self.dtype_correlation',
         'self.decomposition_type_correlations',
         'self.permutation_method_decomposition_correlation',
-        'self.min_diag_value_decomposition_correlation'))
+        'self.correlation_decomposition_min_value_D',
+        'self.correlation_decomposition_min_abs_value_L'))
     @util.cache.file.decorator(load_function=matrix.decompositions.load, save_function=matrix.decompositions.save)
     @overrides.overrides
     def correlations_own_decomposition(self):
@@ -1421,9 +1462,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_measurements_correlation=self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
             max_abs_correlation=self.max_abs_correlation,
-            decomposition_type=self.decomposition_type_correlations,
-            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
-            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            decomposition_id=self.correlation_decomposition_id,
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
             dtype=self.dtype_correlation)
 
@@ -1435,9 +1474,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_measurements_correlation=self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
             max_abs_correlation=self.max_abs_correlation,
-            decomposition_type=self.decomposition_type_correlations,
-            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
-            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            decomposition_id=self.correlation_decomposition_id,
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
     def correlations_own_decomposition_omega_cache_file(self):
@@ -1448,9 +1485,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_measurements_correlation=self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
             max_abs_correlation=self.max_abs_correlation,
-            decomposition_type=self.decomposition_type_correlations,
-            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
-            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            decomposition_id=self.correlation_decomposition_id,
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm)
 
     @property
@@ -1468,7 +1503,8 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
         'self.dtype_correlation',
         'self.decomposition_type_correlations',
         'self.permutation_method_decomposition_correlation',
-        'self.min_diag_value_decomposition_correlation'))
+        'self.correlation_decomposition_min_value_D',
+        'self.correlation_decomposition_min_abs_value_L'))
     @util.cache.file.decorator()
     @overrides.overrides
     def correlations_own(self):
@@ -1482,9 +1518,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             min_measurements_correlation=self.min_measurements_correlation,
             min_abs_correlation=self.min_abs_correlation,
             max_abs_correlation=self.max_abs_correlation,
-            decomposition_type=self.decomposition_type_correlations,
-            permutation_method_decomposition_correlation=self.permutation_method_decomposition_correlation,
-            decomposition_min_diag_value=self.min_diag_value_decomposition_correlation,
+            decomposition_id=self.correlation_decomposition_id,
             standard_deviation_id=self.standard_deviation_id_without_sample_lsm,
             dtype=self.dtype_correlation,
             matrix_format=self.matrix_format_correlation)
