@@ -1126,7 +1126,9 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             # if both use interpolation, use only once but two interpolator_options
             elif concentration_fill_strategy.startswith('interpolate') and average_noise_fill_strategy.startswith('interpolate'):
                 interpolator_options = '+'.join([','.join(map(str, self.get_interpolator_options(kind))) for kind in ('concentration_standard_deviations', 'average_noise_standard_deviations')])
-                fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(scaling_values=','.join(map(str, self.interpolator_scaling_values)), interpolator_options=interpolator_options)
+                fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(
+                    scaling_values=','.join(map(lambda s: '{:.3g}'.format(s), self.interpolator_scaling_values)),
+                    interpolator_options=interpolator_options)
             # if different strategies, append both strategies
             else:
                 fill_strategy = util.str.merge([concentration_fill_strategy, average_noise_fill_strategy])
@@ -1140,7 +1142,7 @@ class MeasurementsAnnualPeriodicCache(MeasurementsAnnualPeriodicBaseCache, Measu
             # if interpolation, append options for interpolations
             if fill_strategy == 'interpolate':
                 fill_strategy = measurements.universal.constants.INTERPOLATION_FILL_STRATEGY.format(
-                    scaling_values=','.join(map(str, self.interpolator_scaling_values)),
+                    scaling_values=','.join(map(lambda s: '{:.3g}'.format(s), self.interpolator_scaling_values)),
                     interpolator_options=','.join(map(str, self.get_interpolator_options(kind))))
 
         return fill_strategy
