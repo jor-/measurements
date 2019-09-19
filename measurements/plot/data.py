@@ -104,7 +104,7 @@ def plot_space_depth(data, file, v_max=None, overwrite=False, colorbar=True):
     plot_time_space_depth(data, file, v_max=v_max, overwrite=overwrite, t_dim=1, colorbar=colorbar)
 
 
-def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_values='center'):
+def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_values='center_with_edges', depth_on_y_axis=True):
     assert data.ndim == 4
     v_min = 0
     # prepare base file
@@ -112,17 +112,22 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_value
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
         data_averaged = _average_data(data, sample_lsm, exclude_axis=3)
-        if v_max is None:
-            v_max = util.plot.auxiliary.v_max(data_averaged)
         if z_values == 'center':
             x = sample_lsm.z_center
+        elif z_values == 'center_with_edges':
+            x = sample_lsm.z_center
+            x = np.concatenate(([sample_lsm.z_left[0]], x, [sample_lsm.z_right[-1]]))
+            data_averaged = np.concatenate(([data_averaged[0]], data_averaged, [data_averaged[-1]]))
         elif z_values == 'right':
             x = sample_lsm.z_right
         elif z_values == 'left':
             x = sample_lsm.z_left
         else:
             raise ValueError(f'Unknown z_values {z_values}. Only "center", "right" and "left" are supported.')
-        util.plot.save.fill_between(file, x, data_averaged, y_min=v_min, y_max=v_max, color='b', xticks=np.arange(5) * 2000, overwrite=overwrite)
+        if depth_on_y_axis:
+            util.plot.save.fill_between(file, x, 0, data_averaged, x_min=x.min(), x_max=x.max(), y_min=v_min, y_max=v_max, color='b', overwrite=overwrite)
+        else:
+            util.plot.save.fill_between_x(file, x, 0, data_averaged, y_min=x.min(), y_max=x.max(), x_min=v_min, x_max=v_max, color='b', overwrite=overwrite, invert_y_axis=True)
 
 
 def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
@@ -135,6 +140,7 @@ def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
         data_averaged = _average_data(data, sample_lsm, exclude_axis=0)
         # x values
         t_dim = data.shape[0]
+        assert t_dim > 1
         x = np.arange(t_dim) / (t_dim - 1)
         # v max
         if v_max is None:
