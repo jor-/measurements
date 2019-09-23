@@ -2,6 +2,7 @@ import os.path
 import warnings
 
 import numpy as np
+import matplotlib.pyplot as plt
 
 import matrix.permute
 
@@ -62,23 +63,28 @@ def _change_t_dim(data, t_dim=None):
     return new_data
 
 
-def _average_data(data, sample_lsm, exclude_axis=None):
+def _average_data(data, sample_lsm, exclude_axes=None):
     dtype = np.float128
-    if exclude_axis is None or exclude_axis == 0:
+    if exclude_axes is None or exclude_axes == (0, ):
         # average all without time
         weights_map = sample_lsm.normalized_volume_weights_map(t_dim=None, dtype=dtype)
         data_averaged = np.nansum(data * weights_map, axis=(1, 2, 3), dtype=dtype)
         assert data_averaged.shape == (data.shape[0],)
         # average time
-        if exclude_axis is None:
-            data_averaged = np.nanmean(data_averaged)
-    elif exclude_axis == 3:
+        if exclude_axes is None:
+            data_averaged = np.nanmean(data_averaged, dtype=dtype)
+    elif exclude_axes == (3, ):
         volumes_map = sample_lsm.volumes_map(t_dim=None, dtype=dtype)
         weights_map = volumes_map / (data.shape[0] * np.nansum(volumes_map, dtype=dtype, axis=(0, 1)))
         data_averaged = np.nansum(data * weights_map, axis=(0, 1, 2), dtype=dtype)
         assert data_averaged.shape == (data.shape[3],)
+    elif exclude_axes == (2, 3):
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=RuntimeWarning, message='Mean of empty slice')
+            data_averaged = np.nanmean(data, axis=(0, 1), dtype=dtype)
+        assert data_averaged.shape == (data.shape[2], data.shape[3])
     else:
-        raise ValueError(f'Unsupported exclude axis value {data_averaged}.')
+        raise ValueError(f'Unsupported exclude axes value {exclude_axes}.')
     return data_averaged
 
 
@@ -89,7 +95,7 @@ def plot_time_space_depth(data, file, v_max=None, overwrite=False, colorbar=True
     # fix v_max if needed
     if v_max == 'fixed':
         v_max = util.plot.auxiliary.v_max(data)
-    # prepare base file
+    # prepare file
     if not colorbar:
         file = _append_to_filename(file, '_-_no_colorbar')
     if data.shape[0] > 1:
@@ -107,11 +113,11 @@ def plot_space_depth(data, file, v_max=None, overwrite=False, colorbar=True):
 def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_values='center_with_edges', depth_on_y_axis=True):
     assert data.ndim == 4
     v_min = 0
-    # prepare base file
+    # prepare file
     file = _append_to_filename(base_file, '_-_depth')
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
-        data_averaged = _average_data(data, sample_lsm, exclude_axis=3)
+        data_averaged = _average_data(data, sample_lsm, exclude_axes=(3,))
         if z_values == 'center':
             x = sample_lsm.z_center
         elif z_values == 'center_with_edges':
@@ -133,11 +139,11 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_value
 def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
     assert data.ndim == 4
     v_min = 0
-    # prepare base file
+    # prepare file
     file = _append_to_filename(base_file, '_-_time')
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
-        data_averaged = _average_data(data, sample_lsm, exclude_axis=0)
+        data_averaged = _average_data(data, sample_lsm, exclude_axes=(0,))
         # x values
         t_dim = data.shape[0]
         assert t_dim > 1
@@ -152,8 +158,7 @@ def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
 def plot_histogram(data, base_file, v_max=None, overwrite=False):
     assert data.ndim == 4
     v_min = 0
-    v_max = util.plot.auxiliary.v_max(data)
-    # prepare base file
+    # prepare file
     file = _append_to_filename(base_file, '_-_histogram')
     # plot histogram
     if overwrite or not os.path.exists(file):
@@ -163,13 +168,93 @@ def plot_histogram(data, base_file, v_max=None, overwrite=False):
         util.plot.save.histogram(file, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite)
 
 
+def _prepare_tick_lables(tick_lables, ticks_decimals=None):
+    if ticks_decimals is not None:
+        ticks_decimals = int(ticks_decimals)
+        tick_lables = [np.around(tick, decimals=ticks_decimals) for tick in tick_lables]
+        if ticks_decimals == 0:
+            tick_lables = [int(tick) for tick in tick_lables]
+    return tick_lables
+
+
+def _transform_y_ticks(ticks, sample_lsm, ticks_decimals=None):
+    tick_lables = ticks / sample_lsm.y_dim * 180 - 90
+    return _prepare_tick_lables(tick_lables, ticks_decimals)
+
+
+def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None):
+    tick_lables = sample_lsm.z[(ticks % len(sample_lsm.z)).astype(np.int)]
+    return _prepare_tick_lables(tick_lables, ticks_decimals)
+
+
+def plot_y_z_profile(data, base_file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, colorbar=True, overwrite=False, remove_parts_without_data=True, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
+    # prepare file
+    file = _append_to_filename(base_file, '_-_profile')
+    if x_coordinate_from is not None:
+        file = _append_to_filename(file, f'_-_x_from_{x_coordinate_from}')
+        x_coordinate_from = float(x_coordinate_from)
+    if x_coordinate_to is not None:
+        file = _append_to_filename(file, f'_-_x_to_{x_coordinate_to}')
+        x_coordinate_to = float(x_coordinate_to)
+
+    if overwrite or not os.path.exists(file):
+        # prepare data
+        if x_coordinate_from is not None or x_coordinate_to is not None:
+            data = sample_lsm.apply_ranges_to_mask(data, outside_value=np.nan, x_from=x_coordinate_from, x_to=x_coordinate_to)
+        profile = _average_data(data, sample_lsm, exclude_axes=(2, 3))
+
+        # v min and v_max
+        v_min = 0
+        if v_max is None:
+            v_max = util.plot.auxiliary.v_max(profile)
+
+        # set default number of ticks
+        n, m = profile.shape
+        if tick_number_x is None:
+            tick_number_x = int(np.floor(n / 30))
+        if tick_number_y is None:
+            tick_number_y = int(np.floor(m / 5))
+
+        # plot data
+        def plot_function(fig):
+            axes_image = plt.imshow(profile.T, aspect='equal', extent=(0, n, m, 0), vmin=v_min, vmax=v_max)
+            axes = fig.gca()
+
+            # set x and y limits
+            if remove_parts_without_data:
+                columns_with_values = np.where(np.any(np.logical_not(np.isnan(profile)), axis=1))[0]
+                left = columns_with_values.min()
+                right = columns_with_values.max()
+            else:
+                left = 0
+                right = profile.shape[0]
+            plt.xlim(left=left, right=right)
+            plt.ylim(top=0, bottom=profile.shape[1])
+
+            # set number of ticks
+            util.plot.auxiliary.set_number_of_ticks(tick_number_x, axis='x')
+            util.plot.auxiliary.set_number_of_ticks(tick_number_y, axis='y')
+
+            # set x and y labels
+            transform_y_ticks = lambda ticks: _transform_y_ticks(ticks, sample_lsm, ticks_decimals=x_ticks_decimals)
+            transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=y_ticks_decimals)
+            util.plot.auxiliary.transform_tick_labels(transform_x=transform_y_ticks, transform_y=transform_depth_ticks, axes=axes)
+
+            # add colorbar
+            util.plot.auxiliary.add_colorbar(axes_image, colorbar=colorbar, axes=axes)
+
+        util.plot.auxiliary.generic(file, plot_function, **kwargs)
+
+
 def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False, **kargs):
     if plot_type == 'all':
-        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
         plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite)
         plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
         plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite)
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, x_coordinate_from=None, x_coordinate_to=None)
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, x_coordinate_from=125, x_coordinate_to=290)
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, x_coordinate_from=290, x_coordinate_to=20)
         if v_max is None:
             # plot with fixed v_max
             fixed_base_file = _append_v_max_to_filename(base_file, 'fixed')
@@ -205,6 +290,8 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
         plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
     elif plot_type == 'histogram':
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
+    elif plot_type == 'plot_y_z_profile':
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
     elif plot_type == 'space_depth_of_time_diff' or plot_type == 'depth_of_time_diff':
         diff = _data_abs_time_difference(data)
         diff_base_file = _append_to_filename(base_file, '_-_abs_time_diff')
@@ -216,6 +303,8 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
         diff = _data_abs_depth_difference(data)
         diff_base_file = _append_to_filename(base_file, '_-_abs_depth_diff')
         plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, z_values='right')
+    elif plot_type == 'plot_y_z_profile':
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
     else:
         raise ValueError(f'Unknown plot type {plot_type}.')
 
