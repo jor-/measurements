@@ -491,16 +491,18 @@ class LandSeaMask():
                 or ((not int_indices) and np.all(zi >= -0.5)))
         return zi
 
-    def coordinates_to_map_indices_single_axis(self, values, axis, discard_year=False, int_indices=True):
-        values = np.asanyarray(values)
-        assert values.ndim == 1
-
+    def _coordinate_to_map_index_single_axis_function(self, axis, discard_year=False, int_indices=True):
         convert_functions = (lambda t: self.t_to_map_index(t, discard_year=discard_year, int_indices=int_indices),
                              lambda x: self.x_to_map_index(x, int_indices=int_indices),
                              lambda y: self.y_to_map_index(y, int_indices=int_indices),
                              lambda z: self.z_to_map_index(z, int_indices=int_indices))
         convert_function = convert_functions[axis]
+        return convert_function
 
+    def coordinates_to_map_indices_single_axis(self, values, axis, discard_year=False, int_indices=True):
+        values = np.asanyarray(values)
+        assert values.ndim == 1
+        convert_function = self._coordinate_to_map_index_single_axis_function(axis, discard_year=discard_year, int_indices=int_indices)
         map_indices = convert_function(values)
         return map_indices
 
@@ -642,6 +644,36 @@ class LandSeaMask():
 
     def bool_mask(self):
         mask = self.masked_map(dtype=np.bool, default_value=True, land_value=False)
+        return mask
+
+    def apply_ranges_to_mask(self, mask, outside_value=np.nan, t_from=None, t_to=None, x_from=None, x_to=None, y_from=None, y_to=None, z_from=None, z_to=None):
+
+        def set_outside_value_single_axis(axis, left_index=None, right_index=None):
+            mask_index = (slice(None), ) * axis + (slice(left_index, right_index), )
+            mask[mask_index] = outside_value
+
+        def convert_function(axis, value):
+            if value is not None:
+                fun = self._coordinate_to_map_index_single_axis_function(axis, discard_year=True, int_indices=True)
+                return fun(value)
+            else:
+                return value
+
+        ranges = ((t_from, t_to), (x_from, x_to), (y_from, y_to), (z_from, z_to))
+        for axis, range_i in enumerate(ranges):
+            range_i_from = convert_function(axis, range_i[0])
+            range_i_to = convert_function(axis, range_i[1])
+
+            if range_i_from is not None and range_i_to is None:
+                set_outside_value_single_axis(axis, left_index=None, right_index=range_i_from)
+            elif range_i_from is None and range_i_to is not None:
+                set_outside_value_single_axis(axis, left_index=range_i_to, right_index=None)
+            elif range_i_from is not None and range_i_to is not None:
+                if range_i_from <= range_i_to:
+                    set_outside_value_single_axis(axis, left_index=None, right_index=range_i_from)
+                    set_outside_value_single_axis(axis, left_index=range_i_to, right_index=None)
+                else:
+                    set_outside_value_single_axis(axis, left_index=range_i_to, right_index=range_i_from)
         return mask
 
     def insert_coordinate_values_in_map(self, values, no_data_value=0, land_value=np.nan, skip_values_on_land=True):
