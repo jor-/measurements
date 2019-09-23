@@ -151,7 +151,7 @@ class LandSeaMask():
     @property
     @util.cache.memory.method_decorator(dependency='self._t_dim')
     def sea_indices(self):
-        sea_indices = np.array(np.where(self.bool_mask)).transpose()
+        sea_indices = np.array(np.where(self.bool_mask())).transpose()
         util.logging.debug('Found {} sea indices in {}.'.format(sea_indices.shape[0], self))
         assert sea_indices.ndim == 2
         return sea_indices
@@ -637,12 +637,12 @@ class LandSeaMask():
 
     def masked_map(self, default_value=0, land_value=np.nan, dtype=np.float64):
         masked_map = np.ones(self.dim, dtype=dtype) * default_value
-        self.apply_mask(masked_map, land_value=land_value)
+        masked_map = self.apply_mask(masked_map, land_value=land_value)
         return masked_map
 
-    @property
     def bool_mask(self):
-        return self.masked_map(dtype=np.bool, default_value=True, land_value=False)
+        mask = self.masked_map(dtype=np.bool, default_value=True, land_value=False)
+        return mask
 
     def insert_coordinate_values_in_map(self, values, no_data_value=0, land_value=np.nan, skip_values_on_land=True):
         values = np.copy(values)
