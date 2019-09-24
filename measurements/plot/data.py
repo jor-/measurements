@@ -65,7 +65,7 @@ def _change_t_dim(data, t_dim=None):
 
 def _average_data(data, sample_lsm, exclude_axes=None):
     dtype = np.float128
-    if exclude_axes is None or exclude_axes == (0, ):
+    if exclude_axes is None or exclude_axes == (0,):
         # average all without time
         weights_map = sample_lsm.normalized_volume_weights_map(t_dim=None, dtype=dtype)
         data_averaged = np.nansum(data * weights_map, axis=(1, 2, 3), dtype=dtype)
@@ -73,11 +73,14 @@ def _average_data(data, sample_lsm, exclude_axes=None):
         # average time
         if exclude_axes is None:
             data_averaged = np.nanmean(data_averaged, dtype=dtype)
-    elif exclude_axes == (3, ):
+    elif exclude_axes == (0, 3) or exclude_axes == (3,):
         volumes_map = sample_lsm.volumes_map(t_dim=None, dtype=dtype)
-        weights_map = volumes_map / (data.shape[0] * np.nansum(volumes_map, dtype=dtype, axis=(0, 1)))
-        data_averaged = np.nansum(data * weights_map, axis=(0, 1, 2), dtype=dtype)
-        assert data_averaged.shape == (data.shape[3],)
+        weights_map = volumes_map / np.nansum(volumes_map, dtype=dtype, axis=(0, 1))
+        data_averaged = np.nansum(data * weights_map, axis=(1, 2), dtype=dtype)
+        assert data_averaged.shape == (data.shape[0], data.shape[3])
+        if exclude_axes == (3,):
+            data_averaged = np.nanmean(data_averaged, axis=0, dtype=dtype)
+            assert data_averaged.shape == (data.shape[3],)
     elif exclude_axes == (2, 3):
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', category=RuntimeWarning, message='Mean of empty slice')
