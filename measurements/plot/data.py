@@ -113,7 +113,7 @@ def plot_space_depth(data, file, v_max=None, overwrite=False, colorbar=True):
     plot_time_space_depth(data, file, v_max=v_max, overwrite=overwrite, t_dim=1, colorbar=colorbar)
 
 
-def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_values='center_with_edges', depth_on_y_axis=True):
+def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, depth_on_y_axis=True, depth_decimals=None):
     assert data.ndim == 4
     v_min = 0
     # prepare file
@@ -121,22 +121,12 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, z_value
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
         data_averaged = _average_data(data, sample_lsm, exclude_axes=(3,))
-        if z_values == 'center':
-            x = sample_lsm.z_center
-        elif z_values == 'center_with_edges':
-            x = sample_lsm.z_center
-            x = np.concatenate(([sample_lsm.z_left[0]], x, [sample_lsm.z_right[-1]]))
-            data_averaged = np.concatenate(([data_averaged[0]], data_averaged, [data_averaged[-1]]))
-        elif z_values == 'right':
-            x = sample_lsm.z_right
-        elif z_values == 'left':
-            x = sample_lsm.z_left
-        else:
-            raise ValueError(f'Unknown z_values {z_values}. Only "center", "right" and "left" are supported.')
+        x = np.arange(len(data_averaged))
+        transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=depth_decimals)
         if depth_on_y_axis:
-            util.plot.save.fill_between(file, x, 0, data_averaged, x_min=x.min(), x_max=x.max(), y_min=v_min, y_max=v_max, color='b', overwrite=overwrite)
+            util.plot.save.fill_between_x(file, x, 0, data_averaged, y_min=x.min(), y_max=x.max(), x_min=v_min, x_max=v_max, color='b', overwrite=overwrite, transform_y=transform_depth_ticks, invert_y_axis=True)
         else:
-            util.plot.save.fill_between_x(file, x, 0, data_averaged, y_min=x.min(), y_max=x.max(), x_min=v_min, x_max=v_max, color='b', overwrite=overwrite, invert_y_axis=True)
+            util.plot.save.fill_between(file, x, 0, data_averaged, x_min=x.min(), x_max=x.max(), y_min=v_min, y_max=v_max, color='b', overwrite=overwrite, transform_x=transform_depth_ticks)
 
 
 def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False):
@@ -282,7 +272,7 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
             # plot depth difference
             diff = _data_abs_depth_difference(data)
             diff_base_file = _append_to_filename(base_file, '_-_abs_depth_diff')
-            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, z_values='right')
+            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite)
     elif plot_type == 'time_space_depth':
         plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
     elif plot_type == 'space_depth':
@@ -305,7 +295,7 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
     elif plot_type == 'depth_of_depth_diff':
         diff = _data_abs_depth_difference(data)
         diff_base_file = _append_to_filename(base_file, '_-_abs_depth_diff')
-        plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, z_values='right')
+        plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, **kargs)
     elif plot_type == 'plot_y_z_profile':
         plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite)
     else:
