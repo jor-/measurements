@@ -67,10 +67,9 @@ def _main():
     parser.add_argument('--use_sample_correlation', action='store_true', help='Use sample correlation instead of correlation for plots.')
     parser.add_argument('--use_abs', action='store_true', help='Use abs values for supported correlation plots.')
 
-    # overwrite
+    # plot configs
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files.')
-
-    # file extension and backend
+    parser.add_argument('--plot_type', default='all', help='Desired plot type.')
     parser.add_argument('--file_extension', default=measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION, help='The file extension that should be used to store the plot.')
     parser.add_argument('--backend', help='The plot backend matplotlib should use.')
 
@@ -138,47 +137,47 @@ def _main():
 
             if args.means_sample_lsm:
                 measurements.plot.data.means_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.concentration_quantiles_sample_lsm:
                 measurements.plot.data.concentration_quantiles_for_sample_lsm(
                     mi, args.concentration_quantiles_sample_lsm,
                     min_measurements=args.min_measurements_quantile,
-                    overwrite=args.overwrite)
+                    plot_type=args.plot_type, overwrite=args.overwrite)
 
             # spread values
 
             if args.concentration_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_standard_deviations_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.average_noise_standard_deviations_sample_lsm:
                 measurements.plot.data.average_noise_standard_deviations_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.standard_deviations_sample_lsm:
                 measurements.plot.data.standard_deviations_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.concentration_relative_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_relative_standard_deviations_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.relative_standard_deviations_sample_lsm:
                 measurements.plot.data.relative_standard_deviations_for_sample_lsm(
-                    mi, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.concentration_interquartile_range_sample_lsm:
                 measurements.plot.data.concentration_interquartile_range_for_sample_lsm(
-                    mi, min_measurements=args.min_measurements_quantile, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.average_noise_interquartile_range_sample_lsm:
                 measurements.plot.data.average_noise_interquartile_range_for_sample_lsm(
-                    mi, min_measurements=args.min_measurements_quantile, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite)
 
             if args.concentration_quartile_coefficient_of_dispersion_sample_lsm:
                 measurements.plot.data.concentration_quartile_coefficient_of_dispersion_for_sample_lsm(
-                    mi, min_measurements=args.min_measurements_quantile, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite)
 
         # sample correlation and correlation
 
