@@ -69,9 +69,10 @@ def _main():
 
     # plot configs
     parser.add_argument('--overwrite', action='store_true', help='Overwrite existing files.')
-    parser.add_argument('--plot_type', default='all', help='Desired plot type.')
     parser.add_argument('--file_extension', default=measurements.plot.constants.PLOT_DEFAULT_FILE_EXTENSION, help='The file extension that should be used to store the plot.')
     parser.add_argument('--backend', help='The plot backend matplotlib should use.')
+    parser.add_argument('--plot_type', default='all', help='Desired plot type.')
+    parser.add_argument('--kwargs', nargs=argparse.REMAINDER, help='Additional keyword arguments for plots.')
 
     # debug
     parser.add_argument('-d', '--debug_level', default='debug', choices=util.logging.LEVELS, help='Print debug infos up to this level.')
@@ -84,6 +85,12 @@ def _main():
     # set backend
     if args.backend is not None:
         plt.switch_backend(args.backend)
+
+    # get kwargs
+    if args.kwargs is not None:
+        kwargs = dict(kwarg.split('=') for kwarg in args.kwargs)
+    else:
+        kwargs = {}
 
     # call functions
     with util.logging.Logger(level=args.debug_level):
@@ -111,73 +118,73 @@ def _main():
             if args.number_of_measurements_per_time:
                 measurements.plot.number_of_measurements.per_time(
                     mi, step_size=args.number_of_measurements_per_time,
-                    overwrite=args.overwrite)
+                    overwrite=args.overwrite, **kwargs)
 
             if args.number_of_measurements_per_year:
                 measurements.plot.number_of_measurements.per_year(
                     mi, number_of_bins=args.number_of_measurements_per_year,
-                    overwrite=args.overwrite)
+                    overwrite=args.overwrite, **kwargs)
 
             if args.number_of_measurements_per_depth:
                 measurements.plot.number_of_measurements.per_depth(
                     mi, step_size=args.number_of_measurements_per_depth,
-                    overwrite=args.overwrite)
+                    overwrite=args.overwrite, **kwargs)
 
             if args.number_of_measurements_per_space_each_depth:
                 for max_value_fixed in (True, False):
                     measurements.plot.number_of_measurements.per_space_each_depth(
                         mi, max_value_fixed=max_value_fixed,
-                        overwrite=args.overwrite)
+                        overwrite=args.overwrite, **kwargs)
 
             if args.number_of_measurements_per_space:
                 measurements.plot.number_of_measurements.per_space(
-                    mi, overwrite=args.overwrite)
+                    mi, overwrite=args.overwrite, **kwargs)
 
             # expectation values
 
             if args.means_sample_lsm:
                 measurements.plot.data.means_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.concentration_quantiles_sample_lsm:
                 measurements.plot.data.concentration_quantiles_for_sample_lsm(
                     mi, args.concentration_quantiles_sample_lsm,
                     min_measurements=args.min_measurements_quantile,
-                    plot_type=args.plot_type, overwrite=args.overwrite)
+                    plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             # spread values
 
             if args.concentration_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.average_noise_standard_deviations_sample_lsm:
                 measurements.plot.data.average_noise_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.standard_deviations_sample_lsm:
                 measurements.plot.data.standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.concentration_relative_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_relative_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.relative_standard_deviations_sample_lsm:
                 measurements.plot.data.relative_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.concentration_interquartile_range_sample_lsm:
                 measurements.plot.data.concentration_interquartile_range_for_sample_lsm(
-                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.average_noise_interquartile_range_sample_lsm:
                 measurements.plot.data.average_noise_interquartile_range_for_sample_lsm(
-                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
             if args.concentration_quartile_coefficient_of_dispersion_sample_lsm:
                 measurements.plot.data.concentration_quartile_coefficient_of_dispersion_for_sample_lsm(
-                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite)
+                    mi, min_measurements=args.min_measurements_quantile, plot_type=args.plot_type, overwrite=args.overwrite, **kwargs)
 
         # sample correlation and correlation
 
@@ -185,7 +192,7 @@ def _main():
             measurements.plot.data.correlation_histogram(
                 m, use_abs=args.use_abs,
                 use_sample_correlation=args.use_sample_correlation,
-                overwrite=args.overwrite)
+                overwrite=args.overwrite, **kwargs)
 
         if args.correlation_sparsity_pattern:
             if args.correlation_sparsity_pattern == 'default':
@@ -195,11 +202,11 @@ def _main():
             measurements.plot.data.correlation_sparsity_pattern(
                 m, permutation_method=permutation_method,
                 use_sample_correlation=args.use_sample_correlation,
-                overwrite=args.overwrite)
+                overwrite=args.overwrite, **kwargs)
 
         if args.correlation_and_sample_correlation_sparsity_pattern:
             measurements.plot.data.correlation_and_sample_correlation_sparsity_pattern(
-                m, overwrite=args.overwrite)
+                m, overwrite=args.overwrite, **kwargs)
 
         mc = measurements.universal.correlation.CorrelationCache(m)
         if args.correlation_means:
@@ -207,41 +214,41 @@ def _main():
                                 plot_type='means',
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
-                                overwrite=args.overwrite)
+                                overwrite=args.overwrite, **kwargs)
         if args.correlation_standard_deviations:
             mc.plot_correlation(axis=args.correlation_standard_deviations,
                                 plot_type='standard_deviations',
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
-                                overwrite=args.overwrite)
+                                overwrite=args.overwrite, **kwargs)
         if args.correlation_inter_quartile_ranges:
             mc.plot_correlation(axis=args.correlation_inter_quartile_ranges,
                                 plot_type='inter_quartile_ranges',
                                 use_abs=args.use_abs,
                                 use_sample_correlation=args.use_sample_correlation,
-                                overwrite=args.overwrite)
+                                overwrite=args.overwrite, **kwargs)
         if args.correlation_lag_means:
             mc.plot_correlation_lag(axis=args.correlation_lag_means,
                                     plot_type='means',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
-                                    overwrite=args.overwrite)
+                                    overwrite=args.overwrite, **kwargs)
         if args.correlation_lag_standard_deviations:
             mc.plot_correlation_lag(axis=args.correlation_lag_standard_deviations,
                                     plot_type='standard_deviations',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
-                                    overwrite=args.overwrite)
+                                    overwrite=args.overwrite, **kwargs)
         if args.correlation_lag_inter_quartile_ranges:
             mc.plot_correlation_lag(axis=args.correlation_lag_inter_quartile_ranges,
                                     plot_type='inter_quartile_ranges',
                                     use_abs=args.use_abs,
                                     use_sample_correlation=args.use_sample_correlation,
-                                    overwrite=args.overwrite)
+                                    overwrite=args.overwrite, **kwargs)
         if args.correlation_lag_violins:
             mc.plot_correlation_lag_violins(axis=args.correlation_lag_violins,
                                             use_sample_correlation=args.use_sample_correlation,
-                                            overwrite=args.overwrite)
+                                            overwrite=args.overwrite, **kwargs)
 
 
 if __name__ == "__main__":
