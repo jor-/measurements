@@ -395,6 +395,7 @@ def concentration_relative_standard_deviations_for_sample_lsm(measurements_objec
         file = _append_v_max_to_filename(file, v_max)
         if data_max is not None:
             file = _append_to_filename(file, f'_-_data_max_{data_max}')
+            data_max = float(data_max)
     data = measurements_object.concentration_relative_standard_deviations_for_sample_lsm()
     if data_max is None:
         if v_max is not None and v_max != 'fixed':
@@ -418,6 +419,7 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, 
         file = _append_v_max_to_filename(file, v_max)
         if data_max is not None:
             file = _append_to_filename(file, f'_-_data_max_{data_max}')
+            data_max = float(data_max)
     data = measurements_object.relative_standard_deviations_for_sample_lsm()
     if data_max is None:
         if v_max is not None and v_max != 'fixed':
@@ -450,6 +452,7 @@ def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(measurements
         file = _append_v_max_to_filename(file, v_max)
         if data_max is not None:
             file = _append_to_filename(file, f'_-_data_max_{data_max}')
+            data_max = float(data_max)
     data = measurements_object.concentration_quartile_coefficient_of_dispersion_for_sample_lsm(min_measurements=min_measurements)
     if data_max is None:
         if v_max is not None and v_max != 'fixed':
