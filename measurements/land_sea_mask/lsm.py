@@ -746,12 +746,16 @@ class LandSeaMask():
         if file is None:
             filename = str(self)
             if use_depth:
-                data = self.z[self.lsm] * scaling_factor
                 filename += '_with_depth'
             else:
-                data = self.lsm
                 filename += '_with_depth_level'
             file = '/tmp/{}.svg'.format(filename)
+
+        # get data
+        if use_depth:
+            data = self.z[self.lsm] * scaling_factor
+        else:
+            data = self.lsm
 
         # plot
         v_max = self.z[-1] * scaling_factor
