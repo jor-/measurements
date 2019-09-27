@@ -736,7 +736,7 @@ class LandSeaMask():
         return value_map[index]
 
     # plot
-    def plot(self, file=None, use_depth=True, overwrite=False):
+    def plot(self, file=None, use_depth=True, overwrite=False, show_axes=False):
         import util.plot.save
         import matplotlib.pyplot
 
@@ -759,7 +759,7 @@ class LandSeaMask():
 
         # plot
         v_max = self.z[-1] * scaling_factor
-        util.plot.save.data(file, data, land_value=0, v_max=v_max, overwrite=overwrite)
+        util.plot.save.data(file, data, land_value=0, v_max=v_max, overwrite=overwrite, show_axes=show_axes)
 
     # copy
     def copy(self):
