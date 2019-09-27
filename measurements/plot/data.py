@@ -42,25 +42,27 @@ def _data_abs_depth_difference(data):
 
 
 def _change_t_dim(data, t_dim=None):
-    old_t_dim = data.shape[0]
-    if t_dim is None:
-        t_dim = old_t_dim
-    factor = old_t_dim / t_dim
-    if factor.is_integer() and factor >= 1:
-        if factor > 1:
-            factor = int(factor)
-            new_shape = (t_dim,) + data.shape[1:]
-            new_data = np.zeros(new_shape)
-            for i in range(factor):
-                new_data += data[i::factor]
-            new_data /= factor
+    if t_dim is not None:
+        t_dim = int(t_dim)
+        old_t_dim = data.shape[0]
+        factor = old_t_dim / t_dim
+        if factor.is_integer() and factor >= 1:
+            if factor > 1:
+                factor = int(factor)
+                new_shape = (t_dim,) + data.shape[1:]
+                new_data = np.zeros(new_shape)
+                for i in range(factor):
+                    new_data += data[i::factor]
+                new_data /= factor
+            else:
+                new_data = data
         else:
-            new_data = data
+            raise ValueError(f'Old time dim {old_t_dim} must be a mutiple of new time dim {t_dim}.')
+        assert new_data.ndim == data.ndim
+        assert new_data.shape[0] == t_dim
+        return new_data
     else:
-        raise ValueError(f'Old time dim {old_t_dim} must be a mutiple of new time dim {t_dim}.')
-    assert new_data.ndim == data.ndim
-    assert new_data.shape[0] == t_dim
-    return new_data
+        return data
 
 
 def _average_data(data, sample_lsm, exclude_axes=None):
