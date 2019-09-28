@@ -73,6 +73,7 @@ def _main():
     parser.add_argument('--backend', help='The plot backend matplotlib should use.')
     parser.add_argument('--plot_type', default='all', help='Desired plot type.')
     parser.add_argument('--v_max', default=None, help='The maximal value used in the plot.')
+    parser.add_argument('--no_colorbar', action='store_true', help='Do not plot colorbar.')
     parser.add_argument('--kwargs', nargs=argparse.REMAINDER, help='Additional keyword arguments for plots.')
 
     # debug
@@ -100,6 +101,9 @@ def _main():
             v_max = float(v_max)
         except ValueError:
             pass
+
+    # colorbar
+    colorbar = not args.no_colorbar
 
     # call functions
     with util.logging.Logger(level=args.debug_level):
@@ -153,46 +157,46 @@ def _main():
 
             if args.means_sample_lsm:
                 measurements.plot.data.means_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.concentration_quantiles_sample_lsm:
                 measurements.plot.data.concentration_quantiles_for_sample_lsm(
                     mi, args.concentration_quantiles_sample_lsm,
-                    plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             # spread values
 
             if args.concentration_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.average_noise_standard_deviations_sample_lsm:
                 measurements.plot.data.average_noise_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.standard_deviations_sample_lsm:
                 measurements.plot.data.standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.concentration_relative_standard_deviations_sample_lsm:
                 measurements.plot.data.concentration_relative_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.relative_standard_deviations_sample_lsm:
                 measurements.plot.data.relative_standard_deviations_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.concentration_interquartile_range_sample_lsm:
                 measurements.plot.data.concentration_interquartile_range_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.average_noise_interquartile_range_sample_lsm:
                 measurements.plot.data.average_noise_interquartile_range_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
             if args.concentration_quartile_coefficient_of_dispersion_sample_lsm:
                 measurements.plot.data.concentration_quartile_coefficient_of_dispersion_for_sample_lsm(
-                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, **kwargs)
+                    mi, plot_type=args.plot_type, overwrite=args.overwrite, v_max=v_max, colorbar=colorbar, **kwargs)
 
         # sample correlation and correlation
 
