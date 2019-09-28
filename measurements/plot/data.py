@@ -184,7 +184,7 @@ def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None):
 
 def plot_y_z_profile(data, base_file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, colorbar=True, overwrite=False, remove_parts_without_data=True, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
     # prepare file
-    file = _append_to_filename(base_file, '_-_profile')
+    file = _append_to_filename(base_file, '_-_y_z_profile')
     if not colorbar:
         file = _append_to_filename(file, '_-_no_colorbar')
     if x_coordinate_from is not None:
