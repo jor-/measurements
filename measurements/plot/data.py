@@ -185,6 +185,8 @@ def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None):
 def plot_y_z_profile(data, base_file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, colorbar=True, overwrite=False, remove_parts_without_data=True, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
     # prepare file
     file = _append_to_filename(base_file, '_-_profile')
+    if not colorbar:
+        file = _append_to_filename(file, '_-_no_colorbar')
     if x_coordinate_from is not None:
         file = _append_to_filename(file, f'_-_x_from_{x_coordinate_from}')
         x_coordinate_from = float(x_coordinate_from)
@@ -241,45 +243,43 @@ def plot_y_z_profile(data, base_file, sample_lsm, v_max=None, x_coordinate_from=
         util.plot.auxiliary.generic(file, plot_function, **kwargs)
 
 
-def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False, **kargs):
+def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False, colorbar=True, **kargs):
     if plot_type == 'all':
-        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
-        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
+        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kargs)
+        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kargs)
         plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
         plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, x_coordinate_from=None, x_coordinate_to=None, **kargs)
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, x_coordinate_from=125, x_coordinate_to=290, **kargs)
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, x_coordinate_from=290, x_coordinate_to=20, **kargs)
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=None, x_coordinate_to=None, **kargs)
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=125, x_coordinate_to=290, **kargs)
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=290, x_coordinate_to=20, **kargs)
         if v_max is None:
             # plot with fixed v_max
             fixed_base_file = _append_v_max_to_filename(base_file, 'fixed')
-            plot_time_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite, **kargs)
-            plot_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite, **kargs)
+            plot_time_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kargs)
+            plot_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kargs)
             # plot seasonal values
             if data.ndim == 4:
                 t_dim = data.shape[0]
                 if t_dim % 4 == 0:
                     seasonal_data = _change_t_dim(data, t_dim=4)
-                    plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite, **kargs)
-                    plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite, colorbar=False, **kargs)
-                    plot_time_space_depth(seasonal_data, fixed_base_file, v_max='fixed', overwrite=overwrite, **kargs)
-                    plot_time_space_depth(seasonal_data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=False, **kargs)
+                    plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kargs)
+                    plot_time_space_depth(seasonal_data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kargs)
             # plot time difference
             diff = _data_abs_time_difference(data)
             diff_base_file = _append_to_filename(base_file, '_-_abs_time_diff')
-            plot_space_depth(diff, diff_base_file, v_max=None, overwrite=overwrite, **kargs)
+            plot_space_depth(diff, diff_base_file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kargs)
             plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, **kargs)
             fixed_diff_base_file = _append_v_max_to_filename(diff_base_file, 'fixed')
-            plot_space_depth(diff, fixed_diff_base_file, v_max='fixed', overwrite=overwrite, **kargs)
+            plot_space_depth(diff, fixed_diff_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kargs)
             # plot depth difference
             diff = _data_abs_depth_difference(data)
             diff_base_file = _append_to_filename(base_file, '_-_abs_depth_diff')
             plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, **kargs)
     elif plot_type == 'time_space_depth':
-        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
+        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kargs)
     elif plot_type == 'space_depth':
-        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
+        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kargs)
     elif plot_type == 'depth':
         plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
     elif plot_type == 'time':
@@ -287,12 +287,12 @@ def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=Fal
     elif plot_type == 'histogram':
         plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite, **kargs)
     elif plot_type == 'plot_y_z_profile':
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
+        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kargs)
     elif plot_type == 'space_depth_of_time_diff' or plot_type == 'depth_of_time_diff':
         diff = _data_abs_time_difference(data)
         diff_base_file = _append_to_filename(base_file, '_-_abs_time_diff')
         if plot_type == 'space_depth_of_time_diff':
-            plot_space_depth(diff, diff_base_file, v_max=v_max, overwrite=overwrite, **kargs)
+            plot_space_depth(diff, diff_base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kargs)
         if plot_type == 'depth_of_time_diff':
             plot_depth(diff, diff_base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kargs)
     elif plot_type == 'depth_of_depth_diff':
