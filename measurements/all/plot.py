@@ -74,6 +74,7 @@ def _main():
     parser.add_argument('--plot_type', default='all', help='Desired plot type.')
     parser.add_argument('--v_max', default=None, help='The maximal value used in the plot.')
     parser.add_argument('--no_colorbar', action='store_true', help='Do not plot colorbar.')
+    parser.add_argument('--use_log_scale', action='store_true', help='Use log scale in plot.')
     parser.add_argument('--kwargs', nargs=argparse.REMAINDER, help='Additional keyword arguments for plots.')
 
     # debug
@@ -141,17 +142,17 @@ def _main():
             if args.number_of_measurements_per_depth:
                 measurements.plot.number_of_measurements.per_depth(
                     mi, step_size=args.number_of_measurements_per_depth,
-                    overwrite=args.overwrite, **kwargs)
+                    overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
 
             if args.number_of_measurements_per_space_each_depth:
                 for max_value_fixed in (True, False):
                     measurements.plot.number_of_measurements.per_space_each_depth(
                         mi, max_value_fixed=max_value_fixed,
-                        overwrite=args.overwrite, **kwargs)
+                        overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
 
             if args.number_of_measurements_per_space:
                 measurements.plot.number_of_measurements.per_space(
-                    mi, overwrite=args.overwrite, **kwargs)
+                    mi, overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
 
             # expectation values
 
