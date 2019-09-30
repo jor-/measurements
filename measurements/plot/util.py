@@ -25,3 +25,16 @@ def filename(measurements_object, kind, kind_id, plot_name):
     path = pathlib.PurePath(file)
     # return
     return file
+
+
+def append_to_filename(filename, suffix):
+    path = pathlib.PurePath(filename)
+    new_suffix = suffix + path.suffix
+    path = path.parent.joinpath(path.stem + new_suffix)
+    return path
+
+
+def append_v_max_to_filename(filename, v_max):
+    if v_max is not None:
+        filename = append_to_filename(filename, f'_-_v_max_{v_max}')
+    return filename

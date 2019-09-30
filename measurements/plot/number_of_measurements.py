@@ -2,6 +2,7 @@ import os.path
 
 import numpy as np
 
+import util.plot.auxiliary
 import util.plot.save
 import measurements.plot.util
 
@@ -104,7 +105,7 @@ def _number_of_measurements_map(measurements_object, no_data_value=0, land_value
     return number_of_measurements_map
 
 
-def per_space_each_depth(measurements_object, max_value_fixed=True, use_log_scale=True, file=None, overwrite=False):
+def per_space_each_depth(measurements_object, v_max=None, use_log_scale=True, file=None, overwrite=False):
     # prepare filename
     if file is None:
         plot_name = 'number_of_measurements_per_space_depth_{depth}'
@@ -113,25 +114,22 @@ def per_space_each_depth(measurements_object, max_value_fixed=True, use_log_scal
             tick_power_limit_scientific_y = None
         else:
             tick_power_limit_scientific_y = 3
-        if max_value_fixed:
-            plot_name += '_-_max_value_fixed'
         file = _filename(measurements_object, plot_name)
+        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     # calculate number of measurements including layers
     no_data_value = 0
     land_value = np.nan
     data = _number_of_measurements_map(measurements_object, no_data_value=no_data_value, land_value=land_value)
-    if max_value_fixed:
-        data_mask = np.logical_and(np.logical_not(np.isnan(data)), np.logical_not(data == np.inf))
-        v_max = np.max(data[data_mask])
-    else:
-        v_max = None
+    # fix v_max if needed
+    if v_max == 'fixed':
+        v_max = util.plot.auxiliary.v_max(data)
     # plot number of measurements for each layers
     util.plot.save.data(file, data, no_data_value=no_data_value, land_value=land_value, v_min=1, v_max=v_max,
                         use_log_scale=use_log_scale, contours=False, colorbar=True,
                         tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
 
 
-def per_space(measurements_object, use_log_scale=True, file=None, overwrite=False):
+def per_space(measurements_object, v_max=None, use_log_scale=True, file=None, overwrite=False):
     # prepare filename
     if file is None:
         plot_name = 'number_of_measurements_per_space'
@@ -141,6 +139,7 @@ def per_space(measurements_object, use_log_scale=True, file=None, overwrite=Fals
         else:
             tick_power_limit_scientific_y = 3
         file = _filename(measurements_object, plot_name)
+        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     # calculate number of measurements add up all layers
     no_data_value = 0
     land_value = np.nan
@@ -149,7 +148,7 @@ def per_space(measurements_object, use_log_scale=True, file=None, overwrite=Fals
     data = np.nansum(data, axis=2)
     data[land_mask] = land_value
     # plot summed number of measurements
-    util.plot.save.data(file, data, no_data_value=no_data_value, land_value=land_value, v_min=1, v_max=None,
+    util.plot.save.data(file, data, no_data_value=no_data_value, land_value=land_value, v_min=1, v_max=v_max,
                         use_log_scale=use_log_scale, contours=False, colorbar=True,
                         tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
 

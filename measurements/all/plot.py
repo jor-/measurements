@@ -131,28 +131,23 @@ def _main():
 
             if args.number_of_measurements_per_time:
                 measurements.plot.number_of_measurements.per_time(
-                    mi, step_size=args.number_of_measurements_per_time,
-                    overwrite=args.overwrite, **kwargs)
+                    mi, step_size=args.number_of_measurements_per_time, overwrite=args.overwrite, **kwargs)
 
             if args.number_of_measurements_per_year:
                 measurements.plot.number_of_measurements.per_year(
-                    mi, number_of_bins=args.number_of_measurements_per_year,
-                    overwrite=args.overwrite, **kwargs)
+                    mi, number_of_bins=args.number_of_measurements_per_year, overwrite=args.overwrite, **kwargs)
 
             if args.number_of_measurements_per_depth:
                 measurements.plot.number_of_measurements.per_depth(
-                    mi, step_size=args.number_of_measurements_per_depth,
-                    overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
+                    mi, step_size=args.number_of_measurements_per_depth, overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
 
             if args.number_of_measurements_per_space_each_depth:
-                for max_value_fixed in (True, False):
-                    measurements.plot.number_of_measurements.per_space_each_depth(
-                        mi, max_value_fixed=max_value_fixed,
-                        overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
+                measurements.plot.number_of_measurements.per_space_each_depth(
+                    mi, v_max=v_max, overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
 
             if args.number_of_measurements_per_space:
                 measurements.plot.number_of_measurements.per_space(
-                    mi, overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
+                    mi, v_max=v_max, overwrite=args.overwrite, use_log_scale=args.use_log_scale, **kwargs)
 
             # expectation values
 
