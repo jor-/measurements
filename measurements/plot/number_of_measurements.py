@@ -25,7 +25,7 @@ def _filename(measurements_object, plot_name):
     return measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
 
 
-def per_time(measurements_object, step_size=None, file=None, overwrite=False):
+def per_time(measurements_object, step_size=None, file=None, overwrite=False, **kwargs):
     if step_size is None:
         step_size = 1
     else:
@@ -41,10 +41,10 @@ def per_time(measurements_object, step_size=None, file=None, overwrite=False):
     t = points[:, 0]
 
     util.plot.save.histogram(file, t, step_size=step_size,
-                             tick_power_limit_scientific_y=3, overwrite=overwrite)
+                             tick_power_limit_scientific_y=3, overwrite=overwrite, **kwargs)
 
 
-def per_year(measurements_object, number_of_bins=None, file=None, overwrite=False):
+def per_year(measurements_object, number_of_bins=None, file=None, overwrite=False, **kwargs):
     if number_of_bins is None:
         number_of_bins = 365
     else:
@@ -63,10 +63,10 @@ def per_year(measurements_object, number_of_bins=None, file=None, overwrite=Fals
     t = t % 1
 
     util.plot.save.histogram(file, t, step_size=step_size,
-                             tick_power_limit_scientific_y=3, overwrite=overwrite)
+                             tick_power_limit_scientific_y=3, overwrite=overwrite, **kwargs)
 
 
-def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None, overwrite=False):
+def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None, overwrite=False, **kwargs):
     if step_size is None:
         step_size = 50
     else:
@@ -87,7 +87,7 @@ def per_depth(measurements_object, step_size=None, use_log_scale=True, file=None
     z = points[:, 3]
 
     util.plot.save.histogram(file, z, step_size=step_size, use_log_scale=use_log_scale,
-                             tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
+                             tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite, **kwargs)
 
 
 def _number_of_measurements_map(measurements_object, no_data_value=0, land_value=np.nan):
@@ -105,7 +105,7 @@ def _number_of_measurements_map(measurements_object, no_data_value=0, land_value
     return number_of_measurements_map
 
 
-def per_space_each_depth(measurements_object, v_max=None, use_log_scale=True, file=None, overwrite=False):
+def per_space_each_depth(measurements_object, v_max=None, use_log_scale=True, file=None, overwrite=False, **kwargs):
     # prepare filename
     if file is None:
         plot_name = 'number_of_measurements_per_space_depth_{depth}'
@@ -126,10 +126,10 @@ def per_space_each_depth(measurements_object, v_max=None, use_log_scale=True, fi
     # plot number of measurements for each layers
     util.plot.save.data(file, data, no_data_value=no_data_value, land_value=land_value, v_min=1, v_max=v_max,
                         use_log_scale=use_log_scale, contours=False, colorbar=True,
-                        tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
+                        tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite, **kwargs)
 
 
-def per_space(measurements_object, v_max=None, use_log_scale=True, file=None, overwrite=False):
+def per_space(measurements_object, v_max=None, use_log_scale=True, file=None, overwrite=False, **kwargs):
     # prepare filename
     if file is None:
         plot_name = 'number_of_measurements_per_space'
@@ -150,7 +150,7 @@ def per_space(measurements_object, v_max=None, use_log_scale=True, file=None, ov
     # plot summed number of measurements
     util.plot.save.data(file, data, no_data_value=no_data_value, land_value=land_value, v_min=1, v_max=v_max,
                         use_log_scale=use_log_scale, contours=False, colorbar=True,
-                        tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite)
+                        tick_power_limit_scientific_y=tick_power_limit_scientific_y, overwrite=overwrite, **kwargs)
 
 
 def _number_of_estimations(measurements_object, min_number_of_measurements_for_estimation=1, min_number_of_estimations=1):
