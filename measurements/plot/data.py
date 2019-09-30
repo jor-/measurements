@@ -237,10 +237,7 @@ def plot_y_z_profile(data, base_file, sample_lsm, v_max=None, x_coordinate_from=
             transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=y_ticks_decimals)
             util.plot.auxiliary.transform_tick_labels(transform_x=transform_y_ticks, transform_y=transform_depth_ticks, axes=axes)
 
-            # add colorbar
-            util.plot.auxiliary.add_colorbar(axes_image, colorbar=colorbar, axes=axes)
-
-        util.plot.auxiliary.generic(file, plot_function, **kwargs)
+        util.plot.auxiliary.generic(file, plot_function, colorbar=colorbar, **kwargs)
 
 
 def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False, colorbar=True, **kargs):
