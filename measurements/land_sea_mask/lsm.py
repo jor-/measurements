@@ -749,6 +749,8 @@ class LandSeaMask():
                 filename += '_with_depth'
             else:
                 filename += '_with_depth_level'
+            if show_axes:
+                filename += '_with_axes'
             file = '/tmp/{}.svg'.format(filename)
 
         # get data
