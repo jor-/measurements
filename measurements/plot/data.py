@@ -162,7 +162,9 @@ def _prepare_tick_lables(tick_lables, ticks_decimals=None):
 
 def _transform_y_ticks(ticks, sample_lsm, ticks_decimals=None):
     tick_lables = ticks / sample_lsm.y_dim * 180 - 90
-    return _prepare_tick_lables(tick_lables, ticks_decimals)
+    tick_lables = _prepare_tick_lables(tick_lables, ticks_decimals)
+    tick_lables = [f'${tick}\\!\\degree$N' if tick >= 0 else f'${-tick}\\!\\degree$S' for tick in tick_lables]
+    return tick_lables
 
 
 def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None):
