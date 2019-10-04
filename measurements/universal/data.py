@@ -406,29 +406,29 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     # data general
 
-    def _data_map_indices_dict(self, kind, *args, **kargs):
+    def _data_map_indices_dict(self, kind, *args, **kwargs):
         if kind == 'concentration_means':
-            data_map_indices_dict = self._sample_data.sample_concentration_means_map_indices_dict(*args, min_measurements=self.min_measurements_mean, **kargs)
+            data_map_indices_dict = self._sample_data.sample_concentration_means_map_indices_dict(*args, min_measurements=self.min_measurements_mean, **kwargs)
         elif kind == 'concentration_quantiles':
-            data_map_indices_dict = self._sample_data.sample_concentration_quantiles_map_indices_dict(*args, **kargs)
+            data_map_indices_dict = self._sample_data.sample_concentration_quantiles_map_indices_dict(*args, **kwargs)
         elif kind == 'average_noise_quantiles':
-            data_map_indices_dict = self._sample_data.sample_average_noise_quantiles_map_indices_dict(*args, **kargs)
+            data_map_indices_dict = self._sample_data.sample_average_noise_quantiles_map_indices_dict(*args, **kwargs)
         elif kind == 'concentration_standard_deviations':
-            data_map_indices_dict = self._sample_data.sample_concentration_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=0, **kargs)
+            data_map_indices_dict = self._sample_data.sample_concentration_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=0, **kwargs)
         elif kind == 'average_noise_standard_deviations':
-            data_map_indices_dict = self._sample_data.sample_average_noise_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation, **kargs)
+            data_map_indices_dict = self._sample_data.sample_average_noise_standard_deviations_map_indices_dict(*args, min_measurements=self.min_measurements_standard_deviation, min_value=self.min_standard_deviation, **kwargs)
         else:
             raise ValueError('Unknown kind {}.'.format(kind))
         return data_map_indices_dict
 
     # data for sample lsm
 
-    def _data_for_sample_lsm(self, kind, *args, **kargs):
-        util.logging.debug('{}: Calculating {} data for sample lsm with args {} and kargs {}.'.format(self.__class__.__name__, kind, args, kargs))
+    def _data_for_sample_lsm(self, kind, *args, **kwargs):
+        util.logging.debug('{}: Calculating {} data for sample lsm with args {} and kwargs {}.'.format(self.__class__.__name__, kind, args, kwargs))
         self._check_kind(kind)
 
         # get data
-        data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kargs)
+        data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kwargs)
         map_indices_and_values = data_map_indices_dict.toarray()
 
         # choose fill strategy
@@ -540,12 +540,12 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
 
     # data for sample points
 
-    def _data_for_sample_points(self, kind, *args, **kargs):
-        util.logging.debug('{}: Calculating {} data for sample points with args {} and kargs {}.'.format(self.__class__.__name__, kind, args, kargs))
+    def _data_for_sample_points(self, kind, *args, **kwargs):
+        util.logging.debug('{}: Calculating {} data for sample points with args {} and kwargs {}.'.format(self.__class__.__name__, kind, args, kwargs))
         self._check_kind(kind)
 
         # get data
-        data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kargs)
+        data_map_indices_dict = self._data_map_indices_dict(kind, *args, **kwargs)
         data = self._sample_data._convert_map_indices_dict_to_array_for_points(data_map_indices_dict, is_discard_year=True)
         number_of_values = data.count()
         number_of_points = len(data)
@@ -565,13 +565,13 @@ class MeasurementsAnnualPeriodic(MeasurementsAnnualPeriodicBase):
                 data[data.mask] = data_map_indices_dict.values().mean()
             elif fill_strategy == 'interpolate':
                 if kind == 'concentration_means':
-                    data_for_sample_lsm = self.means_for_sample_lsm(*args, **kargs)
+                    data_for_sample_lsm = self.means_for_sample_lsm(*args, **kwargs)
                 elif kind == 'concentration_quantiles':
-                    data_for_sample_lsm = self.concentration_quantiles_for_sample_lsm(*args, **kargs)
+                    data_for_sample_lsm = self.concentration_quantiles_for_sample_lsm(*args, **kwargs)
                 elif kind == 'concentration_standard_deviations':
-                    data_for_sample_lsm = self.concentration_standard_deviations_for_sample_lsm(*args, **kargs)
+                    data_for_sample_lsm = self.concentration_standard_deviations_for_sample_lsm(*args, **kwargs)
                 elif kind == 'average_noise_standard_deviations':
-                    data_for_sample_lsm = self.average_noise_standard_deviations_for_sample_lsm(*args, **kargs)
+                    data_for_sample_lsm = self.average_noise_standard_deviations_for_sample_lsm(*args, **kwargs)
                 data[data.mask] = self._interpolator.interpolate_data_for_points_from_interpolated_lsm_data(data_for_sample_lsm, self.points[data.mask])
                 data[data.mask] = np.maximum(data[data.mask], self._min_value)
             elif fill_strategy == 'constant':
