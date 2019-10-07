@@ -81,20 +81,22 @@ def _average_data(data, sample_lsm, exclude_axes=None):
     return data_averaged
 
 
-def plot_time_space_depth(data, file, v_max=None, overwrite=False, colorbar=True, t_dim=None, **kwargs):
+def plot_time_space_depth(data, file, v_max=None, t_dim=None, colorbar=True, overwrite=False, **kwargs):
     assert data.ndim == 4
     data = _change_t_dim(data, t_dim=t_dim)
     v_min = 0
-    # fix v_max if needed
-    if v_max == 'fixed':
-        v_max = util.plot.auxiliary.v_max(data)
     # prepare file
-    if not colorbar:
-        file = measurements.plot.util.append_to_filename(file, '_-_no_colorbar')
+    file = measurements.plot.util.append_to_filename(file, '_-_time_space_depth')
+    file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     if data.shape[0] > 1:
         file = measurements.plot.util.append_to_filename(file, '_-_time_{time}_depth_{depth}')
     else:
         file = measurements.plot.util.append_to_filename(file, '_-_depth_{depth}')
+    if not colorbar:
+        file = measurements.plot.util.append_to_filename(file, '_-_no_colorbar')
+    # fix v_max if needed
+    if v_max == 'fixed':
+        v_max = util.plot.auxiliary.v_max(data)
     # plot data
     util.plot.save.data(file, data, no_data_value=np.inf, v_min=v_min, v_max=v_max, contours=False, colorbar=colorbar, overwrite=overwrite, **kwargs)
 
@@ -103,11 +105,14 @@ def plot_space_depth(data, file, v_max=None, overwrite=False, colorbar=True, **k
     plot_time_space_depth(data, file, v_max=v_max, overwrite=overwrite, t_dim=1, colorbar=colorbar, **kwargs)
 
 
-def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, depth_on_y_axis=True, depth_decimals=None, **kwargs):
+def plot_depth(data, file, sample_lsm, v_max=None, overwrite=False, depth_on_y_axis=True, depth_decimals=None, **kwargs):
     assert data.ndim == 4
     v_min = 0
     # prepare file
-    file = measurements.plot.util.append_to_filename(base_file, '_-_depth')
+    file = measurements.plot.util.append_to_filename(file, '_-_depth')
+    file = measurements.plot.util.append_v_max_to_filename(file, v_max)
+    if not depth_on_y_axis:
+        file = measurements.plot.util.append_to_filename(file, '_-_depth_on_x_axis')
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
         data_averaged = _average_data(data, sample_lsm, exclude_axes=(3,))
@@ -119,11 +124,12 @@ def plot_depth(data, base_file, sample_lsm, v_max=None, overwrite=False, depth_o
             util.plot.save.fill_between(file, x, 0, data_averaged, x_min=x.min(), x_max=x.max(), y_min=v_min, y_max=v_max, color='b', overwrite=overwrite, transform_x=transform_depth_ticks, **kwargs)
 
 
-def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False, **kwargs):
+def plot_time(data, file, sample_lsm, v_max=None, overwrite=False, **kwargs):
     assert data.ndim == 4
     v_min = 0
     # prepare file
-    file = measurements.plot.util.append_to_filename(base_file, '_-_time')
+    file = measurements.plot.util.append_to_filename(file, '_-_time')
+    file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
         data_averaged = _average_data(data, sample_lsm, exclude_axes=(0,))
@@ -138,11 +144,12 @@ def plot_time(data, base_file, sample_lsm, v_max=None, overwrite=False, **kwargs
         util.plot.save.line(file, x, data_averaged, y_min=v_min, y_max=v_max, line_color='b', line_width=3, xticks=np.arange(5) / 4, overwrite=overwrite, **kwargs)
 
 
-def plot_histogram(data, base_file, v_max=None, overwrite=False, **kwargs):
+def plot_histogram(data, file, v_max=None, overwrite=False, **kwargs):
     assert data.ndim == 4
     v_min = 0
     # prepare file
-    file = measurements.plot.util.append_to_filename(base_file, '_-_histogram')
+    file = measurements.plot.util.append_to_filename(file, '_-_histogram')
+    file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     # plot histogram
     if overwrite or not os.path.exists(file):
         data_non_nan = data[~np.isnan(data)]
@@ -172,17 +179,20 @@ def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None):
     return _prepare_tick_lables(tick_lables, ticks_decimals)
 
 
-def plot_y_z_profile(data, base_file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, colorbar=True, overwrite=False, remove_parts_without_data=True, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
+def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=True, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
     # prepare file
-    file = measurements.plot.util.append_to_filename(base_file, '_-_y_z_profile')
-    if not colorbar:
-        file = measurements.plot.util.append_to_filename(file, '_-_no_colorbar')
+    file = measurements.plot.util.append_to_filename(file, '_-_y_z_profile')
+    file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     if x_coordinate_from is not None:
         file = measurements.plot.util.append_to_filename(file, f'_-_x_from_{x_coordinate_from}')
         x_coordinate_from = float(x_coordinate_from)
     if x_coordinate_to is not None:
         file = measurements.plot.util.append_to_filename(file, f'_-_x_to_{x_coordinate_to}')
         x_coordinate_to = float(x_coordinate_to)
+    if not remove_parts_without_data:
+        file = measurements.plot.util.append_to_filename(file, '_-_with_parts_without_data')
+    if not colorbar:
+        file = measurements.plot.util.append_to_filename(file, '_-_no_colorbar')
 
     if overwrite or not os.path.exists(file):
         # prepare data
@@ -230,62 +240,62 @@ def plot_y_z_profile(data, base_file, sample_lsm, v_max=None, x_coordinate_from=
         util.plot.auxiliary.generic(file, plot_function, colorbar=colorbar, **kwargs)
 
 
-def plot(data, base_file, sample_lsm, plot_type='all', v_max=None, overwrite=False, colorbar=True, **kwargs):
+def plot(data, file, sample_lsm, plot_type='all', v_max=None, overwrite=False, colorbar=True, **kwargs):
     if plot_type == 'all':
-        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
-        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
-        plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
-        plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
-        plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite, **kwargs)
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=None, x_coordinate_to=None, **kwargs)
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=125, x_coordinate_to=290, **kwargs)
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=290, x_coordinate_to=20, **kwargs)
+        plot_time_space_depth(data, file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
+        plot_space_depth(data, file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
+        plot_depth(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
+        plot_time(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
+        plot_histogram(data, file, v_max=v_max, overwrite=overwrite, **kwargs)
+        plot_y_z_profile(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=None, x_coordinate_to=None, **kwargs)
+        plot_y_z_profile(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=125, x_coordinate_to=290, **kwargs)
+        plot_y_z_profile(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, x_coordinate_from=290, x_coordinate_to=20, **kwargs)
         if v_max is None:
             # plot with fixed v_max
-            fixed_base_file = measurements.plot.util.append_v_max_to_filename(base_file, 'fixed')
-            plot_time_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
-            plot_space_depth(data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
+            fixed_file = measurements.plot.util.append_v_max_to_filename(file, 'fixed')
+            plot_time_space_depth(data, fixed_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
+            plot_space_depth(data, fixed_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
             # plot seasonal values
             if data.ndim == 4:
                 t_dim = data.shape[0]
                 if t_dim % 4 == 0:
                     seasonal_data = _change_t_dim(data, t_dim=4)
-                    plot_time_space_depth(seasonal_data, base_file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kwargs)
-                    plot_time_space_depth(seasonal_data, fixed_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
+                    plot_time_space_depth(seasonal_data, file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kwargs)
+                    plot_time_space_depth(seasonal_data, fixed_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
             # plot time difference
             diff = _data_abs_time_difference(data)
-            diff_base_file = measurements.plot.util.append_to_filename(base_file, '_-_abs_time_diff')
-            plot_space_depth(diff, diff_base_file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kwargs)
-            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, **kwargs)
-            fixed_diff_base_file = measurements.plot.util.append_v_max_to_filename(diff_base_file, 'fixed')
-            plot_space_depth(diff, fixed_diff_base_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
+            diff_file = measurements.plot.util.append_to_filename(file, '_-_abs_time_diff')
+            plot_space_depth(diff, diff_file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kwargs)
+            plot_depth(diff, diff_file, sample_lsm, v_max=None, overwrite=overwrite, **kwargs)
+            fixed_diff_file = measurements.plot.util.append_v_max_to_filename(diff_file, 'fixed')
+            plot_space_depth(diff, fixed_diff_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
             # plot depth difference
             diff = _data_abs_depth_difference(data)
-            diff_base_file = measurements.plot.util.append_to_filename(base_file, '_-_abs_depth_diff')
-            plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, **kwargs)
+            diff_file = measurements.plot.util.append_to_filename(file, '_-_abs_depth_diff')
+            plot_depth(diff, diff_file, sample_lsm, v_max=None, overwrite=overwrite, **kwargs)
     elif plot_type == 'time_space_depth':
-        plot_time_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
+        plot_time_space_depth(data, file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
     elif plot_type == 'space_depth':
-        plot_space_depth(data, base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
+        plot_space_depth(data, file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
     elif plot_type == 'depth':
-        plot_depth(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
+        plot_depth(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
     elif plot_type == 'time':
-        plot_time(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
+        plot_time(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
     elif plot_type == 'histogram':
-        plot_histogram(data, base_file, v_max=v_max, overwrite=overwrite, **kwargs)
+        plot_histogram(data, file, v_max=v_max, overwrite=overwrite, **kwargs)
     elif plot_type == 'plot_y_z_profile':
-        plot_y_z_profile(data, base_file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
+        plot_y_z_profile(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
     elif plot_type == 'space_depth_of_time_diff' or plot_type == 'depth_of_time_diff':
         diff = _data_abs_time_difference(data)
-        diff_base_file = measurements.plot.util.append_to_filename(base_file, '_-_abs_time_diff')
+        diff_file = measurements.plot.util.append_to_filename(file, '_-_abs_time_diff')
         if plot_type == 'space_depth_of_time_diff':
-            plot_space_depth(diff, diff_base_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
+            plot_space_depth(diff, diff_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
         if plot_type == 'depth_of_time_diff':
-            plot_depth(diff, diff_base_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
+            plot_depth(diff, diff_file, sample_lsm, v_max=v_max, overwrite=overwrite, **kwargs)
     elif plot_type == 'depth_of_depth_diff':
         diff = _data_abs_depth_difference(data)
-        diff_base_file = measurements.plot.util.append_to_filename(base_file, '_-_abs_depth_diff')
-        plot_depth(diff, diff_base_file, sample_lsm, v_max=None, overwrite=overwrite, **kwargs)
+        diff_file = measurements.plot.util.append_to_filename(file, '_-_abs_depth_diff')
+        plot_depth(diff, diff_file, sample_lsm, v_max=None, overwrite=overwrite, **kwargs)
     else:
         raise ValueError(f'Unknown plot type {plot_type}.')
 
@@ -298,7 +308,6 @@ def means_for_sample_lsm(measurements_object, file=None, plot_type='all', v_max=
         kind_id = measurements_object.mean_id
         plot_name = 'means_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     data = measurements_object.means_for_sample_lsm()
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite, **kwargs)
 
@@ -309,7 +318,6 @@ def concentration_quantiles_for_sample_lsm(measurements_object, quantile, min_me
         kind_id = measurements_object.quantile_id(quantile, min_measurements=min_measurements)
         plot_name = f'concentration_quantiles_for_sample_lsm_{float(quantile):0<4}'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     data = measurements_object.concentration_quantiles_for_sample_lsm(quantile, min_measurements=min_measurements)
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite, **kwargs)
 
@@ -320,7 +328,6 @@ def concentration_standard_deviations_for_sample_lsm(measurements_object, file=N
         kind_id = measurements_object.standard_deviation_id
         plot_name = 'concentration_standard_deviations_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     data = measurements_object.concentration_standard_deviations_for_sample_lsm()
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite, **kwargs)
 
@@ -331,7 +338,6 @@ def average_noise_standard_deviations_for_sample_lsm(measurements_object, file=N
         kind_id = measurements_object.standard_deviation_id
         plot_name = 'average_noise_standard_deviations_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     data = measurements_object.average_noise_standard_deviations_for_sample_lsm()
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite, **kwargs)
 
@@ -342,7 +348,6 @@ def standard_deviations_for_sample_lsm(measurements_object, file=None, plot_type
         kind_id = measurements_object.standard_deviation_id
         plot_name = 'standard_deviations_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     data = measurements_object.standard_deviations_for_sample_lsm()
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite, **kwargs)
 
@@ -354,7 +359,6 @@ def concentration_interquartile_range_for_sample_lsm(measurements_object, min_me
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id.split(measurements.universal.constants.SEPERATOR)[1:])
         plot_name = 'concentration_interquartile_range_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
     data = measurements_object.concentration_interquartile_range_for_sample_lsm(min_measurements=min_measurements)
     plot(data, file, measurements_object.sample_lsm, plot_type=plot_type, v_max=v_max, overwrite=overwrite, **kwargs)
 
@@ -379,7 +383,6 @@ def concentration_relative_standard_deviations_for_sample_lsm(measurements_objec
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
         plot_name = 'concentration_relative_standard_deviations_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
         if data_max is not None:
             file = measurements.plot.util.append_to_filename(file, f'_-_data_max_{data_max}')
             data_max = float(data_max)
@@ -403,7 +406,6 @@ def relative_standard_deviations_for_sample_lsm(measurements_object, file=None, 
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
         plot_name = 'relative_standard_deviations_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
         if data_max is not None:
             file = measurements.plot.util.append_to_filename(file, f'_-_data_max_{data_max}')
             data_max = float(data_max)
@@ -436,7 +438,6 @@ def concentration_quartile_coefficient_of_dispersion_for_sample_lsm(measurements
         kind_id = measurements.universal.constants.SEPERATOR.join(kind_id)
         plot_name = 'concentration_quartile_coefficient_of_dispersion_for_sample_lsm'
         file = measurements.plot.util.filename(measurements_object, kind, kind_id, plot_name)
-        file = measurements.plot.util.append_v_max_to_filename(file, v_max)
         if data_max is not None:
             file = measurements.plot.util.append_to_filename(file, f'_-_data_max_{data_max}')
             data_max = float(data_max)
