@@ -179,7 +179,7 @@ def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None):
     return _prepare_tick_lables(tick_lables, ticks_decimals)
 
 
-def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=True, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
+def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=False, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
     # prepare file
     file = measurements.plot.util.append_to_filename(file, '_-_y_z_profile')
     file = measurements.plot.util.append_v_max_to_filename(file, v_max)
@@ -189,8 +189,9 @@ def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None,
     if x_coordinate_to is not None:
         file = measurements.plot.util.append_to_filename(file, f'_-_x_to_{x_coordinate_to}')
         x_coordinate_to = float(x_coordinate_to)
-    if not remove_parts_without_data:
-        file = measurements.plot.util.append_to_filename(file, '_-_with_parts_without_data')
+    remove_parts_without_data = bool(remove_parts_without_data)
+    if remove_parts_without_data:
+        file = measurements.plot.util.append_to_filename(file, '_-_parts_without_data_removed')
     if not colorbar:
         file = measurements.plot.util.append_to_filename(file, '_-_no_colorbar')
 
