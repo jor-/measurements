@@ -12,11 +12,12 @@ import util.plot.auxiliary
 import util.plot.save
 
 
-def _data_abs_time_difference(data):
+def _data_abs_time_difference(data, offset=1):
     diff = np.empty_like(data)
-    m = data.shape[0] - 1
-    diff[:m] = data[1:] - data[:m]
-    diff[m] = data[0] - data[m]
+    offset = int(offset)
+    m = len(data) - offset
+    diff[:m] = data[offset:] - data[:m]
+    diff[m:] = data[:offset] - data[m:]
     diff = np.abs(diff)
     return diff
 
@@ -264,8 +265,14 @@ def plot(data, file, sample_lsm, plot_type='all', v_max=None, overwrite=False, c
                     plot_time_space_depth(seasonal_data, file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kwargs)
                     plot_time_space_depth(seasonal_data, fixed_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
             # plot time difference
-            diff = _data_abs_time_difference(data)
-            diff_file = measurements.plot.util.append_to_filename(file, '_-_abs_time_diff')
+            try:
+                time_diff_offset = kwargs['time_diff_offset']
+            except KeyError:
+                time_diff_offset = 1
+            else:
+                del kwargs['time_diff_offset']
+            diff = _data_abs_time_difference(data, offset=time_diff_offset)
+            diff_file = measurements.plot.util.append_to_filename(file, f'_-_abs_time_diff_{time_diff_offset}')
             plot_space_depth(diff, diff_file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kwargs)
             plot_depth(diff, diff_file, sample_lsm, v_max=None, overwrite=overwrite, **kwargs)
             fixed_diff_file = measurements.plot.util.append_v_max_to_filename(diff_file, 'fixed')
@@ -287,8 +294,14 @@ def plot(data, file, sample_lsm, plot_type='all', v_max=None, overwrite=False, c
     elif plot_type == 'plot_y_z_profile':
         plot_y_z_profile(data, file, sample_lsm, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
     elif plot_type == 'space_depth_of_time_diff' or plot_type == 'depth_of_time_diff':
-        diff = _data_abs_time_difference(data)
-        diff_file = measurements.plot.util.append_to_filename(file, '_-_abs_time_diff')
+        try:
+            time_diff_offset = kwargs['time_diff_offset']
+        except KeyError:
+            time_diff_offset = 1
+        else:
+            del kwargs['time_diff_offset']
+        diff = _data_abs_time_difference(data, offset=time_diff_offset)
+        diff_file = measurements.plot.util.append_to_filename(file, f'_-_abs_time_diff_{time_diff_offset}')
         if plot_type == 'space_depth_of_time_diff':
             plot_space_depth(diff, diff_file, v_max=v_max, overwrite=overwrite, colorbar=colorbar, **kwargs)
         if plot_type == 'depth_of_time_diff':
