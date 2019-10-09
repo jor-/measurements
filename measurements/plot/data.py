@@ -117,12 +117,17 @@ def plot_depth(data, file, sample_lsm, v_max=None, overwrite=False, depth_on_y_a
     # plot all averaged without depth
     if overwrite or not os.path.exists(file):
         data_averaged = _average_data(data, sample_lsm, exclude_axes=(3,))
-        x = np.arange(len(data_averaged))
-        transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=depth_decimals)
+        # add bound as separate data
+        n = len(data_averaged)
+        x = np.arange(-1, n + 1)
+        data_plot = np.array([data_averaged[0], *data_averaged, data_averaged[-1]])
+        # prepare depth tick labels
+        transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=depth_decimals, values='center_with_bounds')
+        # plot
         if depth_on_y_axis:
-            util.plot.save.fill_between_x(file, x, 0, data_averaged, y_min=x.min(), y_max=x.max(), x_min=v_min, x_max=v_max, color='b', overwrite=overwrite, transform_y=transform_depth_ticks, invert_y_axis=True, **kwargs)
+            util.plot.save.fill_between_x(file, x, 0, data_plot, y_min=x.min(), y_max=x.max(), x_min=v_min, x_max=v_max, color='b', overwrite=overwrite, transform_y=transform_depth_ticks, invert_y_axis=True, **kwargs)
         else:
-            util.plot.save.fill_between(file, x, 0, data_averaged, x_min=x.min(), x_max=x.max(), y_min=v_min, y_max=v_max, color='b', overwrite=overwrite, transform_x=transform_depth_ticks, **kwargs)
+            util.plot.save.fill_between(file, x, 0, data_plot, x_min=x.min(), x_max=x.max(), y_min=v_min, y_max=v_max, color='b', overwrite=overwrite, transform_x=transform_depth_ticks, **kwargs)
 
 
 def plot_time(data, file, sample_lsm, v_max=None, overwrite=False, **kwargs):
@@ -175,9 +180,33 @@ def _transform_y_ticks(ticks, sample_lsm, ticks_decimals=None):
     return tick_lables
 
 
-def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None):
-    tick_lables = sample_lsm.z[(ticks % len(sample_lsm.z)).astype(np.int)]
-    return _prepare_tick_lables(tick_lables, ticks_decimals)
+def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None, values='center_with_bounds'):
+    def transform_tick(i):
+        if np.issubdtype(type(i), np.floating):
+            assert i.is_integer()
+            i = int(i)
+        assert np.issubdtype(type(i), np.integer)
+        if values == 'left':
+            if 0 <= i <= sample_lsm.z_dim - 1:
+                return sample_lsm.z_left[i]
+            elif i == sample_lsm.z_dim:
+                return sample_lsm.z_right[-1]
+            else:
+                return np.iinfo(np.int32).min
+        elif values == 'center_with_bounds':
+            if i == 0:
+                return sample_lsm.z_left[0]
+            elif i == sample_lsm.z_dim - 1:
+                return sample_lsm.z_right[-1]
+            elif 0 < i < sample_lsm.z_dim - 1:
+                return sample_lsm.z_center[i]
+            else:
+                return np.iinfo(np.int32).min
+        else:
+            raise ValueError(f'Unksupported values {values}.')
+
+    tick_lables = [transform_tick(i) for i in ticks]
+    return _prepare_tick_lables(tick_lables, ticks_decimals=ticks_decimals)
 
 
 def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=False, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
@@ -236,7 +265,7 @@ def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None,
 
             # set x and y labels
             transform_y_ticks = lambda ticks: _transform_y_ticks(ticks, sample_lsm, ticks_decimals=x_ticks_decimals)
-            transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=y_ticks_decimals)
+            transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=y_ticks_decimals, values='left')
             util.plot.auxiliary.transform_tick_labels(transform_x=transform_y_ticks, transform_y=transform_depth_ticks, axes=axes)
 
         util.plot.auxiliary.generic(file, plot_function, colorbar=colorbar, **kwargs)
