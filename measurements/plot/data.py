@@ -125,17 +125,17 @@ def plot_depth(data, file, sample_lsm, v_max=None, overwrite=False, depth_on_y_a
         x_min = 0
         x_max = n
         # prepare depth tick labels
-        transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=depth_decimals, values='left')
+        transform_depth_tick = lambda ticks: _transform_depth_tick(ticks, sample_lsm, tick_decimals=depth_decimals, values='left')
         # plot
         if depth_on_y_axis:
             util.plot.save.fill_between_x(
                 file, x, 0, data_averaged, y_min=x_min, y_max=x_max, x_min=v_min, x_max=v_max,
-                color='b', overwrite=overwrite, tick_transform_y=transform_depth_ticks, tick_interger_only_y=True, invert_y_axis=True,
+                color='b', overwrite=overwrite, tick_transform_y=transform_depth_tick, tick_interger_only_y=True, invert_y_axis=True,
                 **kwargs)
         else:
             util.plot.save.fill_between(
                 file, x, 0, data_averaged, x_min=x_min, x_max=x_max, y_min=v_min, y_max=v_max,
-                color='b', overwrite=overwrite, tick_transform_x=transform_depth_ticks, tick_interger_only_x=True,
+                color='b', overwrite=overwrite, tick_transform_x=transform_depth_tick, tick_interger_only_x=True,
                 **kwargs)
 
 
@@ -173,49 +173,50 @@ def plot_histogram(data, file, v_max=None, overwrite=False, **kwargs):
         util.plot.save.histogram(file, data_non_nan, x_min=v_min, x_max=v_max, use_log_scale=True, overwrite=overwrite, **kwargs)
 
 
-def _prepare_tick_lables(tick_lables, ticks_decimals=None):
-    if ticks_decimals is not None:
-        ticks_decimals = int(ticks_decimals)
-        tick_lables = [np.around(tick, decimals=ticks_decimals) for tick in tick_lables]
-        if ticks_decimals == 0:
-            tick_lables = [int(tick) for tick in tick_lables]
-    return tick_lables
+def _prepare_tick_lable(tick, tick_decimals=None):
+    if tick_decimals is not None:
+        tick_decimals = int(tick_decimals)
+        tick_lable = np.around(tick, decimals=tick_decimals)
+        if tick_decimals == 0:
+            tick_lable = int(tick_lable)
+    return tick_lable
 
 
-def _transform_y_ticks(ticks, sample_lsm, ticks_decimals=None):
-    tick_lables = ticks / sample_lsm.y_dim * 180 - 90
-    tick_lables = _prepare_tick_lables(tick_lables, ticks_decimals)
-    tick_lables = [f'${tick}\\!\\degree$N' if tick >= 0 else f'${-tick}\\!\\degree$S' for tick in tick_lables]
-    return tick_lables
+def _transform_y_tick(tick, sample_lsm, tick_decimals=None):
+    tick = tick / sample_lsm.y_dim * 180 - 90
+    tick = _prepare_tick_lable(tick, tick_decimals=tick_decimals)
+    if tick >= 0:
+        tick_lable = f'${tick}\\!\\degree$N'
+    else:
+        tick_lable = f'${-tick}\\!\\degree$S'
+    return tick_lable
 
 
-def _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=None, values='center_with_bounds'):
-    def transform_tick(i):
-        if np.issubdtype(type(i), np.floating):
-            assert i.is_integer()
-            i = int(i)
-        assert np.issubdtype(type(i), np.integer)
-        if values == 'left':
-            if 0 <= i <= sample_lsm.z_dim - 1:
-                return sample_lsm.z_left[i]
-            elif i == sample_lsm.z_dim:
-                return sample_lsm.z_right[-1]
-            else:
-                return np.iinfo(np.int32).min
-        elif values == 'center_with_bounds':
-            if i == 0:
-                return sample_lsm.z_left[0]
-            elif i == sample_lsm.z_dim - 1:
-                return sample_lsm.z_right[-1]
-            elif 0 < i < sample_lsm.z_dim - 1:
-                return sample_lsm.z_center[i]
-            else:
-                return np.iinfo(np.int32).min
+def _transform_depth_tick(tick, sample_lsm, tick_decimals=None, values='center_with_bounds'):
+    if np.issubdtype(type(tick), np.floating):
+        assert tick.is_integer()
+        tick = int(tick)
+    assert np.issubdtype(type(tick), np.integer)
+    if values == 'left':
+        if 0 <= tick <= sample_lsm.z_dim - 1:
+            return sample_lsm.z_left[tick]
+        elif tick == sample_lsm.z_dim:
+            return sample_lsm.z_right[-1]
         else:
-            raise ValueError(f'Unksupported values {values}.')
+            return np.iinfo(np.int32).min
+    elif values == 'center_with_bounds':
+        if tick == 0:
+            return sample_lsm.z_left[0]
+        elif tick == sample_lsm.z_dim - 1:
+            return sample_lsm.z_right[-1]
+        elif 0 < tick < sample_lsm.z_dim - 1:
+            return sample_lsm.z_center[tick]
+        else:
+            return np.iinfo(np.int32).min
+    else:
+        raise ValueError(f'Unksupported values {values}.')
 
-    tick_lables = [transform_tick(i) for i in ticks]
-    return _prepare_tick_lables(tick_lables, ticks_decimals=ticks_decimals)
+    return _prepare_tick_lable(tick, tick_decimals=tick_decimals)
 
 
 def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=False, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
@@ -268,13 +269,13 @@ def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None,
             plt.xlim(left=left, right=right)
             plt.ylim(top=0, bottom=profile.shape[1])
 
-        transform_y_ticks = lambda ticks: _transform_y_ticks(ticks, sample_lsm, ticks_decimals=x_ticks_decimals)
-        transform_depth_ticks = lambda ticks: _transform_depth_ticks(ticks, sample_lsm, ticks_decimals=y_ticks_decimals, values='left')
+        transform_y_tick = lambda ticks: _transform_y_tick(ticks, sample_lsm, tick_decimals=x_ticks_decimals)
+        transform_depth_tick = lambda ticks: _transform_depth_tick(ticks, sample_lsm, tick_decimals=y_ticks_decimals, values='left')
         util.plot.auxiliary.generic(
             file, plot_function, colorbar=colorbar,
             tick_number_x=tick_number_x, tick_number_y=tick_number_y,
             tick_interger_only_x=True, tick_interger_only_y=True,
-            tick_transform_x=transform_y_ticks, tick_transform_y=transform_depth_ticks,
+            tick_transform_x=transform_y_tick, tick_transform_y=transform_depth_tick,
             **kwargs)
 
 
