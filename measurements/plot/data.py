@@ -186,9 +186,9 @@ def _transform_y_tick(tick, sample_lsm, tick_decimals=None):
     tick = tick / sample_lsm.y_dim * 180 - 90
     tick = _prepare_tick_lable(tick, tick_decimals=tick_decimals)
     if tick >= 0:
-        tick_lable = f'${tick}\\!\\degree$N'
+        tick_lable = '$' + str(tick) + '^{\\circ}$N'
     else:
-        tick_lable = f'${-tick}\\!\\degree$S'
+        tick_lable = '$' + str(-tick) + '^{\\circ}$S'
     return tick_lable
 
 
