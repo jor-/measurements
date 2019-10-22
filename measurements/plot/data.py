@@ -176,10 +176,10 @@ def plot_histogram(data, file, v_max=None, overwrite=False, **kwargs):
 def _prepare_tick_lable(tick, tick_decimals=None):
     if tick_decimals is not None:
         tick_decimals = int(tick_decimals)
-        tick_lable = np.around(tick, decimals=tick_decimals)
+        tick = np.around(tick, decimals=tick_decimals)
         if tick_decimals == 0:
-            tick_lable = int(tick_lable)
-    return tick_lable
+            tick = int(tick)
+    return tick
 
 
 def _transform_y_tick(tick, sample_lsm, tick_decimals=None):
