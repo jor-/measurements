@@ -193,6 +193,7 @@ def _transform_y_tick(tick, sample_lsm, tick_decimals=None):
 
 
 def _transform_depth_tick(tick, sample_lsm, tick_decimals=None, values='center_with_bounds'):
+    # get value
     if np.issubdtype(type(tick), np.floating):
         assert tick.is_integer()
         tick = int(tick)
@@ -215,8 +216,18 @@ def _transform_depth_tick(tick, sample_lsm, tick_decimals=None, values='center_w
             label = np.iinfo(np.int32).min
     else:
         raise ValueError(f'Unksupported values {values}.')
-
-    return _prepare_tick_lable(label, tick_decimals=tick_decimals)
+    # apply decimal points
+    label = _prepare_tick_lable(label, tick_decimals=tick_decimals)
+    # apply common string width
+    width = len(str(int(sample_lsm.z_right[-1])))
+    if tick_decimals is not None:
+        tick_decimals = int(tick_decimals)
+        if tick_decimals > 0:
+            width += 1 + tick_decimals
+    format_str = '{:' + str(width) + '}'
+    label = format_str.format(label)
+    # return
+    return label
 
 
 def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=False, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
