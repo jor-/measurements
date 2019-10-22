@@ -199,24 +199,24 @@ def _transform_depth_tick(tick, sample_lsm, tick_decimals=None, values='center_w
     assert np.issubdtype(type(tick), np.integer)
     if values == 'left':
         if 0 <= tick <= sample_lsm.z_dim - 1:
-            return sample_lsm.z_left[tick]
+            label = sample_lsm.z_left[tick]
         elif tick == sample_lsm.z_dim:
-            return sample_lsm.z_right[-1]
+            label = sample_lsm.z_right[-1]
         else:
-            return np.iinfo(np.int32).min
+            label = np.iinfo(np.int32).min
     elif values == 'center_with_bounds':
         if tick == 0:
-            return sample_lsm.z_left[0]
+            label = sample_lsm.z_left[0]
         elif tick == sample_lsm.z_dim - 1:
-            return sample_lsm.z_right[-1]
+            label = sample_lsm.z_right[-1]
         elif 0 < tick < sample_lsm.z_dim - 1:
-            return sample_lsm.z_center[tick]
+            label = sample_lsm.z_center[tick]
         else:
-            return np.iinfo(np.int32).min
+            label = np.iinfo(np.int32).min
     else:
         raise ValueError(f'Unksupported values {values}.')
 
-    return _prepare_tick_lable(tick, tick_decimals=tick_decimals)
+    return _prepare_tick_lable(label, tick_decimals=tick_decimals)
 
 
 def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=False, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
