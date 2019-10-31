@@ -1,6 +1,8 @@
 import pathlib
 import warnings
 
+import numpy as np
+
 import measurements.plot.constants
 
 
@@ -38,3 +40,28 @@ def append_v_max_to_filename(filename, v_max):
     if v_max is not None:
         filename = append_to_filename(filename, f'_-_v_max_{v_max}')
     return filename
+
+
+def change_one_dim(data, new_dim=None, axis=0):
+    if new_dim is not None:
+        new_dim = int(new_dim)
+        old_dim = data.shape[axis]
+        factor = old_dim / new_dim
+        if factor.is_integer() and factor >= 1:
+            if factor > 1:
+                factor = int(factor)
+                new_shape = data.shape[:axis] + (new_dim,) + data.shape[axis + 1:]
+                new_data = np.zeros(new_shape)
+                prefix = (slice(None, None, None),) * axis
+                for i in range(factor):
+                    new_data += data[prefix][i::factor]
+                new_data /= factor
+            else:
+                new_data = data
+        else:
+            raise ValueError(f'Old dim {old_dim} must be a mutiple of new dim {new_dim}.')
+        assert new_data.ndim == data.ndim
+        assert new_data.shape[axis] == new_dim
+        return new_data
+    else:
+        return data

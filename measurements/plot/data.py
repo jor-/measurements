@@ -30,30 +30,6 @@ def _data_abs_depth_difference(data):
     return diff
 
 
-def _change_t_dim(data, t_dim=None):
-    if t_dim is not None:
-        t_dim = int(t_dim)
-        old_t_dim = data.shape[0]
-        factor = old_t_dim / t_dim
-        if factor.is_integer() and factor >= 1:
-            if factor > 1:
-                factor = int(factor)
-                new_shape = (t_dim,) + data.shape[1:]
-                new_data = np.zeros(new_shape)
-                for i in range(factor):
-                    new_data += data[i::factor]
-                new_data /= factor
-            else:
-                new_data = data
-        else:
-            raise ValueError(f'Old time dim {old_t_dim} must be a mutiple of new time dim {t_dim}.')
-        assert new_data.ndim == data.ndim
-        assert new_data.shape[0] == t_dim
-        return new_data
-    else:
-        return data
-
-
 def _average_data(data, sample_lsm, exclude_axes=None):
     dtype = np.float128
     if exclude_axes is None or exclude_axes == (0,):
@@ -84,7 +60,7 @@ def _average_data(data, sample_lsm, exclude_axes=None):
 
 def plot_time_space_depth(data, file, v_max=None, t_dim=None, colorbar=True, overwrite=False, **kwargs):
     assert data.ndim == 4
-    data = _change_t_dim(data, t_dim=t_dim)
+    data = measurements.plot.util.change_one_dim(data, new_dim=t_dim, axis=0)
     v_min = 0
     # prepare file
     file = measurements.plot.util.append_to_filename(file, '_-_time_space_depth')
@@ -309,7 +285,7 @@ def plot(data, file, sample_lsm, plot_type='all', v_max=None, overwrite=False, c
             if data.ndim == 4:
                 t_dim = data.shape[0]
                 if t_dim % 4 == 0:
-                    seasonal_data = _change_t_dim(data, t_dim=4)
+                    seasonal_data = measurements.plot.util.change_one_dim(data, new_dim=4, axis=0)
                     plot_time_space_depth(seasonal_data, file, v_max=None, overwrite=overwrite, colorbar=colorbar, **kwargs)
                     plot_time_space_depth(seasonal_data, fixed_file, v_max='fixed', overwrite=overwrite, colorbar=colorbar, **kwargs)
             # plot time difference
