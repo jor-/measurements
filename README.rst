@@ -2,7 +2,7 @@
 MEASUREMENTS
 ============
 
-This is a collection of Python modules containing functions to handel measurements.
+This is a collection of Python functions to handle, statistically analyze and plot measurement data. In particular, it is designed to deal with data from the World Ocean Database.
 
 
 Release info
@@ -78,7 +78,7 @@ https://github.com/jor-/measurements
 Copyright
 =========
 
-Copyright (C) 2011-2018  Joscha Reimer jor@informatik.uni-kiel.de
+Copyright (C) 2011-2019  Joscha Reimer jor@informatik.uni-kiel.de
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU Affero General Public License as
