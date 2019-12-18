@@ -1,4 +1,5 @@
 import abc
+import collections.abc
 import os.path
 
 import numpy as np
@@ -1773,10 +1774,7 @@ class TooFewValuesError(Exception):
 def as_measurements_collection(measurements_object):
     if isinstance(measurements_object, MeasurementsCollectionCache):
         return measurements_object
+    elif isinstance(measurements_object, collections.abc.Iterable):
+        return MeasurementsCollectionCache(*measurements_object)
     else:
-        try:
-            len(measurements_object)
-        except TypeError:
-            return MeasurementsCollectionCache(measurements_object)
-        else:
-            return MeasurementsCollectionCache(*measurements_object)
+        return MeasurementsCollectionCache(measurements_object)
