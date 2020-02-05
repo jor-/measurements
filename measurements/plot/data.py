@@ -206,7 +206,7 @@ def _transform_depth_tick(tick, sample_lsm, tick_decimals=None, values='center_w
     return label
 
 
-def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=False, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, **kwargs):
+def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None, x_coordinate_to=None, remove_parts_without_data=False, colorbar=True, overwrite=False, tick_number_x=None, tick_number_y=None, x_ticks_decimals=None, y_ticks_decimals=None, land_brightness=0, **kwargs):
     # prepare file
     file = measurements.plot.util.append_to_filename(file, '_-_y_z_profile')
     file = measurements.plot.util.append_v_max_to_filename(file, v_max)
@@ -228,6 +228,13 @@ def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None,
             data = sample_lsm.apply_ranges_to_mask(data, outside_value=np.nan, x_from=x_coordinate_from, x_to=x_coordinate_to)
         profile = _average_data(data, sample_lsm, exclude_axes=(2, 3))
 
+        # land mask
+        land_mask = np.isnan(profile)
+        land_array = np.ma.masked_all(profile.shape, np.float32)
+        land_brightness = float(land_brightness)
+        assert 0 <= land_brightness <= 1
+        land_array[land_mask] = land_brightness
+
         # v min and v_max
         v_min = 0
         if v_max is None:
@@ -242,6 +249,12 @@ def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None,
 
         # plot data
         def plot_function(fig):
+            # plot land
+            land_colormap = plt.cm.gray
+            land_colormap.set_bad(color='w', alpha=0.0)
+            axes_image = plt.imshow(land_array.T, aspect='equal', extent=(0, n, m, 0), vmin=0, vmax=1, cmap=land_colormap)
+
+            # plot profile
             axes_image = plt.imshow(profile.T, aspect='equal', extent=(0, n, m, 0), vmin=v_min, vmax=v_max)
             axes = fig.gca()
 
