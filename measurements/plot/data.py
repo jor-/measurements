@@ -200,7 +200,7 @@ def _transform_depth_tick(tick, sample_lsm, tick_decimals=None, values='center_w
         tick_decimals = int(tick_decimals)
         if tick_decimals > 0:
             width += 1 + tick_decimals
-    format_str = '{:' + str(width) + '}'
+    format_str = '{:>' + str(width) + '}'
     label = format_str.format(label)
     # return
     return label
@@ -269,13 +269,13 @@ def plot_y_z_profile(data, file, sample_lsm, v_max=None, x_coordinate_from=None,
             plt.xlim(left=left, right=right)
             plt.ylim(top=0, bottom=profile.shape[1])
 
-        transform_y_tick = lambda ticks: _transform_y_tick(ticks, sample_lsm, tick_decimals=x_ticks_decimals)
+        transform_x_tick = lambda ticks: _transform_y_tick(ticks, sample_lsm, tick_decimals=x_ticks_decimals)
         transform_depth_tick = lambda ticks: _transform_depth_tick(ticks, sample_lsm, tick_decimals=y_ticks_decimals, values='left')
         util.plot.auxiliary.generic(
             file, plot_function, colorbar=colorbar,
             tick_number_x=tick_number_x, tick_number_y=tick_number_y,
             tick_interger_only_x=True, tick_interger_only_y=True,
-            tick_transform_x=transform_y_tick, tick_transform_y=transform_depth_tick,
+            tick_transform_x=transform_x_tick, tick_transform_y=transform_depth_tick,
             **kwargs)
 
 
