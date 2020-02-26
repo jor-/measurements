@@ -194,14 +194,8 @@ def _transform_depth_tick(tick, sample_lsm, tick_decimals=None, values='center_w
         raise ValueError(f'Unksupported values {values}.')
     # apply decimal points
     label = _prepare_tick_lable(label, tick_decimals=tick_decimals)
-    # apply common string width
-    width = len(str(int(sample_lsm.z_right[-1])))
-    if tick_decimals is not None:
-        tick_decimals = int(tick_decimals)
-        if tick_decimals > 0:
-            width += 1 + tick_decimals
-    format_str = '{:>' + str(width) + '}'
-    label = format_str.format(label)
+    # use math mode
+    label = f'${label}$'
     # return
     return label
 
